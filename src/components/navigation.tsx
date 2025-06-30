@@ -24,6 +24,10 @@ export function Navigation() {
 
   const navItems = [
     { href: `/${locale}`, label: t("home") },
+    {
+      label: t("search"),
+      href: `/${locale}/search`,
+    },
     { href: `/${locale}/recipes`, label: t("recipes") },
     { href: `/${locale}/suggested`, label: t("suggested") },
   ];

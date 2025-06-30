@@ -32,7 +32,7 @@ export function RecipeCard({ recipe, userIngredients = [] }: RecipeCardProps) {
       <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer">
         <div className="relative">
           <Image
-            src={recipe.image || "/placeholder.svg"}
+            src={recipe.image || "/images/images/placeholder.svg"}
             alt={recipe.title}
             width={300}
             height={200}

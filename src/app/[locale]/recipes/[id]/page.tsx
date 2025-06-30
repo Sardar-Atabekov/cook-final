@@ -19,12 +19,14 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 
 export default function RecipePage() {
   const params = useParams();
   const { ingredients: userIngredients } = useStore();
   const recipeId = params.id as string;
-
+  const locale = useLocale();
+  const t = useTranslations("recipe");
   const {
     data: recipe,
     isLoading,
@@ -55,13 +57,11 @@ export default function RecipePage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            Recipe Not Found
+            {t("notFound")}
           </h1>
-          <p className="text-gray-600 mb-8">
-            The recipe you're looking for doesn't exist.
-          </p>
+          <p className="text-gray-600 mb-8">{t("notFoundDescription")}</p>
           <Button asChild>
-            <Link href="/recipes">Back to Recipes</Link>
+            <Link href={`/${locale}/recipes`}>{t("backToRecipes")}</Link>
           </Button>
         </div>
       </div>
@@ -85,9 +85,9 @@ export default function RecipePage() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Back Button */}
       <Button variant="ghost" asChild className="mb-6">
-        <Link href="/recipes">
+        <Link href={`/${locale}/recipes`}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Recipes
+          {t("backToRecipes")}
         </Link>
       </Button>
 
@@ -95,7 +95,7 @@ export default function RecipePage() {
       <div className="mb-8">
         <div className="relative h-64 md:h-80 rounded-lg overflow-hidden mb-6">
           <Image
-            src={recipe.image || "/placeholder.svg"}
+            src={recipe.image || "/images/placeholder.svg"}
             alt={recipe.title}
             fill
             className="object-cover"

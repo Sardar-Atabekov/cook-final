@@ -10,7 +10,7 @@ const mockRecipes = [
   {
     id: "1",
     title: "Creamy Mushroom Pasta",
-    image: "/placeholder.svg?height=200&width=300",
+    image: "/images/placeholder.svg?height=200&width=300",
     cookingTime: 25,
     matchPercentage: 85,
     missingIngredients: ["heavy cream"],
@@ -35,7 +35,7 @@ const mockRecipes = [
   {
     id: "2",
     title: "Chicken Stir Fry",
-    image: "/placeholder.svg?height=200&width=300",
+    image: "/images/placeholder.svg?height=200&width=300",
     cookingTime: 15,
     matchPercentage: 92,
     missingIngredients: [],
@@ -59,7 +59,7 @@ const mockRecipes = [
   {
     id: "3",
     title: "Avocado Toast",
-    image: "/placeholder.svg?height=200&width=300",
+    image: "/images/placeholder.svg?height=200&width=300",
     cookingTime: 5,
     matchPercentage: 100,
     missingIngredients: [],
@@ -77,7 +77,7 @@ const mockRecipes = [
   {
     id: "4",
     title: "Beef Tacos",
-    image: "/placeholder.svg?height=200&width=300",
+    image: "/images/placeholder.svg?height=200&width=300",
     cookingTime: 20,
     matchPercentage: 75,
     missingIngredients: ["tortillas", "cheese"],

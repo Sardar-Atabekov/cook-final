@@ -28,6 +28,7 @@ import { useToast } from "@/hooks/use-toast";
 import { authApi } from "@/lib/api";
 import { useStore } from "@/lib/store";
 import { ChefHat, Eye, EyeOff } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 const signupSchema = z
   .object({
@@ -49,6 +50,7 @@ export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { login } = useStore();
+  const t = useTranslations("auth");
 
   const form = useForm<SignupForm>({
     resolver: zodResolver(signupSchema),
@@ -89,6 +91,8 @@ export default function SignupPage() {
     signupMutation.mutate(signupData);
   };
 
+ 
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -100,7 +104,7 @@ export default function SignupPage() {
             </div>
           </div>
           <h2 className="text-3xl font-bold text-gray-900">
-            Create your account
+            {t("auth.signup.title")}
           </h2>
           <p className="mt-2 text-gray-600">
             Join thousands of home cooks finding amazing recipes
