@@ -28,6 +28,7 @@ import { useToast } from "@/hooks/use-toast";
 import { authApi } from "@/lib/api";
 import { useStore } from "@/lib/store";
 import { ChefHat, Eye, EyeOff } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -50,21 +51,23 @@ export default function LoginPage() {
     },
   });
 
+  const t = useTranslations("auth");
+  const locale = useLocale();
   const loginMutation = useMutation({
     mutationFn: ({ email, password }: LoginForm) =>
       authApi.login(email, password),
     onSuccess: (data) => {
       login(data.token, data.user);
       toast({
-        title: "Welcome back!",
-        description: "You have been successfully logged in.",
+        title: t("loginSuccess"),
+        description: t("loginSuccessDescription"),
       });
-      router.push("/");
+      router.push(`/${locale}`);
     },
     onError: (error) => {
       toast({
-        title: "Login failed",
-        description: "Please check your credentials and try again.",
+        title: t("loginFailed"),
+        description: t("loginFailedDescription"),
         variant: "destructive",
       });
     },
@@ -84,18 +87,18 @@ export default function LoginPage() {
               <ChefHat className="h-8 w-8 text-blue-600" />
             </div>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900">Welcome back</h2>
+          <h2 className="text-3xl font-bold text-gray-900">{t("welcomeBack")}</h2>
           <p className="mt-2 text-gray-600">
-            Sign in to your account to continue cooking
+            {t("signInDescription")}
           </p>
         </div>
 
         {/* Login Form */}
         <Card>
           <CardHeader>
-            <CardTitle>Sign In</CardTitle>
+            <CardTitle>{t("signIn")}</CardTitle>
             <CardDescription>
-              Enter your email and password to access your account
+              {t("signInDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -109,11 +112,11 @@ export default function LoginPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>{t("email")}</FormLabel>
                       <FormControl>
                         <Input
                           type="email"
-                          placeholder="Enter your email"
+                          placeholder={t("enterEmail")}
                           {...field}
                         />
                       </FormControl>
@@ -127,12 +130,12 @@ export default function LoginPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>{t("password")}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
                             type={showPassword ? "text" : "password"}
-                            placeholder="Enter your password"
+                            placeholder={t("enterPassword")}
                             {...field}
                           />
                           <Button
@@ -160,19 +163,19 @@ export default function LoginPage() {
                   className="w-full bg-blue-600 hover:bg-blue-700"
                   disabled={loginMutation.isPending}
                 >
-                  {loginMutation.isPending ? "Signing in..." : "Sign In"}
+                  {loginMutation.isPending ? t("signingIn") : t("signIn")}
                 </Button>
               </form>
             </Form>
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                Don't have an account?{" "}
+                {t("dontHaveAccount")}{" "}
                 <Link
-                  href="/auth/signup"
+                  href={`/${locale}/auth/signup`}
                   className="font-medium text-blue-600 hover:text-brand-blue"
                 >
-                  Sign up here
+                  {t("signUpHere")}
                 </Link>
               </p>
             </div>

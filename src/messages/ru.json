@@ -40,6 +40,7 @@
     "enterEmail": "Введите ваш email",
     "enterPassword": "Введите ваш пароль",
     "createPassword": "Создайте пароль",
+    "signUpCreate": "Создайте свой аккаунт, чтобы начать открывать рецепты",
     "confirmPasswordPlaceholder": "Подтвердите ваш пароль",
     "enterFullName": "Введите ваше полное имя",
     "signingIn": "Вход...",

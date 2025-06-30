@@ -28,7 +28,7 @@ import { useToast } from "@/hooks/use-toast";
 import { authApi } from "@/lib/api";
 import { useStore } from "@/lib/store";
 import { ChefHat, Eye, EyeOff } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 const signupSchema = z
   .object({
@@ -51,7 +51,8 @@ export default function SignupPage() {
   const { toast } = useToast();
   const { login } = useStore();
   const t = useTranslations("auth");
-
+  const locale = useLocale();
+  console.log("Current locale:", locale);
   const form = useForm<SignupForm>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -91,8 +92,6 @@ export default function SignupPage() {
     signupMutation.mutate(signupData);
   };
 
- 
-
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -104,20 +103,16 @@ export default function SignupPage() {
             </div>
           </div>
           <h2 className="text-3xl font-bold text-gray-900">
-            {t("auth.signup.title")}
+            {t("createAccount")}
           </h2>
-          <p className="mt-2 text-gray-600">
-            Join thousands of home cooks finding amazing recipes
-          </p>
+          <p className="mt-2 text-gray-600">{t("signUpDescription")}</p>
         </div>
 
         {/* Signup Form */}
         <Card>
           <CardHeader>
-            <CardTitle>Sign Up</CardTitle>
-            <CardDescription>
-              Create your account to start discovering recipes
-            </CardDescription>
+            <CardTitle>{t("signUp")}</CardTitle>
+            <CardDescription>{t("signUpCreate")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -130,9 +125,9 @@ export default function SignupPage() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Full Name</FormLabel>
+                      <FormLabel>{t("fullName")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter your full name" {...field} />
+                        <Input placeholder={t("enterFullName")} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -144,11 +139,11 @@ export default function SignupPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>{t("email")}</FormLabel>
                       <FormControl>
                         <Input
                           type="email"
-                          placeholder="Enter your email"
+                          placeholder={t("enterEmail")}
                           {...field}
                         />
                       </FormControl>
@@ -162,12 +157,12 @@ export default function SignupPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>{t("password")}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
                             type={showPassword ? "text" : "password"}
-                            placeholder="Create a password"
+                            placeholder={t("createPassword")}
                             {...field}
                           />
                           <Button
@@ -195,12 +190,12 @@ export default function SignupPage() {
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Confirm Password</FormLabel>
+                      <FormLabel>{t("confirmPassword")}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
                             type={showConfirmPassword ? "text" : "password"}
-                            placeholder="Confirm your password"
+                            placeholder={t("confirmPasswordPlaceholder")}
                             {...field}
                           />
                           <Button
@@ -231,20 +226,20 @@ export default function SignupPage() {
                   disabled={signupMutation.isPending}
                 >
                   {signupMutation.isPending
-                    ? "Creating account..."
-                    : "Create Account"}
+                    ? t("creatingAccount")
+                    : t("createAccountButton")}
                 </Button>
               </form>
             </Form>
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                Already have an account?{" "}
+                {t("alreadyHaveAccount")}{" "}
                 <Link
-                  href="/auth/login"
+                  href={`/${locale}/auth/login`}
                   className="font-medium text-blue-600 hover:text-brand-blue"
                 >
-                  Sign in here
+                  {t("signInHere")}
                 </Link>
               </p>
             </div>
