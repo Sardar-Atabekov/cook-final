@@ -10,6 +10,6 @@ export default async function getRequestConfig(params: any) {
   console.log("locale msg", safeLocale);
   return {
     locale: safeLocale,
-    messages: require(`../messages/${safeLocale}.json`),
+    messages: require(`../locales/${safeLocale}.json`),
   };
 }

@@ -1,32 +1,77 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { IngredientInput } from "@/components/ingredient-input";
 import { useStore } from "@/lib/store";
-import { useRouter, useParams } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { ChefHat, Search, Clock, Users } from "lucide-react";
+import { useMemo, useRef } from "react";
+import Footer from "@/components/footer";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { useLocale, useTranslations } from "next-intl";
+import { IngredientInput } from "@/components/ingredient-input";
+import { QuickActionCard } from "@/components/quick-action-card";
+import { ChefHat, Search, Clock, Users, Star, Dice6 } from "lucide-react";
+
+type QuickAction = "quick" | "popular" | "random";
+
+const quickActions: {
+  icon: React.ElementType;
+  color: string;
+  titleKey: string;
+  descriptionKey: string;
+  action: QuickAction;
+}[] = [
+  {
+    icon: Clock,
+    color: "text-brand-green",
+    titleKey: "quickMeals",
+    descriptionKey: "quickMealsDescription",
+    action: "quick",
+  },
+  {
+    icon: Star,
+    color: "text-amber-500",
+    titleKey: "popularToday",
+    descriptionKey: "trendingRecipes",
+    action: "popular",
+  },
+  {
+    icon: Dice6,
+    color: "text-purple-500",
+    titleKey: "surpriseMe",
+    descriptionKey: "randomRecipe",
+    action: "random",
+  },
+];
 
 export default function HomePage() {
-  const { ingredients } = useStore();
   const router = useRouter();
-  const params = useParams();
-  const locale = params.locale as string;
+  const locale = useLocale();
   const t = useTranslations("home");
+  const { ingredients } = useStore();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const joinedIngredients = useMemo(() => ingredients.join(","), [ingredients]);
 
   const handleFindRecipes = () => {
     if (ingredients.length > 0) {
       const searchParams = new URLSearchParams({
-        ingredients: ingredients.join(","),
+        ingredients: joinedIngredients,
       });
       router.push(`/${locale}/recipes?${searchParams.toString()}`);
     }
   };
 
+  const handleQuickAction = (action: QuickAction) => {
+    const paths: Record<QuickAction, string> = {
+      quick: `/${locale}/recipes?type=quick`,
+      popular: `/${locale}/recipes?sort=popular`,
+      random: `/${locale}/recipes?random=true`,
+    };
+    router.push(paths[action]);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-red-50">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-red-50">
+      <section className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
           <div className="text-center">
             <div className="flex justify-center mb-6">
@@ -38,31 +83,49 @@ export default function HomePage() {
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
               {t("title")}
             </h1>
-
             <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
               {t("subtitle")}
             </p>
 
             <div className="mb-8">
-              <IngredientInput />
+              <IngredientInput ref={inputRef} />
             </div>
 
             <Button
               onClick={handleFindRecipes}
               disabled={ingredients.length === 0}
               size="lg"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
+              aria-label={t("findRecipes")}
+              className={`px-8 py-3 text-lg text-white ${
+                ingredients.length === 0
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
             >
               <Search className="h-5 w-5 mr-2" />
               {t("findRecipes")} (
               {t("ingredientsCount", { count: ingredients.length })})
             </Button>
           </div>
-        </div>
-      </div>
 
-      {/* Features Section */}
-      <div className="bg-white py-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto mt-5">
+            {quickActions.map(
+              ({ icon, color, titleKey, descriptionKey, action }) => (
+                <QuickActionCard
+                  key={action}
+                  icon={icon}
+                  color={color}
+                  title={t(titleKey)}
+                  description={t(descriptionKey)}
+                  onClick={() => handleQuickAction(action)}
+                />
+              )
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
@@ -72,35 +135,24 @@ export default function HomePage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Search className="h-8 w-8 text-blue-600" />
+            {[Search, Clock, Users].map((Icon, idx) => (
+              <div className="text-center" key={idx}>
+                <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Icon className="h-8 w-8 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">
+                  {t(`step${idx + 1}Title`)}
+                </h3>
+                <p className="text-gray-600">
+                  {t(`step${idx + 1}Description`)}
+                </p>
               </div>
-              <h3 className="text-xl font-semibold mb-2">{t("step1Title")}</h3>
-              <p className="text-gray-600">{t("step1Description")}</p>
-            </div>
-
-            <div className="text-center">
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Clock className="h-8 w-8 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">{t("step2Title")}</h3>
-              <p className="text-gray-600">{t("step2Description")}</p>
-            </div>
-
-            <div className="text-center">
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="h-8 w-8 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">{t("step3Title")}</h3>
-              <p className="text-gray-600">{t("step3Description")}</p>
-            </div>
+            ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* CTA Section */}
-      <div className="bg-blue-600 py-16">
+      <section className="bg-blue-600 py-16 mb-12 mt-6">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-white mb-4">
             {t("readyToCook")}
@@ -109,7 +161,7 @@ export default function HomePage() {
             {t("readyToCookSubtitle")}
           </p>
           <Button
-            onClick={() => document.querySelector("input")?.focus()}
+            onClick={() => inputRef.current?.focus()}
             size="lg"
             variant="secondary"
             className="bg-white text-blue-600 hover:bg-gray-100"
@@ -117,7 +169,9 @@ export default function HomePage() {
             {t("addFirstIngredient")}
           </Button>
         </div>
-      </div>
-    </div>
+      </section>
+
+      <Footer />
+    </main>
   );
 }

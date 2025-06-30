@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Globe } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 
 const languages = [
   { code: "en", name: "English", flag: "🇺🇸" },
@@ -26,8 +26,7 @@ export function LanguageToggle() {
   const pathname = usePathname();
   const router = useRouter();
   const t = useTranslations("common");
-  const currentLocale = params.locale as string;
-
+  const currentLocale = useLocale();
   const switchLanguage = (newLocale: string) => {
     const currentPath = pathname.replace(`/${currentLocale}`, "");
     router.push(`/${newLocale}${currentPath}`);

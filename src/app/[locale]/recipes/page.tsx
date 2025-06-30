@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams, useParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { RecipeCard } from "@/components/recipe-card";
 import { RecipeFilters, type FilterState } from "@/components/recipe-filters";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 export default function RecipesPage() {
   const searchParams = useSearchParams();
   const params = useParams();
-  const locale = params.locale as string;
+  const locale = useLocale();
   const { ingredients } = useStore();
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<FilterState>({

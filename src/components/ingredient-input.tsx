@@ -1,6 +1,6 @@
 "use client";
 
-import type React from "react";
+import React from "react";
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
@@ -11,7 +11,10 @@ import { useStore } from "@/lib/store";
 import { recipeApi } from "@/lib/api";
 import { Search, X, Plus } from "lucide-react";
 
-export function IngredientInput() {
+export const IngredientInput = React.forwardRef<
+  HTMLInputElement,
+  React.InputHTMLAttributes<HTMLInputElement>
+>(function IngredientInput(props, ref) {
   const [query, setQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const { ingredients, addIngredient, removeIngredient } = useStore();
@@ -57,7 +60,7 @@ export function IngredientInput() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
           <Input
-            ref={inputRef}
+            ref={ref}
             type="text"
             placeholder={t("searchPlaceholder")}
             value={query}
@@ -68,6 +71,7 @@ export function IngredientInput() {
             onKeyDown={handleKeyDown}
             onFocus={() => setShowSuggestions(true)}
             className="pl-10 pr-12 h-12 text-lg"
+            {...props}
           />
           {query && (
             <Button
@@ -117,4 +121,4 @@ export function IngredientInput() {
       )}
     </div>
   );
-}
+});

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
 import { ChefHat, User, LogOut, Globe, Utensils } from "lucide-react";
@@ -17,8 +17,7 @@ import { LanguageToggle } from "@/components/language-toggle";
 
 export function Navigation() {
   const pathname = usePathname();
-  const params = useParams();
-  const locale = params.locale as string;
+  const locale = useLocale();
   const t = useTranslations("navigation");
   const { user, logout } = useStore();
 

@@ -1,6 +1,7 @@
 import type React from "react";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { useLocale } from "next-intl";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -11,7 +12,7 @@ export default function RootLayout({
   children: React.ReactNode;
   params: { locale?: string };
 }) {
-  const locale = params?.locale;
+  const locale = useLocale();
   return (
     <html lang={locale}>
       <head>
