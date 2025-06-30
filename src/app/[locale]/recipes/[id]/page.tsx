@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useQuery } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { recipeApi } from "@/lib/api";
-import { useStore } from "@/lib/store";
+import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'next/navigation';
+import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { recipeApi } from '@/lib/api';
+import { useStore } from '@/lib/store';
 import {
   Clock,
   MapPin,
@@ -17,22 +17,22 @@ import {
   ArrowLeft,
   Check,
   X,
-} from "lucide-react";
-import Link from "next/link";
-import { useLocale, useTranslations } from "next-intl";
+} from 'lucide-react';
+import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 
 export default function RecipePage() {
   const params = useParams();
   const { ingredients: userIngredients } = useStore();
   const recipeId = params.id as string;
   const locale = useLocale();
-  const t = useTranslations("recipe");
+  const t = useTranslations('recipe');
   const {
     data: recipe,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["recipe", recipeId],
+    queryKey: ['recipe', recipeId],
     queryFn: () => recipeApi.getRecipe(recipeId),
   });
 
@@ -57,11 +57,11 @@ export default function RecipePage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            {t("notFound")}
+            {t('notFound')}
           </h1>
-          <p className="text-gray-600 mb-8">{t("notFoundDescription")}</p>
+          <p className="text-gray-600 mb-8">{t('notFoundDescription')}</p>
           <Button asChild>
-            <Link href={`/${locale}/recipes`}>{t("backToRecipes")}</Link>
+            <Link href={`/${locale}/recipes`}>{t('backToRecipes')}</Link>
           </Button>
         </div>
       </div>
@@ -87,7 +87,7 @@ export default function RecipePage() {
       <Button variant="ghost" asChild className="mb-6">
         <Link href={`/${locale}/recipes`}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          {t("backToRecipes")}
+          {t('backToRecipes')}
         </Link>
       </Button>
 
@@ -95,7 +95,7 @@ export default function RecipePage() {
       <div className="mb-8">
         <div className="relative h-64 md:h-80 rounded-lg overflow-hidden mb-6">
           <Image
-            src={recipe.image || "/images/placeholder.svg"}
+            src={recipe.image || '/images/placeholder.svg'}
             alt={recipe.title}
             fill
             className="object-cover"
@@ -146,21 +146,21 @@ export default function RecipePage() {
             <Badge
               className={`${
                 recipe.matchPercentage >= 80
-                  ? "bg-green-100 text-green-800"
+                  ? 'bg-green-100 text-green-800'
                   : recipe.matchPercentage >= 60
-                  ? "bg-yellow-100 text-yellow-800"
-                  : "bg-red-100 text-red-800"
+                    ? 'bg-yellow-100 text-yellow-800'
+                    : 'bg-red-100 text-red-800'
               }`}
             >
               {recipe.matchPercentage}% Match
             </Badge>
           </div>
           <div className="text-sm text-gray-600">
-            You have {ownedIngredients.length} of {recipe.ingredients.length}{" "}
+            You have {ownedIngredients.length} of {recipe.ingredients.length}{' '}
             ingredients
             {missingIngredients.length > 0 && (
               <span className="block mt-1">
-                Missing: {missingIngredients.slice(0, 3).join(", ")}
+                Missing: {missingIngredients.slice(0, 3).join(', ')}
                 {missingIngredients.length > 3 &&
                   ` +${missingIngredients.length - 3} more`}
               </span>
@@ -187,8 +187,8 @@ export default function RecipePage() {
                   <span
                     className={`${
                       hasIngredient(ingredient)
-                        ? "text-green-800"
-                        : "text-gray-900"
+                        ? 'text-green-800'
+                        : 'text-gray-900'
                     }`}
                   >
                     {ingredient}

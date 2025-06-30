@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Clock, MapPin } from "lucide-react";
-import type { Recipe } from "@/lib/api";
-import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
-import { usePathname } from "next/navigation";
-import { useLocale } from "next-intl";
+import Image from 'next/image';
+import Link from 'next/link';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Clock, MapPin } from 'lucide-react';
+import type { Recipe } from '@/lib/api';
+import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import { useLocale } from 'next-intl';
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -22,9 +22,9 @@ export function RecipeCard({ recipe, userIngredients = [] }: RecipeCardProps) {
   const locale = useLocale();
 
   const getMatchColor = (percentage: number) => {
-    if (percentage >= 80) return "bg-green-100 text-green-800";
-    if (percentage >= 60) return "bg-yellow-100 text-yellow-800";
-    return "bg-red-100 text-red-800";
+    if (percentage >= 80) return 'bg-green-100 text-green-800';
+    if (percentage >= 60) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-red-100 text-red-800';
   };
 
   return (
@@ -32,7 +32,7 @@ export function RecipeCard({ recipe, userIngredients = [] }: RecipeCardProps) {
       <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer">
         <div className="relative">
           <Image
-            src={recipe.image || "/images/images/placeholder.svg"}
+            src={recipe.image || '/images/images/placeholder.svg'}
             alt={recipe.title}
             width={300}
             height={200}
@@ -41,7 +41,7 @@ export function RecipeCard({ recipe, userIngredients = [] }: RecipeCardProps) {
           <div className="absolute top-2 right-2">
             <Badge
               className={cn(
-                "text-xs font-medium",
+                'text-xs font-medium',
                 getMatchColor(recipe.matchPercentage)
               )}
             >
@@ -79,7 +79,7 @@ export function RecipeCard({ recipe, userIngredients = [] }: RecipeCardProps) {
           {recipe.missingIngredients.length > 0 && (
             <div className="text-xs text-gray-500">
               <span className="font-medium">Missing: </span>
-              <span>{recipe.missingIngredients.slice(0, 3).join(", ")}</span>
+              <span>{recipe.missingIngredients.slice(0, 3).join(', ')}</span>
               {recipe.missingIngredients.length > 3 && (
                 <span> +{recipe.missingIngredients.length - 3} more</span>
               )}

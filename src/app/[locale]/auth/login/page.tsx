@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -22,17 +22,16 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
-import { authApi } from "@/lib/api";
-import { useStore } from "@/lib/store";
-import { ChefHat, Eye, EyeOff } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
-import { useLoginMutation } from "@/hooks/use-auth-mutation";
+} from '@/components/ui/form';
+import { useToast } from '@/hooks/use-toast';
+import { useStore } from '@/lib/store';
+import { ChefHat, Eye, EyeOff } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
+import { useLoginMutation } from '@/hooks/use-auth-mutation';
 
 const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -46,12 +45,12 @@ export default function LoginPage() {
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: '',
+      password: '',
     },
   });
 
-  const t = useTranslations("auth");
+  const t = useTranslations('auth');
   const locale = useLocale();
   const loginMutation = useLoginMutation();
 
@@ -60,16 +59,16 @@ export default function LoginPage() {
       onSuccess: (data) => {
         login(data.token, data.user);
         toast({
-          title: t("loginSuccess"),
-          description: t("loginSuccessDescription"),
+          title: t('loginSuccess'),
+          description: t('loginSuccessDescription'),
         });
         router.push(`/${locale}`);
       },
       onError: () => {
         toast({
-          title: t("loginError"),
-          description: t("loginErrorDescription"),
-          variant: "destructive",
+          title: t('loginError'),
+          description: t('loginErrorDescription'),
+          variant: 'destructive',
         });
       },
     });
@@ -86,16 +85,16 @@ export default function LoginPage() {
             </div>
           </div>
           <h2 className="text-3xl font-bold text-gray-900">
-            {t("welcomeBack")}
+            {t('welcomeBack')}
           </h2>
-          <p className="mt-2 text-gray-600">{t("signInDescription")}</p>
+          <p className="mt-2 text-gray-600">{t('signInDescription')}</p>
         </div>
 
         {/* Login Form */}
         <Card>
           <CardHeader>
-            <CardTitle>{t("signIn")}</CardTitle>
-            <CardDescription>{t("signInDescription")}</CardDescription>
+            <CardTitle>{t('signIn')}</CardTitle>
+            <CardDescription>{t('signInDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -108,11 +107,11 @@ export default function LoginPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("email")}</FormLabel>
+                      <FormLabel>{t('email')}</FormLabel>
                       <FormControl>
                         <Input
                           type="email"
-                          placeholder={t("enterEmail")}
+                          placeholder={t('enterEmail')}
                           {...field}
                         />
                       </FormControl>
@@ -126,12 +125,12 @@ export default function LoginPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("password")}</FormLabel>
+                      <FormLabel>{t('password')}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
-                            type={showPassword ? "text" : "password"}
-                            placeholder={t("enterPassword")}
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder={t('enterPassword')}
                             {...field}
                           />
                           <Button
@@ -159,19 +158,19 @@ export default function LoginPage() {
                   className="w-full bg-blue-600 hover:bg-blue-700"
                   disabled={loginMutation.isPending}
                 >
-                  {loginMutation.isPending ? t("signingIn") : t("signIn")}
+                  {loginMutation.isPending ? t('signingIn') : t('signIn')}
                 </Button>
               </form>
             </Form>
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                {t("dontHaveAccount")}{" "}
+                {t('dontHaveAccount')}{' '}
                 <Link
                   href={`/${locale}/auth/signup`}
                   className="font-medium text-blue-600 hover:text-brand-blue"
                 >
-                  {t("signUpHere")}
+                  {t('signUpHere')}
                 </Link>
               </p>
             </div>

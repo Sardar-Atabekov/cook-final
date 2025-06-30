@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useSearchParams, useParams } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
-import { RecipeCard } from "@/components/recipe-card";
-import { RecipeFilters, type FilterState } from "@/components/recipe-filters";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { recipeApi } from "@/lib/api";
-import { useStore } from "@/lib/store";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useSearchParams, useParams } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
+import { RecipeCard } from '@/components/recipe-card';
+import { RecipeFilters, type FilterState } from '@/components/recipe-filters';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { recipeApi } from '@/lib/api';
+import { useStore } from '@/lib/store';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function RecipesPage() {
   const searchParams = useSearchParams();
@@ -19,19 +19,19 @@ export default function RecipesPage() {
   const { ingredients } = useStore();
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<FilterState>({
-    mealType: "all",
-    country: "all",
+    mealType: 'all',
+    country: 'all',
     dietTags: [],
   });
-  const t = useTranslations("recipes");
+  const t = useTranslations('recipes');
 
   // Get ingredients from URL params or store
-  const urlIngredients = searchParams.get("ingredients")?.split(",") || [];
+  const urlIngredients = searchParams.get('ingredients')?.split(',') || [];
   const searchIngredients =
     urlIngredients.length > 0 ? urlIngredients : ingredients;
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["recipes", searchIngredients, filters, page],
+    queryKey: ['recipes', searchIngredients, filters, page],
     queryFn: () =>
       recipeApi.searchRecipes(searchIngredients, {
         ...filters,
@@ -50,10 +50,10 @@ export default function RecipesPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            {t("noIngredients")}
+            {t('noIngredients')}
           </h1>
-          <p className="text-gray-600 mb-8">{t("noIngredientsDescription")}</p>
-          <Button onClick={() => window.history.back()}>{t("goBack")}</Button>
+          <p className="text-gray-600 mb-8">{t('noIngredientsDescription')}</p>
+          <Button onClick={() => window.history.back()}>{t('goBack')}</Button>
         </div>
       </div>
     );
@@ -63,9 +63,9 @@ export default function RecipesPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t("title")}</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('title')}</h1>
         <p className="text-gray-600">
-          {t("foundWith", { ingredients: searchIngredients.join(", ") })}
+          {t('foundWith', { ingredients: searchIngredients.join(', ') })}
         </p>
       </div>
 
@@ -87,23 +87,23 @@ export default function RecipesPage() {
         </div>
       ) : error ? (
         <div className="text-center py-12">
-          <p className="text-red-600 mb-4">{t("error")}</p>
+          <p className="text-red-600 mb-4">{t('error')}</p>
           <Button onClick={() => window.location.reload()}>
-            {t("tryAgain")}
+            {t('tryAgain')}
           </Button>
         </div>
       ) : data?.recipes.length === 0 ? (
         <div className="text-center py-12">
           <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            {t("noRecipesFound")}
+            {t('noRecipesFound')}
           </h2>
-          <p className="text-gray-600 mb-4">{t("noRecipesDescription")}</p>
+          <p className="text-gray-600 mb-4">{t('noRecipesDescription')}</p>
           <Button
             onClick={() =>
-              setFilters({ mealType: "all", country: "all", dietTags: [] })
+              setFilters({ mealType: 'all', country: 'all', dietTags: [] })
             }
           >
-            {t("clearFilters")}
+            {t('clearFilters')}
           </Button>
         </div>
       ) : (
@@ -128,11 +128,11 @@ export default function RecipesPage() {
                 disabled={page === 1}
               >
                 <ChevronLeft className="h-4 w-4 mr-2" />
-                {t("previous")}
+                {t('previous')}
               </Button>
 
               <span className="text-sm text-gray-600">
-                {t("page", { current: page, total: data.totalPages })}
+                {t('page', { current: page, total: data.totalPages })}
               </span>
 
               <Button
@@ -140,7 +140,7 @@ export default function RecipesPage() {
                 onClick={() => setPage(page + 1)}
                 disabled={page === data.totalPages}
               >
-                {t("next")}
+                {t('next')}
                 <ChevronRight className="h-4 w-4 ml-2" />
               </Button>
             </div>

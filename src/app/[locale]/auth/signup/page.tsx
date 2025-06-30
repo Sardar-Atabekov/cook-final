@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -22,23 +22,23 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
-import { useSignupMutation } from "@/hooks/use-auth-mutation";
-import { useStore } from "@/lib/store";
-import { ChefHat, Eye, EyeOff } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
+} from '@/components/ui/form';
+import { useToast } from '@/hooks/use-toast';
+import { useSignupMutation } from '@/hooks/use-auth-mutation';
+import { useStore } from '@/lib/store';
+import { ChefHat, Eye, EyeOff } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 
 const signupSchema = z
   .object({
-    name: z.string().min(2, "Name must be at least 2 characters"),
-    email: z.string().email("Please enter a valid email address"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
+    name: z.string().min(2, 'Name must be at least 2 characters'),
+    email: z.string().email('Please enter a valid email address'),
+    password: z.string().min(6, 'Password must be at least 6 characters'),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
-    path: ["confirmPassword"],
+    path: ['confirmPassword'],
   });
 
 type SignupForm = z.infer<typeof signupSchema>;
@@ -49,37 +49,37 @@ export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { login } = useStore();
-  const t = useTranslations("auth");
+  const t = useTranslations('auth');
   const locale = useLocale();
-  console.log("Current locale:", locale);
   const form = useForm<SignupForm>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
     },
   });
 
   const signupMutation = useSignupMutation();
 
   const onSubmit = (data: SignupForm) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { confirmPassword, ...signupData } = data;
     signupMutation.mutate(signupData, {
       onSuccess: (data) => {
         login(data.token, data.user);
         toast({
-          title: t("signupSuccess"),
-          description: t("signupSuccessDescription"),
+          title: t('signupSuccess'),
+          description: t('signupSuccessDescription'),
         });
         router.push(`/${locale}`);
       },
       onError: () => {
         toast({
-          title: t("signupError"),
-          description: t("signupErrorDescription"),
-          variant: "destructive",
+          title: t('signupError'),
+          description: t('signupErrorDescription'),
+          variant: 'destructive',
         });
       },
     });
@@ -96,16 +96,16 @@ export default function SignupPage() {
             </div>
           </div>
           <h2 className="text-3xl font-bold text-gray-900">
-            {t("createAccount")}
+            {t('createAccount')}
           </h2>
-          <p className="mt-2 text-gray-600">{t("signUpDescription")}</p>
+          <p className="mt-2 text-gray-600">{t('signUpDescription')}</p>
         </div>
 
         {/* Signup Form */}
         <Card>
           <CardHeader>
-            <CardTitle>{t("signUp")}</CardTitle>
-            <CardDescription>{t("signUpCreate")}</CardDescription>
+            <CardTitle>{t('signUp')}</CardTitle>
+            <CardDescription>{t('signUpCreate')}</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -118,9 +118,9 @@ export default function SignupPage() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("fullName")}</FormLabel>
+                      <FormLabel>{t('fullName')}</FormLabel>
                       <FormControl>
-                        <Input placeholder={t("enterFullName")} {...field} />
+                        <Input placeholder={t('enterFullName')} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -132,11 +132,11 @@ export default function SignupPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("email")}</FormLabel>
+                      <FormLabel>{t('email')}</FormLabel>
                       <FormControl>
                         <Input
                           type="email"
-                          placeholder={t("enterEmail")}
+                          placeholder={t('enterEmail')}
                           {...field}
                         />
                       </FormControl>
@@ -150,12 +150,12 @@ export default function SignupPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("password")}</FormLabel>
+                      <FormLabel>{t('password')}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
-                            type={showPassword ? "text" : "password"}
-                            placeholder={t("createPassword")}
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder={t('createPassword')}
                             {...field}
                           />
                           <Button
@@ -183,12 +183,12 @@ export default function SignupPage() {
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("confirmPassword")}</FormLabel>
+                      <FormLabel>{t('confirmPassword')}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
-                            type={showConfirmPassword ? "text" : "password"}
-                            placeholder={t("confirmPasswordPlaceholder")}
+                            type={showConfirmPassword ? 'text' : 'password'}
+                            placeholder={t('confirmPasswordPlaceholder')}
                             {...field}
                           />
                           <Button
@@ -219,20 +219,20 @@ export default function SignupPage() {
                   disabled={signupMutation.isPending}
                 >
                   {signupMutation.isPending
-                    ? t("creatingAccount")
-                    : t("createAccountButton")}
+                    ? t('creatingAccount')
+                    : t('createAccountButton')}
                 </Button>
               </form>
             </Form>
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                {t("alreadyHaveAccount")}{" "}
+                {t('alreadyHaveAccount')}{' '}
                 <Link
                   href={`/${locale}/auth/login`}
                   className="font-medium text-blue-600 hover:text-brand-blue"
                 >
-                  {t("signInHere")}
+                  {t('signInHere')}
                 </Link>
               </p>
             </div>

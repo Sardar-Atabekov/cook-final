@@ -1,41 +1,41 @@
-"use client";
+'use client';
 
-import React from "react";
-import { useState, useRef, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { useStore } from "@/lib/store";
-import { recipeApi } from "@/lib/api";
-import { Search, X, Plus } from "lucide-react";
+import React from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useStore } from '@/lib/store';
+import { recipeApi } from '@/lib/api';
+import { Search, X, Plus } from 'lucide-react';
 
 export const IngredientInput = React.forwardRef<
   HTMLInputElement,
   React.InputHTMLAttributes<HTMLInputElement>
 >(function IngredientInput(props, ref) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const { ingredients, addIngredient, removeIngredient } = useStore();
   const inputRef = useRef<HTMLInputElement>(null);
-  const t = useTranslations("home");
+  const t = useTranslations('home');
 
   const { data: suggestions = [] } = useQuery({
-    queryKey: ["ingredient-suggestions", query],
+    queryKey: ['ingredient-suggestions', query],
     queryFn: () => recipeApi.getIngredientSuggestions(query),
     enabled: query.length > 1,
   });
 
   const handleAddIngredient = (ingredient: string) => {
     addIngredient(ingredient);
-    setQuery("");
+    setQuery('');
     setShowSuggestions(false);
     inputRef.current?.focus();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && query.trim()) {
+    if (e.key === 'Enter' && query.trim()) {
       handleAddIngredient(query.trim());
     }
   };
@@ -50,8 +50,8 @@ export const IngredientInput = React.forwardRef<
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   return (
@@ -62,7 +62,7 @@ export const IngredientInput = React.forwardRef<
           <Input
             ref={ref}
             type="text"
-            placeholder={t("searchPlaceholder")}
+            placeholder={t('searchPlaceholder')}
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);

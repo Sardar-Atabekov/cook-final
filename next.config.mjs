@@ -1,6 +1,6 @@
-import createNextIntlPlugin from "next-intl/plugin";
+import createNextIntlPlugin from 'next-intl/plugin';
 
-const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -11,12 +11,12 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    domains: ["placeholder.svg"],
-    formats: ["image/webp", "image/avif"],
+    domains: ['placeholder.svg'],
+    formats: ['image/webp', 'image/avif'],
     unoptimized: true,
   },
   experimental: {
-    optimizePackageImports: ["lucide-react"],
+    optimizePackageImports: ['lucide-react'],
   },
   compress: true,
   poweredByHeader: false,

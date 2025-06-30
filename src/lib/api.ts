@@ -1,103 +1,103 @@
-import axios from "axios";
+import axios from 'axios';
 
 const api = axios.create({
-  baseURL: "http://localhost:5000/api/",
+  baseURL: 'http://localhost:5000/api/',
   timeout: 10000,
 });
 
 // Mock data for development
 const mockRecipes = [
   {
-    id: "1",
-    title: "Creamy Mushroom Pasta",
-    image: "/images/placeholder.svg?height=200&width=300",
+    id: '1',
+    title: 'Creamy Mushroom Pasta',
+    image: '/images/placeholder.svg?height=200&width=300',
     cookingTime: 25,
     matchPercentage: 85,
-    missingIngredients: ["heavy cream"],
-    country: "Italy",
-    mealType: "dinner",
-    dietTags: ["vegetarian"],
+    missingIngredients: ['heavy cream'],
+    country: 'Italy',
+    mealType: 'dinner',
+    dietTags: ['vegetarian'],
     ingredients: [
-      "pasta",
-      "mushrooms",
-      "garlic",
-      "onion",
-      "heavy cream",
-      "parmesan",
+      'pasta',
+      'mushrooms',
+      'garlic',
+      'onion',
+      'heavy cream',
+      'parmesan',
     ],
     steps: [
-      "Cook pasta according to package instructions",
-      "Sauté mushrooms and garlic in olive oil",
-      "Add cream and simmer until thickened",
-      "Toss with pasta and serve with parmesan",
+      'Cook pasta according to package instructions',
+      'Sauté mushrooms and garlic in olive oil',
+      'Add cream and simmer until thickened',
+      'Toss with pasta and serve with parmesan',
     ],
   },
   {
-    id: "2",
-    title: "Chicken Stir Fry",
-    image: "/images/placeholder.svg?height=200&width=300",
+    id: '2',
+    title: 'Chicken Stir Fry',
+    image: '/images/placeholder.svg?height=200&width=300',
     cookingTime: 15,
     matchPercentage: 92,
     missingIngredients: [],
-    country: "China",
-    mealType: "lunch",
-    dietTags: ["gluten-free"],
+    country: 'China',
+    mealType: 'lunch',
+    dietTags: ['gluten-free'],
     ingredients: [
-      "chicken breast",
-      "bell peppers",
-      "soy sauce",
-      "garlic",
-      "ginger",
+      'chicken breast',
+      'bell peppers',
+      'soy sauce',
+      'garlic',
+      'ginger',
     ],
     steps: [
-      "Cut chicken into strips",
-      "Heat oil in wok",
-      "Stir fry chicken until cooked",
-      "Add vegetables and sauce",
+      'Cut chicken into strips',
+      'Heat oil in wok',
+      'Stir fry chicken until cooked',
+      'Add vegetables and sauce',
     ],
   },
   {
-    id: "3",
-    title: "Avocado Toast",
-    image: "/images/placeholder.svg?height=200&width=300",
+    id: '3',
+    title: 'Avocado Toast',
+    image: '/images/placeholder.svg?height=200&width=300',
     cookingTime: 5,
     matchPercentage: 100,
     missingIngredients: [],
-    country: "USA",
-    mealType: "breakfast",
-    dietTags: ["vegan", "healthy"],
-    ingredients: ["bread", "avocado", "lime", "salt", "pepper"],
+    country: 'USA',
+    mealType: 'breakfast',
+    dietTags: ['vegan', 'healthy'],
+    ingredients: ['bread', 'avocado', 'lime', 'salt', 'pepper'],
     steps: [
-      "Toast bread until golden",
-      "Mash avocado with lime juice",
-      "Spread on toast",
-      "Season with salt and pepper",
+      'Toast bread until golden',
+      'Mash avocado with lime juice',
+      'Spread on toast',
+      'Season with salt and pepper',
     ],
   },
   {
-    id: "4",
-    title: "Beef Tacos",
-    image: "/images/placeholder.svg?height=200&width=300",
+    id: '4',
+    title: 'Beef Tacos',
+    image: '/images/placeholder.svg?height=200&width=300',
     cookingTime: 20,
     matchPercentage: 75,
-    missingIngredients: ["tortillas", "cheese"],
-    country: "Mexico",
-    mealType: "dinner",
+    missingIngredients: ['tortillas', 'cheese'],
+    country: 'Mexico',
+    mealType: 'dinner',
     dietTags: [],
     ingredients: [
-      "ground beef",
-      "onion",
-      "garlic",
-      "cumin",
-      "tortillas",
-      "cheese",
-      "lettuce",
+      'ground beef',
+      'onion',
+      'garlic',
+      'cumin',
+      'tortillas',
+      'cheese',
+      'lettuce',
     ],
     steps: [
-      "Brown ground beef with onions",
-      "Add spices and cook until fragrant",
-      "Warm tortillas",
-      "Assemble tacos with toppings",
+      'Brown ground beef with onions',
+      'Add spices and cook until fragrant',
+      'Warm tortillas',
+      'Assemble tacos with toppings',
     ],
   },
 ];
@@ -107,9 +107,9 @@ export interface Recipe {
   cookTime: number;
   servings: number;
   difficulty: string;
-  rating: any;
+  rating: unknown;
   prepTime: string;
-  nutrition: any;
+  nutrition: unknown;
   id: string;
   title: string;
   image: string;
@@ -148,14 +148,14 @@ export const recipeApi = {
     let filteredRecipes = mockRecipes;
 
     // Filter by meal type
-    if (filters.mealType && filters.mealType !== "all") {
+    if (filters.mealType && filters.mealType !== 'all') {
       filteredRecipes = filteredRecipes.filter(
         (recipe) => recipe.mealType === filters.mealType
       );
     }
 
     // Filter by country
-    if (filters.country && filters.country !== "all") {
+    if (filters.country && filters.country !== 'all') {
       filteredRecipes = filteredRecipes.filter(
         (recipe) => recipe.country === filters.country
       );
@@ -213,17 +213,17 @@ export const recipeApi = {
   getRecipe: async (id: string): Promise<Recipe> => {
     await new Promise((resolve) => setTimeout(resolve, 500));
     const recipe = mockRecipes.find((r) => r.id === id);
-    if (!recipe) throw new Error("Recipe not found");
+    if (!recipe) throw new Error('Recipe not found');
     return recipe;
   },
 
   getSuggestedRecipes: async (): Promise<Recipe[]> => {
     await new Promise((resolve) => setTimeout(resolve, 600));
     const hour = new Date().getHours();
-    let mealType = "lunch";
+    let mealType = 'lunch';
 
-    if (hour >= 6 && hour < 11) mealType = "breakfast";
-    else if (hour >= 17 && hour < 22) mealType = "dinner";
+    if (hour >= 6 && hour < 11) mealType = 'breakfast';
+    else if (hour >= 17 && hour < 22) mealType = 'dinner';
 
     return mockRecipes
       .filter((recipe) => recipe.mealType === mealType)
@@ -233,40 +233,40 @@ export const recipeApi = {
   getIngredientSuggestions: async (query: string): Promise<string[]> => {
     await new Promise((resolve) => setTimeout(resolve, 200));
     const allIngredients = [
-      "chicken breast",
-      "beef",
-      "pork",
-      "salmon",
-      "tuna",
-      "eggs",
-      "milk",
-      "cheese",
-      "butter",
-      "yogurt",
-      "cream",
-      "tomatoes",
-      "onion",
-      "garlic",
-      "bell peppers",
-      "mushrooms",
-      "spinach",
-      "lettuce",
-      "rice",
-      "pasta",
-      "bread",
-      "flour",
-      "oats",
-      "olive oil",
-      "soy sauce",
-      "salt",
-      "pepper",
-      "cumin",
-      "paprika",
-      "avocado",
-      "lime",
-      "lemon",
-      "apple",
-      "banana",
+      'chicken breast',
+      'beef',
+      'pork',
+      'salmon',
+      'tuna',
+      'eggs',
+      'milk',
+      'cheese',
+      'butter',
+      'yogurt',
+      'cream',
+      'tomatoes',
+      'onion',
+      'garlic',
+      'bell peppers',
+      'mushrooms',
+      'spinach',
+      'lettuce',
+      'rice',
+      'pasta',
+      'bread',
+      'flour',
+      'oats',
+      'olive oil',
+      'soy sauce',
+      'salt',
+      'pepper',
+      'cumin',
+      'paprika',
+      'avocado',
+      'lime',
+      'lemon',
+      'apple',
+      'banana',
     ];
 
     return allIngredients
@@ -279,12 +279,12 @@ export const recipeApi = {
 
 export const authApi = {
   login: async (email: string, password: string) => {
-    const response = await api.post("/auth/login", { email, password });
+    const response = await api.post('/auth/login', { email, password });
     return response.data;
   },
 
   signup: async (email: string, password: string, name: string) => {
-    const response = await api.post("/auth/signup", { email, password, name });
+    const response = await api.post('/auth/signup', { email, password, name });
     return response.data;
   },
 };

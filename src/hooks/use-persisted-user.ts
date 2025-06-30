@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
-import { useStore } from "@/lib/store";
+import { useEffect, useState } from 'react';
+import { useStore } from '@/lib/store';
 
 function getUserFromStorage() {
-  if (typeof window === "undefined") return null;
+  if (typeof window === 'undefined') return null;
   try {
-    const data = localStorage.getItem("recipe-finder-storage");
+    const data = localStorage.getItem('recipe-finder-storage');
     if (!data) return null;
     const parsed = JSON.parse(data);
     return parsed.state?.user || null;

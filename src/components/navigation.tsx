@@ -1,34 +1,34 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname, useParams } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
-import { useStore } from "@/lib/store";
-import { ChefHat, User, LogOut, Globe, Utensils } from "lucide-react";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
+import { Button } from '@/components/ui/button';
+import { useStore } from '@/lib/store';
+import { User, LogOut, Utensils } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { LanguageToggle } from "@/components/language-toggle";
+} from '@/components/ui/dropdown-menu';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { LanguageToggle } from '@/components/language-toggle';
 
 export function Navigation() {
   const pathname = usePathname();
   const locale = useLocale();
-  const t = useTranslations("navigation");
+  const t = useTranslations('navigation');
   const { user, logout } = useStore();
 
   const navItems = [
-    { href: `/${locale}`, label: t("home") },
+    { href: `/${locale}`, label: t('home') },
     {
-      label: t("search"),
+      label: t('search'),
       href: `/${locale}/search`,
     },
-    { href: `/${locale}/recipes`, label: t("recipes") },
-    { href: `/${locale}/suggested`, label: t("suggested") },
+    { href: `/${locale}/recipes`, label: t('recipes') },
+    { href: `/${locale}/suggested`, label: t('suggested') },
   ];
 
   return (
@@ -51,8 +51,8 @@ export function Navigation() {
                   href={item.href}
                   className={`px-3 py-2 text-sm font-medium transition-colors ${
                     pathname === item.href
-                      ? "text-brand-blue border-b-2 border-brand-blue"
-                      : "text-gray-600 hover:text-brand-blue"
+                      ? 'text-brand-blue border-b-2 border-brand-blue'
+                      : 'text-gray-600 hover:text-brand-blue'
                   }`}
                 >
                   {item.label}
@@ -80,21 +80,21 @@ export function Navigation() {
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={logout}>
                     <LogOut className="h-4 w-4 mr-2" />
-                    {t("logout")}
+                    {t('logout')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
               <div className="flex space-x-2">
                 <Button variant="ghost" size="sm" asChild>
-                  <Link href={`/${locale}/auth/login`}>{t("login")}</Link>
+                  <Link href={`/${locale}/auth/login`}>{t('login')}</Link>
                 </Button>
                 <Button
                   size="sm"
                   className="bg-brand-blue text-white hover:bg-blue-700"
                   asChild
                 >
-                  <Link href={`/${locale}/auth/signup`}>{t("signup")}</Link>
+                  <Link href={`/${locale}/auth/signup`}>{t('signup')}</Link>
                 </Button>
               </div>
             )}

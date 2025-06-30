@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { useQuery } from "@tanstack/react-query";
-import { RecipeCard } from "@/components/recipe-card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { recipeApi } from "@/lib/api";
-import { useStore } from "@/lib/store";
-import { Clock, Sunrise, Sun, Moon } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
+import { useQuery } from '@tanstack/react-query';
+import { RecipeCard } from '@/components/recipe-card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { recipeApi } from '@/lib/api';
+import { useStore } from '@/lib/store';
+import { Clock, Sunrise, Sun, Moon } from 'lucide-react';
+import { useLocale } from 'next-intl';
 
 export default function SuggestedPage() {
   const { ingredients } = useStore();
   const locale = useLocale();
   const { data: suggestedRecipes, isLoading } = useQuery({
-    queryKey: ["suggested-recipes"],
+    queryKey: ['suggested-recipes'],
     queryFn: recipeApi.getSuggestedRecipes,
   });
 
@@ -21,27 +21,27 @@ export default function SuggestedPage() {
 
     if (hour >= 6 && hour < 11) {
       return {
-        period: "breakfast",
-        greeting: "Good Morning!",
-        message: "Start your day with these delicious breakfast recipes",
+        period: 'breakfast',
+        greeting: 'Good Morning!',
+        message: 'Start your day with these delicious breakfast recipes',
         icon: Sunrise,
-        color: "text-yellow-600",
+        color: 'text-yellow-600',
       };
     } else if (hour >= 11 && hour < 17) {
       return {
-        period: "lunch",
-        greeting: "Good Afternoon!",
-        message: "Perfect lunch recipes to fuel your day",
+        period: 'lunch',
+        greeting: 'Good Afternoon!',
+        message: 'Perfect lunch recipes to fuel your day',
         icon: Sun,
-        color: "text-blue-600",
+        color: 'text-blue-600',
       };
     } else {
       return {
-        period: "dinner",
-        greeting: "Good Evening!",
-        message: "Unwind with these satisfying dinner recipes",
+        period: 'dinner',
+        greeting: 'Good Evening!',
+        message: 'Unwind with these satisfying dinner recipes',
         icon: Moon,
-        color: "text-blue-600",
+        color: 'text-blue-600',
       };
     }
   };

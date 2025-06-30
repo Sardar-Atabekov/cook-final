@@ -1,5 +1,5 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 type User = { id: string; email: string; name: string };
 type AuthState = {
@@ -42,7 +42,7 @@ export const useStore = create<AppState>()(
       clearIngredients: () => set({ ingredients: [] }),
     }),
     {
-      name: "recipe-finder-storage",
+      name: 'recipe-finder-storage',
     }
   )
 );

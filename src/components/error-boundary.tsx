@@ -1,43 +1,52 @@
-"use client"
+'use client';
 
-import React from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AlertTriangle, RefreshCw } from "lucide-react"
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface ErrorBoundaryState {
-  hasError: boolean
-  error?: Error
+  hasError: boolean;
+  error?: Error;
 }
 
 interface ErrorBoundaryProps {
-  children: React.ReactNode
-  fallback?: React.ComponentType<{ error?: Error; retry: () => void }>
+  children: React.ReactNode;
+  fallback?: React.ComponentType<{ error?: Error; retry: () => void }>;
 }
 
-export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export class ErrorBoundary extends React.Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   constructor(props: ErrorBoundaryProps) {
-    super(props)
-    this.state = { hasError: false }
+    super(props);
+    this.state = { hasError: false };
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error }
+    return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("Error caught by boundary:", error, errorInfo)
+    console.error('Error caught by boundary:', error, errorInfo);
   }
 
   retry = () => {
-    this.setState({ hasError: false, error: undefined })
-  }
+    this.setState({ hasError: false, error: undefined });
+  };
 
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
-        const Fallback = this.props.fallback
-        return <Fallback error={this.state.error} retry={this.retry} />
+        const Fallback = this.props.fallback;
+        return <Fallback error={this.state.error} retry={this.retry} />;
       }
 
       return (
@@ -48,7 +57,10 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
                 <AlertTriangle className="h-6 w-6 text-destructive" />
               </div>
               <CardTitle>Something went wrong</CardTitle>
-              <CardDescription>We encountered an error while loading this content. Please try again.</CardDescription>
+              <CardDescription>
+                We encountered an error while loading this content. Please try
+                again.
+              </CardDescription>
             </CardHeader>
             <CardContent className="text-center">
               <Button onClick={this.retry} className="w-full">
@@ -58,22 +70,22 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             </CardContent>
           </Card>
         </div>
-      )
+      );
     }
 
-    return this.props.children
+    return this.props.children;
   }
 }
 
 export function withErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
-  fallback?: React.ComponentType<{ error?: Error; retry: () => void }>,
+  fallback?: React.ComponentType<{ error?: Error; retry: () => void }>
 ) {
   return function WithErrorBoundaryComponent(props: P) {
     return (
       <ErrorBoundary fallback={fallback}>
         <Component {...props} />
       </ErrorBoundary>
-    )
-  }
+    );
+  };
 }

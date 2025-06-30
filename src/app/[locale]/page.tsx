@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useStore } from "@/lib/store";
-import { useMemo, useRef } from "react";
-import Footer from "@/components/footer";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { useLocale, useTranslations } from "next-intl";
-import { IngredientInput } from "@/components/ingredient-input";
-import { QuickActionCard } from "@/components/quick-action-card";
-import { ChefHat, Search, Clock, Users, Star, Dice6 } from "lucide-react";
+import { useStore } from '@/lib/store';
+import { useMemo, useRef } from 'react';
+import Footer from '@/components/footer';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { useLocale, useTranslations } from 'next-intl';
+import { IngredientInput } from '@/components/ingredient-input';
+import { QuickActionCard } from '@/components/quick-action-card';
+import { ChefHat, Search, Clock, Users, Star, Dice6 } from 'lucide-react';
 
-type QuickAction = "quick" | "popular" | "random";
+type QuickAction = 'quick' | 'popular' | 'random';
 
 const quickActions: {
   icon: React.ElementType;
@@ -21,35 +21,35 @@ const quickActions: {
 }[] = [
   {
     icon: Clock,
-    color: "text-brand-green",
-    titleKey: "quickMeals",
-    descriptionKey: "quickMealsDescription",
-    action: "quick",
+    color: 'text-brand-green',
+    titleKey: 'quickMeals',
+    descriptionKey: 'quickMealsDescription',
+    action: 'quick',
   },
   {
     icon: Star,
-    color: "text-amber-500",
-    titleKey: "popularToday",
-    descriptionKey: "trendingRecipes",
-    action: "popular",
+    color: 'text-amber-500',
+    titleKey: 'popularToday',
+    descriptionKey: 'trendingRecipes',
+    action: 'popular',
   },
   {
     icon: Dice6,
-    color: "text-purple-500",
-    titleKey: "surpriseMe",
-    descriptionKey: "randomRecipe",
-    action: "random",
+    color: 'text-purple-500',
+    titleKey: 'surpriseMe',
+    descriptionKey: 'randomRecipe',
+    action: 'random',
   },
 ];
 
 export default function HomePage() {
   const router = useRouter();
   const locale = useLocale();
-  const t = useTranslations("home");
+  const t = useTranslations('home');
   const { ingredients } = useStore();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const joinedIngredients = useMemo(() => ingredients.join(","), [ingredients]);
+  const joinedIngredients = useMemo(() => ingredients.join(','), [ingredients]);
 
   const handleFindRecipes = () => {
     if (ingredients.length > 0) {
@@ -81,10 +81,10 @@ export default function HomePage() {
             </div>
 
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              {t("title")}
+              {t('title')}
             </h1>
             <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
-              {t("subtitle")}
+              {t('subtitle')}
             </p>
 
             <div className="mb-8">
@@ -95,16 +95,16 @@ export default function HomePage() {
               onClick={handleFindRecipes}
               disabled={ingredients.length === 0}
               size="lg"
-              aria-label={t("findRecipes")}
+              aria-label={t('findRecipes')}
               className={`px-8 py-3 text-lg text-white ${
                 ingredients.length === 0
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700'
               }`}
             >
               <Search className="h-5 w-5 mr-2" />
-              {t("findRecipes")} (
-              {t("ingredientsCount", { count: ingredients.length })})
+              {t('findRecipes')} (
+              {t('ingredientsCount', { count: ingredients.length })})
             </Button>
           </div>
 
@@ -129,9 +129,9 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              {t("howItWorks")}
+              {t('howItWorks')}
             </h2>
-            <p className="text-lg text-gray-600">{t("howItWorksSubtitle")}</p>
+            <p className="text-lg text-gray-600">{t('howItWorksSubtitle')}</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -155,10 +155,10 @@ export default function HomePage() {
       <section className="bg-blue-600 py-16 mb-12 mt-6">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-white mb-4">
-            {t("readyToCook")}
+            {t('readyToCook')}
           </h2>
           <p className="text-xl text-blue-100 mb-8">
-            {t("readyToCookSubtitle")}
+            {t('readyToCookSubtitle')}
           </p>
           <Button
             onClick={() => inputRef.current?.focus()}
@@ -166,7 +166,7 @@ export default function HomePage() {
             variant="secondary"
             className="bg-white text-blue-600 hover:bg-gray-100"
           >
-            {t("addFirstIngredient")}
+            {t('addFirstIngredient')}
           </Button>
         </div>
       </section>

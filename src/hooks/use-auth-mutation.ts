@@ -1,5 +1,5 @@
-import { useMutation } from "@tanstack/react-query";
-import { authApi } from "@/lib/api";
+import { useMutation } from '@tanstack/react-query';
+import { authApi } from '@/lib/api';
 
 type SignupPayload = { name: string; email: string; password: string };
 type LoginPayload = { email: string; password: string };
