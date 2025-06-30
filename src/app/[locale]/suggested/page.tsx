@@ -6,10 +6,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { recipeApi } from "@/lib/api";
 import { useStore } from "@/lib/store";
 import { Clock, Sunrise, Sun, Moon } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 
 export default function SuggestedPage() {
   const { ingredients } = useStore();
-
+  const locale = useLocale();
   const { data: suggestedRecipes, isLoading } = useQuery({
     queryKey: ["suggested-recipes"],
     queryFn: recipeApi.getSuggestedRecipes,
@@ -110,7 +111,7 @@ export default function SuggestedPage() {
         </p>
         <div className="text-center">
           <a
-            href="/"
+            href={`/${locale}/`}
             className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             Add Ingredients

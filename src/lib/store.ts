@@ -1,27 +1,22 @@
-import { create } from "zustand"
-import { persist } from "zustand/middleware"
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
-interface User {
-  id: string
-  email: string
-  name: string
-}
+type User = { id: string; email: string; name: string };
+type AuthState = {
+  token: string | null;
+  user: User | null;
+  login: (token: string, user: User) => void;
+  logout: () => void;
+};
 
-interface AuthState {
-  token: string | null
-  user: User | null
-  login: (token: string, user: User) => void
-  logout: () => void
-}
+type IngredientsState = {
+  ingredients: string[];
+  addIngredient: (ingredient: string) => void;
+  removeIngredient: (ingredient: string) => void;
+  clearIngredients: () => void;
+};
 
-interface IngredientsState {
-  ingredients: string[]
-  addIngredient: (ingredient: string) => void
-  removeIngredient: (ingredient: string) => void
-  clearIngredients: () => void
-}
-
-interface AppState extends AuthState, IngredientsState {}
+type AppState = AuthState & IngredientsState;
 
 export const useStore = create<AppState>()(
   persist(
@@ -36,7 +31,9 @@ export const useStore = create<AppState>()(
       ingredients: [],
       addIngredient: (ingredient) =>
         set((state) => ({
-          ingredients: state.ingredients.includes(ingredient) ? state.ingredients : [...state.ingredients, ingredient],
+          ingredients: state.ingredients.includes(ingredient)
+            ? state.ingredients
+            : [...state.ingredients, ingredient],
         })),
       removeIngredient: (ingredient) =>
         set((state) => ({
@@ -46,6 +43,6 @@ export const useStore = create<AppState>()(
     }),
     {
       name: "recipe-finder-storage",
-    },
-  ),
-)
+    }
+  )
+);

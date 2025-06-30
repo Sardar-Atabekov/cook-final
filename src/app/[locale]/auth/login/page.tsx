@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -29,6 +28,7 @@ import { authApi } from "@/lib/api";
 import { useStore } from "@/lib/store";
 import { ChefHat, Eye, EyeOff } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { useLoginMutation } from "@/hooks/use-auth-mutation";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -53,28 +53,26 @@ export default function LoginPage() {
 
   const t = useTranslations("auth");
   const locale = useLocale();
-  const loginMutation = useMutation({
-    mutationFn: ({ email, password }: LoginForm) =>
-      authApi.login(email, password),
-    onSuccess: (data) => {
-      login(data.token, data.user);
-      toast({
-        title: t("loginSuccess"),
-        description: t("loginSuccessDescription"),
-      });
-      router.push(`/${locale}`);
-    },
-    onError: (error) => {
-      toast({
-        title: t("loginFailed"),
-        description: t("loginFailedDescription"),
-        variant: "destructive",
-      });
-    },
-  });
+  const loginMutation = useLoginMutation();
 
   const onSubmit = (data: LoginForm) => {
-    loginMutation.mutate(data);
+    loginMutation.mutate(data, {
+      onSuccess: (data) => {
+        login(data.token, data.user);
+        toast({
+          title: t("loginSuccess"),
+          description: t("loginSuccessDescription"),
+        });
+        router.push(`/${locale}`);
+      },
+      onError: () => {
+        toast({
+          title: t("loginError"),
+          description: t("loginErrorDescription"),
+          variant: "destructive",
+        });
+      },
+    });
   };
 
   return (
@@ -87,19 +85,17 @@ export default function LoginPage() {
               <ChefHat className="h-8 w-8 text-blue-600" />
             </div>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900">{t("welcomeBack")}</h2>
-          <p className="mt-2 text-gray-600">
-            {t("signInDescription")}
-          </p>
+          <h2 className="text-3xl font-bold text-gray-900">
+            {t("welcomeBack")}
+          </h2>
+          <p className="mt-2 text-gray-600">{t("signInDescription")}</p>
         </div>
 
         {/* Login Form */}
         <Card>
           <CardHeader>
             <CardTitle>{t("signIn")}</CardTitle>
-            <CardDescription>
-              {t("signInDescription")}
-            </CardDescription>
+            <CardDescription>{t("signInDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -188,7 +184,7 @@ export default function LoginPage() {
             Demo Credentials
           </h3>
           <p className="text-xs text-blue-700">
-            Email: demo@example.com
+            Email: demo1@example.com
             <br />
             Password: demo123
           </p>

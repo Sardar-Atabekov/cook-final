@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://api.example.com",
+  baseURL: "http://localhost:5000/api/",
   timeout: 10000,
 });
 
@@ -279,19 +279,12 @@ export const recipeApi = {
 
 export const authApi = {
   login: async (email: string, password: string) => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    // Mock successful login
-    return {
-      token: "mock-jwt-token",
-      user: { id: "1", email, name: "John Doe" },
-    };
+    const response = await api.post("/auth/login", { email, password });
+    return response.data;
   },
 
   signup: async (email: string, password: string, name: string) => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    return {
-      token: "mock-jwt-token",
-      user: { id: "1", email, name },
-    };
+    const response = await api.post("/auth/signup", { email, password, name });
+    return response.data;
   },
 };

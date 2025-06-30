@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -25,7 +24,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { authApi } from "@/lib/api";
+import { useSignupMutation } from "@/hooks/use-auth-mutation";
 import { useStore } from "@/lib/store";
 import { ChefHat, Eye, EyeOff } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
@@ -63,33 +62,27 @@ export default function SignupPage() {
     },
   });
 
-  const signupMutation = useMutation({
-    mutationFn: ({
-      name,
-      email,
-      password,
-    }: Omit<SignupForm, "confirmPassword">) =>
-      authApi.signup(email, password, name),
-    onSuccess: (data) => {
-      login(data.token, data.user);
-      toast({
-        title: "Welcome to RecipeFinder!",
-        description: "Your account has been created successfully.",
-      });
-      router.push("/");
-    },
-    onError: (error) => {
-      toast({
-        title: "Signup failed",
-        description: "Please try again with different credentials.",
-        variant: "destructive",
-      });
-    },
-  });
+  const signupMutation = useSignupMutation();
 
   const onSubmit = (data: SignupForm) => {
     const { confirmPassword, ...signupData } = data;
-    signupMutation.mutate(signupData);
+    signupMutation.mutate(signupData, {
+      onSuccess: (data) => {
+        login(data.token, data.user);
+        toast({
+          title: t("signupSuccess"),
+          description: t("signupSuccessDescription"),
+        });
+        router.push(`/${locale}`);
+      },
+      onError: () => {
+        toast({
+          title: t("signupError"),
+          description: t("signupErrorDescription"),
+          variant: "destructive",
+        });
+      },
+    });
   };
 
   return (
