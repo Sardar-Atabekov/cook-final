@@ -42,11 +42,9 @@ export function ThemeToggle() {
           <Moon className="mr-2 h-4 w-4" />
           {t("dark")}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")} className={theme === "system" ? "bg-accent" : ""}>
-          <Monitor className="mr-2 h-4 w-4" />
-          {t("system")}
-        </DropdownMenuItem>
+        
       </DropdownMenuContent>
     </DropdownMenu>
+    
   )
 }

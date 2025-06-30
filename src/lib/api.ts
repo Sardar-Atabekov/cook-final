@@ -1,9 +1,9 @@
-import axios from "axios"
+import axios from "axios";
 
 const api = axios.create({
   baseURL: "https://api.example.com",
   timeout: 10000,
-})
+});
 
 // Mock data for development
 const mockRecipes = [
@@ -17,7 +17,14 @@ const mockRecipes = [
     country: "Italy",
     mealType: "dinner",
     dietTags: ["vegetarian"],
-    ingredients: ["pasta", "mushrooms", "garlic", "onion", "heavy cream", "parmesan"],
+    ingredients: [
+      "pasta",
+      "mushrooms",
+      "garlic",
+      "onion",
+      "heavy cream",
+      "parmesan",
+    ],
     steps: [
       "Cook pasta according to package instructions",
       "Sauté mushrooms and garlic in olive oil",
@@ -35,8 +42,19 @@ const mockRecipes = [
     country: "China",
     mealType: "lunch",
     dietTags: ["gluten-free"],
-    ingredients: ["chicken breast", "bell peppers", "soy sauce", "garlic", "ginger"],
-    steps: ["Cut chicken into strips", "Heat oil in wok", "Stir fry chicken until cooked", "Add vegetables and sauce"],
+    ingredients: [
+      "chicken breast",
+      "bell peppers",
+      "soy sauce",
+      "garlic",
+      "ginger",
+    ],
+    steps: [
+      "Cut chicken into strips",
+      "Heat oil in wok",
+      "Stir fry chicken until cooked",
+      "Add vegetables and sauce",
+    ],
   },
   {
     id: "3",
@@ -66,7 +84,15 @@ const mockRecipes = [
     country: "Mexico",
     mealType: "dinner",
     dietTags: [],
-    ingredients: ["ground beef", "onion", "garlic", "cumin", "tortillas", "cheese", "lettuce"],
+    ingredients: [
+      "ground beef",
+      "onion",
+      "garlic",
+      "cumin",
+      "tortillas",
+      "cheese",
+      "lettuce",
+    ],
     steps: [
       "Brown ground beef with onions",
       "Add spices and cook until fragrant",
@@ -74,118 +100,138 @@ const mockRecipes = [
       "Assemble tacos with toppings",
     ],
   },
-]
+];
 
 export interface Recipe {
-  id: string
-  title: string
-  image: string
-  cookingTime: number
-  matchPercentage: number
-  missingIngredients: string[]
-  country: string
-  mealType: string
-  dietTags: string[]
-  ingredients: string[]
-  steps: string[]
+  description: string;
+  cookTime: number;
+  servings: number;
+  difficulty: string;
+  rating: any;
+  prepTime: string;
+  nutrition: any;
+  id: string;
+  title: string;
+  image: string;
+  cookingTime: number;
+  matchPercentage: number;
+  missingIngredients: string[];
+  country: string;
+  mealType: string;
+  dietTags: string[];
+  ingredients: string[];
+  steps: string[];
+  loading?: boolean;
 }
 
 export interface SearchFilters {
-  mealType?: string
-  country?: string
-  dietTags?: string[]
-  page?: number
-  limit?: number
+  mealType?: string;
+  country?: string;
+  dietTags?: string[];
+  page?: number;
+  limit?: number;
 }
 
 export const recipeApi = {
   searchRecipes: async (
     ingredients: string[],
-    filters: SearchFilters = {},
+    filters: SearchFilters = {}
   ): Promise<{
-    recipes: Recipe[]
-    total: number
-    page: number
-    totalPages: number
+    recipes: Recipe[];
+    total: number;
+    page: number;
+    totalPages: number;
   }> => {
     // Mock API delay
-    await new Promise((resolve) => setTimeout(resolve, 800))
+    await new Promise((resolve) => setTimeout(resolve, 800));
 
-    let filteredRecipes = mockRecipes
+    let filteredRecipes = mockRecipes;
 
     // Filter by meal type
     if (filters.mealType && filters.mealType !== "all") {
-      filteredRecipes = filteredRecipes.filter((recipe) => recipe.mealType === filters.mealType)
+      filteredRecipes = filteredRecipes.filter(
+        (recipe) => recipe.mealType === filters.mealType
+      );
     }
 
     // Filter by country
     if (filters.country && filters.country !== "all") {
-      filteredRecipes = filteredRecipes.filter((recipe) => recipe.country === filters.country)
+      filteredRecipes = filteredRecipes.filter(
+        (recipe) => recipe.country === filters.country
+      );
     }
 
     // Filter by diet tags
     if (filters.dietTags && filters.dietTags.length > 0) {
       filteredRecipes = filteredRecipes.filter((recipe) =>
-        filters.dietTags!.some((tag) => recipe.dietTags.includes(tag)),
-      )
+        filters.dietTags!.some((tag) => recipe.dietTags.includes(tag))
+      );
     }
 
     // Calculate match percentage based on ingredients
     if (ingredients.length > 0) {
       filteredRecipes = filteredRecipes.map((recipe) => {
         const matchingIngredients = recipe.ingredients.filter((ingredient) =>
-          ingredients.some((userIngredient) => ingredient.toLowerCase().includes(userIngredient.toLowerCase())),
-        )
-        const matchPercentage = Math.round((matchingIngredients.length / recipe.ingredients.length) * 100)
+          ingredients.some((userIngredient) =>
+            ingredient.toLowerCase().includes(userIngredient.toLowerCase())
+          )
+        );
+        const matchPercentage = Math.round(
+          (matchingIngredients.length / recipe.ingredients.length) * 100
+        );
         const missingIngredients = recipe.ingredients.filter(
           (ingredient) =>
-            !ingredients.some((userIngredient) => ingredient.toLowerCase().includes(userIngredient.toLowerCase())),
-        )
+            !ingredients.some((userIngredient) =>
+              ingredient.toLowerCase().includes(userIngredient.toLowerCase())
+            )
+        );
 
         return {
           ...recipe,
           matchPercentage,
           missingIngredients,
-        }
-      })
+        };
+      });
 
       // Sort by match percentage
-      filteredRecipes.sort((a, b) => b.matchPercentage - a.matchPercentage)
+      filteredRecipes.sort((a, b) => b.matchPercentage - a.matchPercentage);
     }
 
-    const page = filters.page || 1
-    const limit = filters.limit || 12
-    const startIndex = (page - 1) * limit
-    const endIndex = startIndex + limit
+    const page = filters.page || 1;
+    const limit = filters.limit || 12;
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
 
     return {
       recipes: filteredRecipes.slice(startIndex, endIndex),
       total: filteredRecipes.length,
       page,
       totalPages: Math.ceil(filteredRecipes.length / limit),
-    }
+    };
   },
 
   getRecipe: async (id: string): Promise<Recipe> => {
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    const recipe = mockRecipes.find((r) => r.id === id)
-    if (!recipe) throw new Error("Recipe not found")
-    return recipe
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const recipe = mockRecipes.find((r) => r.id === id);
+    if (!recipe) throw new Error("Recipe not found");
+    return recipe;
   },
 
   getSuggestedRecipes: async (): Promise<Recipe[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 600))
-    const hour = new Date().getHours()
-    let mealType = "lunch"
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    const hour = new Date().getHours();
+    let mealType = "lunch";
 
-    if (hour >= 6 && hour < 11) mealType = "breakfast"
-    else if (hour >= 17 && hour < 22) mealType = "dinner"
+    if (hour >= 6 && hour < 11) mealType = "breakfast";
+    else if (hour >= 17 && hour < 22) mealType = "dinner";
 
-    return mockRecipes.filter((recipe) => recipe.mealType === mealType).slice(0, 4)
+    return mockRecipes
+      .filter((recipe) => recipe.mealType === mealType)
+      .slice(0, 4);
   },
 
   getIngredientSuggestions: async (query: string): Promise<string[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 200))
+    await new Promise((resolve) => setTimeout(resolve, 200));
     const allIngredients = [
       "chicken breast",
       "beef",
@@ -221,27 +267,31 @@ export const recipeApi = {
       "lemon",
       "apple",
       "banana",
-    ]
+    ];
 
-    return allIngredients.filter((ingredient) => ingredient.toLowerCase().includes(query.toLowerCase())).slice(0, 8)
+    return allIngredients
+      .filter((ingredient) =>
+        ingredient.toLowerCase().includes(query.toLowerCase())
+      )
+      .slice(0, 8);
   },
-}
+};
 
 export const authApi = {
   login: async (email: string, password: string) => {
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     // Mock successful login
     return {
       token: "mock-jwt-token",
       user: { id: "1", email, name: "John Doe" },
-    }
+    };
   },
 
   signup: async (email: string, password: string, name: string) => {
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     return {
       token: "mock-jwt-token",
       user: { id: "1", email, name },
-    }
+    };
   },
-}
+};

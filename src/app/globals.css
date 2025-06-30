@@ -24,6 +24,14 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+
+    /* Brand colors matching design */
+    --brand-blue: hsl(207, 90%, 54%);
+    --brand-green: hsl(160, 84%, 39%);
+    --brand-red: hsl(0, 79%, 63%);
+    --brand-amber: hsl(43, 96%, 56%);
+    --brand-orange: hsl(25, 95%, 53%);
+    --brand-purple: hsl(271, 91%, 65%);
   }
 
   .dark {
@@ -59,10 +67,39 @@
 }
 
 @layer utilities {
-  .line-clamp-2 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+  .text-brand-blue {
+    color: var(--brand-blue);
+  }
+
+  .text-brand-green {
+    color: var(--brand-green);
+  }
+
+  .text-brand-red {
+    color: var(--brand-red);
+  }
+
+  .bg-brand-blue {
+    background-color: var(--brand-blue);
+  }
+
+  .bg-brand-green {
+    background-color: var(--brand-green);
+  }
+
+  .bg-brand-red {
+    background-color: var(--brand-red);
+  }
+
+  .border-brand-blue {
+    border-color: var(--brand-blue);
+  }
+
+  .hover\:bg-brand-blue:hover {
+    background-color: var(--brand-blue);
+  }
+
+  .hover\:text-brand-blue:hover {
+    color: var(--brand-blue);
   }
 }

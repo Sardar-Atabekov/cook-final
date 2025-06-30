@@ -102,12 +102,12 @@ export function IngredientInput() {
             <Badge
               key={ingredient}
               variant="secondary"
-              className="px-3 py-1 text-sm bg-orange-100 text-orange-800 hover:bg-orange-200"
+              className="px-3 py-1 text-sm bg-blue-100 text-blue-800 hover:bg-blue-200"
             >
               {ingredient}
               <button
                 onClick={() => removeIngredient(ingredient)}
-                className="ml-2 hover:text-orange-900"
+                className="ml-2 hover:text-blue-900"
               >
                 <X className="h-3 w-3" />
               </button>

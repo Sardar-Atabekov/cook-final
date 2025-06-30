@@ -7,6 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, MapPin } from "lucide-react";
 import type { Recipe } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useLocale } from "next-intl";
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -14,6 +17,10 @@ interface RecipeCardProps {
 }
 
 export function RecipeCard({ recipe, userIngredients = [] }: RecipeCardProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const locale = useLocale();
+
   const getMatchColor = (percentage: number) => {
     if (percentage >= 80) return "bg-green-100 text-green-800";
     if (percentage >= 60) return "bg-yellow-100 text-yellow-800";
@@ -21,7 +28,7 @@ export function RecipeCard({ recipe, userIngredients = [] }: RecipeCardProps) {
   };
 
   return (
-    <Link href={`/recipes/${recipe.id}`}>
+    <Link href={`/${locale}/recipes/${recipe.id}`}>
       <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer">
         <div className="relative">
           <Image
@@ -54,7 +61,7 @@ export function RecipeCard({ recipe, userIngredients = [] }: RecipeCardProps) {
         </div>
 
         <CardContent className="p-4">
-          <h3 className="font-semibold text-lg text-gray-900 mb-2 line-clamp-2 group-hover:text-orange-600 transition-colors">
+          <h3 className="font-semibold text-lg text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
             {recipe.title}
           </h3>
 

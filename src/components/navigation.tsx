@@ -5,7 +5,7 @@ import { usePathname, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
-import { ChefHat, User, LogOut, Globe } from "lucide-react";
+import { ChefHat, User, LogOut, Globe, Utensils } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,15 +14,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
-const locales = [
-  { code: "en", name: "English", flag: "🇺🇸" },
-  { code: "ru", name: "Русский", flag: "🇷🇺" },
-  { code: "de", name: "Deutsch", flag: "🇩🇪" },
-  { code: "es", name: "Español", flag: "🇪🇸" },
-  { code: "zh", name: "中文", flag: "🇨🇳" },
-  { code: "ar", name: "العربية", flag: "🇸🇦" },
-  { code: "fr", name: "Français", flag: "🇫🇷" },
-];
 
 export function Navigation() {
   const pathname = usePathname();
@@ -37,23 +28,19 @@ export function Navigation() {
     { href: `/${locale}/suggested`, label: t("suggested") },
   ];
 
-  const switchLocale = (newLocale: string) => {
-    const currentPath = pathname.replace(`/${locale}`, "");
-    window.location.href = `/${newLocale}${currentPath}`;
-  };
-
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-8">
-            <Link href={`/${locale}`} className="flex items-center space-x-2">
-              <ChefHat className="h-8 w-8 text-orange-500" />
-              <span className="text-xl font-bold text-gray-900">
-                RecipeFinder
-              </span>
-            </Link>
-
+            <div className="flex-shrink-0">
+              <Link href={`/${locale}`} className="flex items-center space-x-2">
+                <Utensils className="h-8 w-8 text-brand-blue" />
+                <span className="text-xl font-bold text-slate-900">
+                  RecipeMatch
+                </span>
+              </Link>
+            </div>
             <div className="hidden md:flex space-x-6">
               {navItems.map((item) => (
                 <Link
@@ -61,8 +48,8 @@ export function Navigation() {
                   href={item.href}
                   className={`px-3 py-2 text-sm font-medium transition-colors ${
                     pathname === item.href
-                      ? "text-orange-600 border-b-2 border-orange-600"
-                      : "text-gray-600 hover:text-gray-900"
+                      ? "text-brand-blue border-b-2 border-brand-blue"
+                      : "text-gray-600 hover:text-brand-blue"
                   }`}
                 >
                   {item.label}
@@ -73,7 +60,7 @@ export function Navigation() {
 
           <div className="flex items-center space-x-4">
             <LanguageToggle />
-            {/* <ThemeToggle /> */}
+            <ThemeToggle />
 
             {user ? (
               <DropdownMenu>
@@ -99,7 +86,11 @@ export function Navigation() {
                 <Button variant="ghost" size="sm" asChild>
                   <Link href={`/${locale}/auth/login`}>{t("login")}</Link>
                 </Button>
-                <Button size="sm" asChild>
+                <Button
+                  size="sm"
+                  className="bg-brand-blue text-white hover:bg-blue-700"
+                  asChild
+                >
                   <Link href={`/${locale}/auth/signup`}>{t("signup")}</Link>
                 </Button>
               </div>

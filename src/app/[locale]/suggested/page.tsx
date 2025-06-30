@@ -32,7 +32,7 @@ export default function SuggestedPage() {
         greeting: "Good Afternoon!",
         message: "Perfect lunch recipes to fuel your day",
         icon: Sun,
-        color: "text-orange-600",
+        color: "text-blue-600",
       };
     } else {
       return {
@@ -111,7 +111,7 @@ export default function SuggestedPage() {
         <div className="text-center">
           <a
             href="/"
-            className="inline-flex items-center px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             Add Ingredients
           </a>

@@ -80,8 +80,8 @@ export default function LoginPage() {
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="p-3 bg-orange-100 rounded-full">
-              <ChefHat className="h-8 w-8 text-orange-600" />
+            <div className="p-3 bg-blue-100 rounded-full">
+              <ChefHat className="h-8 w-8 text-blue-600" />
             </div>
           </div>
           <h2 className="text-3xl font-bold text-gray-900">Welcome back</h2>
@@ -157,7 +157,7 @@ export default function LoginPage() {
 
                 <Button
                   type="submit"
-                  className="w-full bg-orange-600 hover:bg-orange-700"
+                  className="w-full bg-blue-600 hover:bg-blue-700"
                   disabled={loginMutation.isPending}
                 >
                   {loginMutation.isPending ? "Signing in..." : "Sign In"}
@@ -170,7 +170,7 @@ export default function LoginPage() {
                 Don't have an account?{" "}
                 <Link
                   href="/auth/signup"
-                  className="font-medium text-orange-600 hover:text-orange-500"
+                  className="font-medium text-blue-600 hover:text-brand-blue"
                 >
                   Sign up here
                 </Link>
