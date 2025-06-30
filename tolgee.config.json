@@ -1,0 +1,9 @@
+{
+  "apiKey": "tgpak_ge4tkmjzl5vtm3ttn43he4ddmiyw24tohfwdgmrxnvywunleozvq",
+  "apiUrl": "https://app.tolgee.io",
+  "projectId": "19519",
+  "outputDir": "./src/locales",
+  "format": "json",
+  "structureDelimiter": ".",
+  "cleanOutputDir": false
+}

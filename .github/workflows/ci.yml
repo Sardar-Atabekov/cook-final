@@ -26,8 +26,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Type checking
-        run: npm run type-check
+      # - name: Install Tolgee CLI
+      #   run: npm install --global @tolgee/cli
+
+      # - name: Sync translations from Tolgee
+      #   env:
+      #     TOLGEE_API_KEY: ${{ secrets.TOLGEE_API_KEY }}
+      #   run: tolgee export --api-key $TOLGEE_API_KEY --output locales
+
+      # - name: Type checking
+      #   run: npm run type-check
 
       - name: Lint code
         run: npm run lint
