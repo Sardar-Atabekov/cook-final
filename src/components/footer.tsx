@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { useLocale, useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
+import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
+import { Button } from '@/components/ui/button';
 
 export default function Footer() {
   const locale = useLocale();
-  const t = useTranslations("navigation");
+  const t = useTranslations('navigation');
 
   return (
     <footer className="bg-slate-900 text-white py-16">
@@ -27,25 +27,28 @@ export default function Footer() {
             <h3 className="font-semibold text-white mb-4">Explore</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="/recipes" className="text-slate-400 hover:text-white">
+                <Link
+                  href="/recipes"
+                  className="text-slate-400 hover:text-white"
+                >
                   Popular Recipes
-                </a>
+                </Link>
               </li>
               <li>
-                <a
+                <Link
                   href="/suggested"
                   className="text-slate-400 hover:text-white"
                 >
                   Suggested Meals
-                </a>
+                </Link>
               </li>
               <li>
-                <a
+                <Link
                   href="/recipes?type=quick"
                   className="text-slate-400 hover:text-white"
                 >
                   Quick Meals
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -55,19 +58,19 @@ export default function Footer() {
             <h3 className="font-semibold text-white mb-4">Support</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="#" className="text-slate-400 hover:text-white">
+                <Link href="#" className="text-slate-400 hover:text-white">
                   Help Center
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-slate-400 hover:text-white">
+                <Link href="#" className="text-slate-400 hover:text-white">
                   Contact Us
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-slate-400 hover:text-white">
+                <Link href="#" className="text-slate-400 hover:text-white">
                   Privacy Policy
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -79,7 +82,7 @@ export default function Footer() {
               Get weekly recipe suggestions and cooking tips.
             </p>
             <Button className="w-full bg-brand-blue hover:bg-blue-700">
-              <a href="/api/login">Sign Up for Updates</a>
+              <Link href="/api/login">Sign Up for Updates</Link>
             </Button>
           </div>
         </div>

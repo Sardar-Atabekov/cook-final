@@ -14,13 +14,10 @@ module.exports = {
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     'prettier/prettier': ['error', {}, { usePrettierrc: true }],
     '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-    'no-console':
-      process.env.NODE_ENV === 'production'
-        ? ['error', { allow: ['warn', 'error'] }]
-        : 'off',
     '@typescript-eslint/no-var-requires': 'off',
     'react/no-unescaped-entities': 'off',
     '@typescript-eslint/no-explicit-any': 'warn',
+    'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'warn',
   },
   settings: {
     react: {

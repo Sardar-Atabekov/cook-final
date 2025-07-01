@@ -26,12 +26,12 @@
     --radius: 0.5rem;
 
     /* Brand colors matching design */
-    --brand-blue: hsl(207, 90%, 54%);
-    --brand-green: hsl(160, 84%, 39%);
-    --brand-red: hsl(0, 79%, 63%);
-    --brand-amber: hsl(43, 96%, 56%);
-    --brand-orange: hsl(25, 95%, 53%);
-    --brand-purple: hsl(271, 91%, 65%);
+    --brand-blue: hsl(207deg 90% 54%);
+    --brand-green: hsl(160deg 84% 39%);
+    --brand-red: hsl(0deg 79% 63%);
+    --brand-amber: hsl(43deg 96% 56%);
+    --brand-orange: hsl(25deg 95% 53%);
+    --brand-purple: hsl(271deg 91% 65%);
   }
 
   .dark {
@@ -61,6 +61,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
