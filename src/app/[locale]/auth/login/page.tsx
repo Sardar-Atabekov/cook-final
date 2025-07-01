@@ -24,7 +24,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { useStore } from '@/lib/store';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { ChefHat, Eye, EyeOff } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useLoginMutation } from '@/hooks/use-auth-mutation';
@@ -40,7 +40,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
-  const { login } = useStore();
+  const { login } = useAuthStore();
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),

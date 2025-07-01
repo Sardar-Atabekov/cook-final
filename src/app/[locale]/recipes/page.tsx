@@ -9,14 +9,14 @@ import { RecipeFilters, type FilterState } from '@/components/recipe-filters';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { recipeApi } from '@/lib/api';
-import { useStore } from '@/lib/store';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useIngredientStore } from '@/stores/useIngredientStore';
 
 export default function RecipesPage() {
   const searchParams = useSearchParams();
   const params = useParams();
   const locale = useLocale();
-  const { ingredients } = useStore();
+  const { selectedIngredients } = useIngredientStore();
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<FilterState>({
     mealType: 'all',
@@ -27,8 +27,14 @@ export default function RecipesPage() {
 
   // Get ingredients from URL params or store
   const urlIngredients = searchParams.get('ingredients')?.split(',') || [];
-  const searchIngredients =
-    urlIngredients.length > 0 ? urlIngredients : ingredients;
+  const searchIngredients: string[] =
+    urlIngredients.length > 0
+      ? urlIngredients
+      : selectedIngredients.map((ingredient: any) =>
+          typeof ingredient === 'string'
+            ? ingredient
+            : (ingredient.id ?? ingredient.name)
+        );
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['recipes', searchIngredients, filters, page],

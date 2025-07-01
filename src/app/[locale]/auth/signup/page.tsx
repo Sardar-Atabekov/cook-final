@@ -25,9 +25,9 @@ import {
 } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { useSignupMutation } from '@/hooks/use-auth-mutation';
-import { useStore } from '@/lib/store';
 import { ChefHat, Eye, EyeOff } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 const signupSchema = z
   .object({
@@ -48,7 +48,7 @@ export default function SignupPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
-  const { login } = useStore();
+  const { login } = useAuthStore();
   const t = useTranslations('auth');
   const locale = useLocale();
   const form = useForm<SignupForm>({

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
-import { useStore } from '@/lib/store';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { User, LogOut, Utensils } from 'lucide-react';
 import {
   DropdownMenu,
@@ -19,7 +19,7 @@ export function Navigation() {
   const pathname = usePathname();
   const locale = useLocale();
   const t = useTranslations('navigation');
-  const { user, logout } = useStore();
+  const { user, logout } = useAuthStore();
 
   const navItems = [
     { href: `/${locale}`, label: t('home') },

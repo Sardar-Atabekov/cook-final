@@ -4,12 +4,13 @@ import { useQuery } from '@tanstack/react-query';
 import { RecipeCard } from '@/components/recipe-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { recipeApi } from '@/lib/api';
-import { useStore } from '@/lib/store';
 import { Clock, Sunrise, Sun, Moon } from 'lucide-react';
 import { useLocale } from 'next-intl';
+import { useIngredientStore } from '@/stores/useIngredientStore';
 
 export default function SuggestedPage() {
-  const { ingredients } = useStore();
+  const { selectedIngredients: ingredients } = useIngredientStore();
+
   const locale = useLocale();
   const { data: suggestedRecipes, isLoading } = useQuery({
     queryKey: ['suggested-recipes'],

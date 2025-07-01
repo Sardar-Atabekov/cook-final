@@ -20,10 +20,10 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
-
+import { useIngredientStore } from '@/stores/useIngredientStore';
 export default function RecipePage() {
   const params = useParams();
-  const { ingredients: userIngredients } = useStore();
+  const { selectedIngredients: userIngredients } = useIngredientStore();
   const recipeId = params.id as string;
   const locale = useLocale();
   const t = useTranslations('recipe');
