@@ -16,7 +16,7 @@
     "tolgee:pull": "tolgee pull --project-id 19519 --format JSON_I18NEXT src/locales",
     "tolgee:push": "tolgee push --api-key $TOLGEE_API_KEY --project-id 19519 --format JSON_I18NEXT src/locales",
     "tolgee:sync": "npm run tolgee:pull && npm run tolgee:push",
-    "build": "npm run tolgee:pull && next build"
+    "build": "next build"
   },
   "dependencies": {
     "@commitlint/config-conventional": "^19.8.1",
@@ -69,6 +69,7 @@
     "immer": "latest",
     "input-otp": "1.4.1",
     "lint-staged": "^16.0.0",
+    "lodash.debounce": "^4.0.8",
     "lucide-react": "^0.454.0",
     "next": "15.2.4",
     "next-intl": "latest",
@@ -89,6 +90,7 @@
   },
   "devDependencies": {
     "@tolgee/cli": "^2.13.0",
+    "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",

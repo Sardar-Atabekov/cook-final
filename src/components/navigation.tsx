@@ -40,7 +40,7 @@ export function Navigation() {
               <Link href={`/${locale}`} className="flex items-center space-x-2">
                 <Utensils className="h-8 w-8 text-brand-blue" />
                 <span className="text-xl font-bold text-slate-900">
-                  RecipeMatch
+                  SuperCook
                 </span>
               </Link>
             </div>

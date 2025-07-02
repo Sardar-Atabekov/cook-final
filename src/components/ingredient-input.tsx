@@ -21,6 +21,10 @@ import {
 import { Plus, X, Search } from 'lucide-react';
 import type { Ingredient } from '@/types/recipe';
 import { useIngredientStore } from '@/stores/useIngredientStore';
+import { ingredientsApi } from '@/lib/api';
+import debounce from 'lodash.debounce'; // добавь зависимость
+import { useRouter } from 'next/navigation';
+import { useLocale } from 'next-intl';
 
 interface IngredientInputProps {
   onSearch?: () => void;
@@ -32,7 +36,6 @@ export const IngredientInput = forwardRef<
 >(({ onSearch }, ref) => {
   const t = useTranslations('ux.input');
   const inputRef = useRef<HTMLInputElement>(null);
-
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
 
@@ -41,18 +44,17 @@ export const IngredientInput = forwardRef<
 
   const { data: allIngredients = [] } = useQuery<Ingredient[]>({
     queryKey: ['/api/ingredients'],
-    queryFn: () => fetch('/api/ingredients').then((res) => res.json()),
+    queryFn: () => ingredientsApi.getIngredients(),
   });
 
-  const filteredIngredients = useMemo(
-    () =>
-      allIngredients.filter(
-        (ingredient) =>
-          ingredient.name.toLowerCase().includes(query.toLowerCase()) &&
-          !selectedIngredients.find((selected) => selected.id === ingredient.id)
-      ),
-    [allIngredients, query, selectedIngredients]
-  );
+  const filteredIngredients = useMemo(() => {
+    const q = query.toLowerCase();
+    return allIngredients.filter(
+      (ingredient) =>
+        ingredient.name.toLowerCase().includes(q) &&
+        !selectedIngredients.find((selected) => selected.id === ingredient.id)
+    );
+  }, [allIngredients, query, selectedIngredients]);
 
   const handleAddIngredient = (ingredient: Ingredient) => {
     addIngredient(ingredient);
@@ -65,9 +67,18 @@ export const IngredientInput = forwardRef<
     removeIngredient(id);
   };
 
+  const router = useRouter();
+  const locale = useLocale();
+
   const handleSearch = () => {
     onSearch?.();
+    router.push(`/${locale}/recipes`);
   };
+
+  const handleInputChange = debounce((value: string) => {
+    setQuery(value);
+    setIsOpen(true); // всегда открывать при вводе
+  }, 100); // debounce ~100ms
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8 mb-8">
@@ -80,14 +91,14 @@ export const IngredientInput = forwardRef<
           <PopoverTrigger asChild>
             <div className="relative">
               <Input
-                ref={mergeRefs(inputRef, ref)}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onFocus={() => {
-                  if (filteredIngredients.length > 0) {
-                    setIsOpen(true);
-                  }
+                ref={(el) => {
+                  if (typeof ref === 'function') ref(el);
+                  else if (ref) (ref as any).current = el;
+                  inputRef.current = el;
                 }}
+                value={query}
+                onChange={(e) => handleInputChange(e.target.value)}
+                onFocus={() => setIsOpen(true)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && filteredIngredients.length > 0) {
                     e.preventDefault();
@@ -116,16 +127,16 @@ export const IngredientInput = forwardRef<
                 <CommandList>
                   {filteredIngredients.length > 0 ? (
                     <CommandGroup>
-                      {filteredIngredients.slice(0, 5).map((ingredient) => (
+                      {filteredIngredients.slice(0, 7).map((ingredient) => (
                         <CommandItem
                           key={ingredient.id}
                           onSelect={() => handleAddIngredient(ingredient)}
                           className="cursor-pointer"
                         >
                           <span>{ingredient.name}</span>
-                          {ingredient.category && (
+                          {ingredient.categoryName && (
                             <span className="ml-auto text-xs text-slate-500 capitalize">
-                              {ingredient.category}
+                              {ingredient.categoryName}
                             </span>
                           )}
                         </CommandItem>
@@ -183,17 +194,3 @@ export const IngredientInput = forwardRef<
 });
 
 IngredientInput.displayName = 'IngredientInput';
-
-function mergeRefs<T>(
-  ...refs: (React.Ref<T> | undefined)[]
-): React.RefCallback<T> {
-  return (value) => {
-    refs.forEach((ref) => {
-      if (typeof ref === 'function') {
-        ref(value);
-      } else if (ref != null && typeof ref === 'object') {
-        (ref as React.MutableRefObject<T | null>).current = value;
-      }
-    });
-  };
-}

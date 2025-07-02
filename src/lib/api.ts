@@ -1,3 +1,4 @@
+import { Ingredient } from '@/types/recipe';
 import axios from 'axios';
 
 const api = axios.create({
@@ -285,6 +286,29 @@ export const authApi = {
 
   signup: async (email: string, password: string, name: string) => {
     const response = await api.post('/auth/signup', { email, password, name });
+    return response.data;
+  },
+};
+
+export const ingredientsApi = {
+  async getIngredients(
+    categoryId?: number,
+    search?: string
+  ): Promise<Ingredient[]> {
+    const params = new URLSearchParams();
+    if (categoryId) params.append('categoryId', categoryId.toString());
+    if (search) params.append('search', search);
+    const response = await api.get(`/ingredients/list?${params}`);
+    return response.data;
+  },
+
+  getById: async (id: string) => {
+    const response = await api.get(`/ingredients/${id}`);
+    return response.data;
+  },
+
+  getByCategoryAll: async () => {
+    const response = await api.get(`/ingredients/categories`);
     return response.data;
   },
 };

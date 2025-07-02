@@ -1,10 +1,18 @@
 export interface Ingredient {
+  categoryName: any;
   toLowerCase(): unknown;
   toLowerCase(): string;
   id: number;
   name: string;
   unit?: string;
-  category?: string;
+  category?: unknown;
+}
+
+export interface IngredientCategory {
+  id: number;
+  name: string;
+  icon: string;
+  color: string;
 }
 
 export interface RecipeIngredient {
@@ -17,6 +25,7 @@ export interface RecipeIngredient {
 }
 
 export interface Recipe {
+  recipeIngredients: any;
   id: number;
   title: string;
   description?: string;
