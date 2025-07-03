@@ -9,6 +9,7 @@ export interface Ingredient {
 }
 
 export interface IngredientCategory {
+  ingredients: Ingredient[];
   id: number;
   name: string;
   icon: string;

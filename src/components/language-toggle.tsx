@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams, usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -9,7 +9,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Globe } from 'lucide-react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useLocale } from 'next-intl';
+import { useLanguageStore } from '@/stores/useLanguageStore';
 
 const languages = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -22,14 +23,21 @@ const languages = [
 ];
 
 export function LanguageToggle() {
-  const params = useParams();
+  const currentLocale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
-  const t = useTranslations('common');
-  const currentLocale = useLocale();
+  const setLanguage = useLanguageStore((state) => state.setLanguage);
+  const language = useLanguageStore((state) => state.language);
+
   const switchLanguage = (newLocale: string) => {
-    const currentPath = pathname.replace(`/${currentLocale}`, '');
-    router.push(`/${newLocale}${currentPath}`);
+    if (newLocale === language) return; // чтобы не перезапускать зря
+
+    // Обновляем стор, увеличиваем version
+    setLanguage(newLocale);
+
+    // Меняем путь, заменяя текущий префикс языка на новый
+    const currentPathWithoutLocale = pathname.replace(`/${currentLocale}`, '');
+    router.push(`/${newLocale}${currentPathWithoutLocale}`);
   };
 
   const currentLanguage = languages.find((lang) => lang.code === currentLocale);

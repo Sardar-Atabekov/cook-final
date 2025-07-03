@@ -3,7 +3,6 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: 'http://localhost:5000/api/',
-  timeout: 10000,
 });
 
 // Mock data for development
@@ -307,8 +306,15 @@ export const ingredientsApi = {
     return response.data;
   },
 
-  getByCategoryAll: async () => {
+  getAllCategories: async () => {
     const response = await api.get(`/ingredients/categories`);
+    return response.data;
+  },
+
+  getGroupedIngredients: async (lang: string) => {
+    const response = await api.get(`/ingredients/grouped`, {
+      params: { lang },
+    });
     return response.data;
   },
 };

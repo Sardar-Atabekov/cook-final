@@ -2,6 +2,7 @@
   "navigation": {
     "home": "Home",
     "recipes": "Recipes",
+    "search": "Search",
     "suggested": "Suggested",
     "login": "Login",
     "signup": "Sign Up",
@@ -23,7 +24,58 @@
     "step3Description": "Follow step-by-step instructions to create amazing meals",
     "readyToCook": "Ready to Start Cooking?",
     "readyToCookSubtitle": "Join thousands of home cooks who never run out of meal ideas",
-    "addFirstIngredient": "Add Your First Ingredient"
+    "addFirstIngredient": "Add Your First Ingredient",
+    "quickMeals": "Quick Meals",
+    "quickMealsDescription": "Quick meal ideas that can be made in 30 minutes or less",
+    "popularToday": "Popular Today",
+    "trendingRecipes": "Most popular recipes people are searching for today",
+    "surpriseMe": "Surprise Me",
+    "randomRecipe": "Don't know what to cook? Try a random recipe"
+  },
+  "ux": {
+    "input": {
+      "placeholder": "Enter ingredients (e.g., chicken, rice, tomatoes)...",
+      "label": "What ingredients do you have?",
+      "loading": "Loading...",
+      "noResults": "No ingredients found",
+      "addIngredient": "Add Ingredient",
+      "emptyHint": "Start typing to add ingredients...",
+      "searchButton": "Find Recipes"
+    }
+  },
+  "auth": {
+    "welcomeBack": "Welcome back",
+    "signInDescription": "Sign in to your account to continue cooking",
+    "createAccount": "Create your account",
+    "signUpDescription": "Join thousands of home cooks finding amazing recipes",
+    "signUpCreate": "Create your account to start discovering recipes",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "fullName": "Full Name",
+    "enterEmail": "Enter your email",
+    "enterPassword": "Enter your password",
+    "createPassword": "Create a password",
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "enterFullName": "Enter your full name",
+    "signingIn": "Signing in...",
+    "creatingAccount": "Creating account...",
+    "createAccountButton": "Create Account",
+    "dontHaveAccount": "Don't have an account?",
+    "alreadyHaveAccount": "Already have an account?",
+    "signUpHere": "Sign up here",
+    "signInHere": "Sign in here",
+    "demoCredentials": "Demo Credentials",
+    "loginSuccess": "Welcome back!",
+    "loginSuccessDescription": "You have been successfully logged in.",
+    "signupSuccess": "Welcome to RecipeFinder!",
+    "signupSuccessDescription": "Your account has been created successfully.",
+    "loginError": "Login failed",
+    "loginErrorDescription": "Please check your credentials and try again.",
+    "signupError": "Signup failed",
+    "signupErrorDescription": "Please try again with different credentials."
   },
   "recipes": {
     "title": "Recipe Results",
@@ -33,6 +85,9 @@
     "goBack": "Go Back",
     "noRecipesFound": "No Recipes Found",
     "noRecipesDescription": "Try adjusting your filters or adding different ingredients.",
+    "ingredientsDescription": "Ingredients you have",
+    "filterBy": "Filter by",
+    "filterByDescription": "Filter recipes by meal type",
     "clearFilters": "Clear Filters",
     "filters": "Filters",
     "mealType": "Meal Type",
@@ -75,7 +130,8 @@
     "instructions": "Instructions",
     "startCooking": "Start Cooking",
     "saveRecipe": "Save Recipe",
-    "shareRecipe": "Share Recipe"
+    "shareRecipe": "Share Recipe",
+    "loading": "Loading recipe..."
   },
   "suggested": {
     "goodMorning": "Good Morning!",
@@ -139,6 +195,8 @@
     "system": "System",
     "close": "Close",
     "minutes": "minutes",
-    "hours": "hours"
+    "hours": "hours",
+    "back": "Back",
+    "next": "Next"
   }
 }
