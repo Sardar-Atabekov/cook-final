@@ -41,6 +41,16 @@
       "addIngredient": "Добавить ингредиент",
       "emptyHint": "Начните вводить, чтобы добавить ингредиенты...",
       "searchButton": "Найти рецепты"
+    },
+    "sidebar": {
+      "yourIngredients": "Ваши ингредиенты",
+      "searchPlaceholder": "Поиск ингредиентов...",
+      "textDescription": "Мы предполагаем, что у вас есть: соль, перец, вода",
+      "searchResults": "Результаты поиска",
+      "noResults": "Ингредиенты не найдены для &quot;{searchQuery}&quot;.",
+      "selected": "Выбранные ингредиенты ({count})",
+      "showLess": "Показать меньше",
+      "showMore": "Показать больше"
     }
   },
   "auth": {

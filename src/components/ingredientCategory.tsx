@@ -18,6 +18,7 @@ import {
   Fish,
 } from 'lucide-react';
 import type { IngredientCategory, Ingredient } from '@/types/recipe';
+import { useTranslations } from 'next-intl';
 
 interface IngredientCategoryProps {
   category: IngredientCategory;
@@ -64,6 +65,7 @@ export function IngredientCategory({
 }: IngredientCategoryProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [showAll, setShowAll] = useState(false);
+  const t = useTranslations('ux.sidebar');
 
   const selectedCount = useMemo(
     () =>
@@ -145,7 +147,7 @@ export function IngredientCategory({
             className="text-blue-600 p-0 h-auto mt-2"
             onClick={() => setShowAll(!showAll)}
           >
-            {showAll ? 'Show Less' : 'Show More'}
+            {showAll ? t('showLess') : t('showMore')}
           </Button>
         )}
       </CollapsibleContent>

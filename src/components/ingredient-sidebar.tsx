@@ -14,6 +14,7 @@ import { useLanguageStore } from '@/stores/useLanguageStore';
 import { Ingredient } from '@/types/recipe';
 import { IngredientCategory } from './ingredientCategory';
 import { Search, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 function SkeletonBlock() {
   return <div className="animate-pulse bg-gray-200 rounded h-8 w-full mb-2" />;
@@ -49,7 +50,7 @@ export function IngredientSidebar({ className }: IngredientSidebarProps) {
     },
     staleTime: 3 * 24 * 60 * 60 * 1000,
   });
-
+  const t = useTranslations('ux.sidebar');
   // id выбранных ингредиентов для подсветки
   const selectedIngredientIds = useMemo(
     () => selectedIngredients.map((i) => i.id),
@@ -77,13 +78,13 @@ export function IngredientSidebar({ className }: IngredientSidebarProps) {
         {/* Заголовок и поиск */}
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Your Ingredients
+            {t('yourIngredients')}
           </h2>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
               type="text"
-              placeholder="Search ingredients..."
+              placeholder={t('searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -91,9 +92,7 @@ export function IngredientSidebar({ className }: IngredientSidebarProps) {
           </div>
         </div>
 
-        <div className="text-sm text-gray-600 mb-4">
-          We assume you have: salt, pepper, water
-        </div>
+        <div className="text-sm text-gray-600 mb-4">{t('textDescription')}</div>
 
         {/* Поиск */}
         {searchQuery.trim().length > 0 && (
@@ -101,7 +100,7 @@ export function IngredientSidebar({ className }: IngredientSidebarProps) {
             {searchResults.length > 0 ? (
               <div className="mb-6 p-4 bg-blue-50 rounded-lg">
                 <h3 className="font-medium text-gray-900 mb-2">
-                  Search Results
+                  {t('searchResults')}
                 </h3>
                 <div className="grid grid-cols-2 gap-2">
                   {searchResults.map((ingredient) => (
@@ -123,7 +122,7 @@ export function IngredientSidebar({ className }: IngredientSidebarProps) {
               </div>
             ) : (
               <div className="mb-6 p-4 text-center text-gray-600">
-                No ingredients found for &quot;{searchQuery}&quot;.
+                {t('noResults', { searchQuery })}
               </div>
             )}
 
@@ -169,7 +168,7 @@ export function IngredientSidebar({ className }: IngredientSidebarProps) {
         {selectedIngredients.length > 0 && (
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
             <h3 className="font-medium text-gray-900 mb-2">
-              Selected Ingredients ({selectedIngredients.length})
+              {t('selected', { count: selectedIngredients.length })}
             </h3>
             <div className="flex flex-wrap gap-2">
               {selectedIngredients.map((ingredient) => (
