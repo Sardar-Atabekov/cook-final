@@ -69,11 +69,11 @@ export function IngredientSidebar({ className }: IngredientSidebarProps) {
   return (
     <aside
       className={cn(
-        'w-80 min-w-80 bg-white shadow-lg border-r border-gray-200 overflow-y-auto h-screen',
+        'w-80 min-w-80 bg-white shadow-lg border-r border-gray-200 overflow-y-auto h-screen  pr-0',
         className
       )}
     >
-      <div className="p-6">
+      <div className="p-6 pr-1">
         {/* Заголовок и поиск */}
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
@@ -138,7 +138,7 @@ export function IngredientSidebar({ className }: IngredientSidebarProps) {
                       ingredients={category.ingredients}
                       selectedIngredientIds={selectedIngredientIds}
                       isLoading={categoriesLoading}
-                      defaultOpen={idx === 0}
+                      // defaultOpen={idx === 0}
                       onToggleIngredient={toggleIngredient}
                     />
                   ))}

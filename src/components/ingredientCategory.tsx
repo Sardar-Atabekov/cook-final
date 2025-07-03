@@ -1,11 +1,10 @@
-/* eslint-disable prettier/prettier */
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import {
   Collapsible,
   CollapsibleTrigger,
   CollapsibleContent,
 } from '@radix-ui/react-collapsible';
-import { useState, useMemo } from 'react';
 import { Button } from './ui/button';
 import {
   ChevronDown,
@@ -19,6 +18,7 @@ import {
   Fish,
 } from 'lucide-react';
 import type { IngredientCategory, Ingredient } from '@/types/recipe';
+
 interface IngredientCategoryProps {
   category: IngredientCategory;
   ingredients: Ingredient[];
@@ -27,9 +27,11 @@ interface IngredientCategoryProps {
   defaultOpen?: boolean;
   onToggleIngredient: (ingredient: Ingredient) => void;
 }
+
 function SkeletonBlock() {
   return <div className="animate-pulse bg-gray-200 rounded h-8 w-full mb-2" />;
 }
+
 const categoryIcons: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = {
   'Pantry Essentials': ShoppingBasket,
   'Vegetables & Greens': Leaf,
@@ -103,7 +105,7 @@ export function IngredientCategory({
           </div>
         </Button>
       </CollapsibleTrigger>
-      <CollapsibleContent className="mt-2 pl-4">
+      <CollapsibleContent className="mt-1">
         {isLoading ? (
           <>
             {[...Array(6)].map((_, i) => (
@@ -111,24 +113,28 @@ export function IngredientCategory({
             ))}
           </>
         ) : (
-          <div className="grid grid-cols-2 gap-2">
-            {(showAll ? ingredients : ingredients.slice(0, 6)).map(
-              (ingredient) => (
-                <Button
-                  key={ingredient.id}
-                  variant="ghost"
-                  size="sm"
-                  className={cn(
-                    'justify-start text-left h-auto p-2 text-sm hover:bg-blue-50 transition-colors',
-                    selectedIngredientIds.includes(ingredient.id) &&
-                      'bg-blue-100 text-blue-700'
-                  )}
-                  onClick={() => onToggleIngredient(ingredient)}
-                >
-                  {ingredient.name}
-                </Button>
-              )
+          <div
+            className={cn(
+              'flex flex-wrap gap-2 overflow-hidden transition-all',
+              !showAll && 'max-h-[72px]'
             )}
+          >
+            {ingredients.map((ingredient) => (
+              <Button
+                key={ingredient.id}
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  'h-auto px-3 py-1 text-sm rounded-full border border-gray-300 bg-white text-gray-800',
+                  'hover:bg-blue-50 transition-colors',
+                  selectedIngredientIds.includes(ingredient.id) &&
+                    'bg-blue-100 text-blue-700 border-blue-400'
+                )}
+                onClick={() => onToggleIngredient(ingredient)}
+              >
+                {ingredient.name}
+              </Button>
+            ))}
           </div>
         )}
 
@@ -139,7 +145,7 @@ export function IngredientCategory({
             className="text-blue-600 p-0 h-auto mt-2"
             onClick={() => setShowAll(!showAll)}
           >
-            {showAll ? 'Show Less' : `+${ingredients.length - 6} More`}
+            {showAll ? 'Show Less' : 'Show More'}
           </Button>
         )}
       </CollapsibleContent>

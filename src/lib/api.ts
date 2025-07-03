@@ -143,71 +143,6 @@ export const recipeApi = {
     totalPages: number;
   }> => {
     // Mock API delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    let filteredRecipes = mockRecipes;
-
-    // Filter by meal type
-    if (filters.mealType && filters.mealType !== 'all') {
-      filteredRecipes = filteredRecipes.filter(
-        (recipe) => recipe.mealType === filters.mealType
-      );
-    }
-
-    // Filter by country
-    if (filters.country && filters.country !== 'all') {
-      filteredRecipes = filteredRecipes.filter(
-        (recipe) => recipe.country === filters.country
-      );
-    }
-
-    // Filter by diet tags
-    if (filters.dietTags && filters.dietTags.length > 0) {
-      filteredRecipes = filteredRecipes.filter((recipe) =>
-        filters.dietTags!.some((tag) => recipe.dietTags.includes(tag))
-      );
-    }
-
-    // Calculate match percentage based on ingredients
-    if (ingredients.length > 0) {
-      filteredRecipes = filteredRecipes.map((recipe) => {
-        const matchingIngredients = recipe.ingredients.filter((ingredient) =>
-          ingredients.some((userIngredient) =>
-            ingredient.toLowerCase().includes(userIngredient.toLowerCase())
-          )
-        );
-        const matchPercentage = Math.round(
-          (matchingIngredients.length / recipe.ingredients.length) * 100
-        );
-        const missingIngredients = recipe.ingredients.filter(
-          (ingredient) =>
-            !ingredients.some((userIngredient) =>
-              ingredient.toLowerCase().includes(userIngredient.toLowerCase())
-            )
-        );
-
-        return {
-          ...recipe,
-          matchPercentage,
-          missingIngredients,
-        };
-      });
-
-      // Sort by match percentage
-      filteredRecipes.sort((a, b) => b.matchPercentage - a.matchPercentage);
-    }
-
-    const page = filters.page || 1;
-    const limit = filters.limit || 12;
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-
-    return {
-      recipes: filteredRecipes.slice(startIndex, endIndex),
-      total: filteredRecipes.length,
-      page,
-      totalPages: Math.ceil(filteredRecipes.length / limit),
-    };
   },
 
   getRecipe: async (id: string): Promise<Recipe> => {
@@ -228,52 +163,6 @@ export const recipeApi = {
     return mockRecipes
       .filter((recipe) => recipe.mealType === mealType)
       .slice(0, 4);
-  },
-
-  getIngredientSuggestions: async (query: string): Promise<string[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    const allIngredients = [
-      'chicken breast',
-      'beef',
-      'pork',
-      'salmon',
-      'tuna',
-      'eggs',
-      'milk',
-      'cheese',
-      'butter',
-      'yogurt',
-      'cream',
-      'tomatoes',
-      'onion',
-      'garlic',
-      'bell peppers',
-      'mushrooms',
-      'spinach',
-      'lettuce',
-      'rice',
-      'pasta',
-      'bread',
-      'flour',
-      'oats',
-      'olive oil',
-      'soy sauce',
-      'salt',
-      'pepper',
-      'cumin',
-      'paprika',
-      'avocado',
-      'lime',
-      'lemon',
-      'apple',
-      'banana',
-    ];
-
-    return allIngredients
-      .filter((ingredient) =>
-        ingredient.toLowerCase().includes(query.toLowerCase())
-      )
-      .slice(0, 8);
   },
 };
 
