@@ -1,7 +1,6 @@
 import type React from 'react';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { useLocale } from 'next-intl';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -9,10 +8,9 @@ export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
-  params: { locale?: string };
 }) {
   return (
-    <html>
+    <html lang="en">
       <head>
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

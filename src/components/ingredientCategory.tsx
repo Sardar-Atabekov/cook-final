@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import {
   Collapsible,
@@ -86,9 +86,13 @@ export function IngredientCategory({
           className="w-full justify-between p-3 h-auto bg-gray-50 hover:bg-gray-100"
           aria-expanded={isOpen}
         >
-          <div className="flex items-center">
-            <IconComponent className={cn('w-5 h-5 mr-3', colorClass)} />
-            <span className="font-medium">{category.name}</span>
+          <div className="flex items-start gap-3 w-full text-left">
+            <IconComponent
+              className={cn('w-5 h-5 flex-shrink-0 mt-0.5', colorClass)}
+            />
+            <span className="font-medium break-words whitespace-normal w-full block">
+              {category.name}
+            </span>
           </div>
           <div className="flex items-center">
             <span className="text-sm text-gray-500 mr-2">
@@ -129,12 +133,13 @@ export function IngredientCategory({
                 className={cn(
                   'h-auto px-3 py-1 text-sm rounded-full border border-gray-300 bg-white text-gray-800',
                   'hover:bg-blue-50 transition-colors',
+                  'whitespace-normal break-words text-left text-wrap max-w-full',
                   selectedIngredientIds.includes(ingredient.id) &&
                     'bg-blue-100 text-blue-700 border-blue-400'
                 )}
                 onClick={() => onToggleIngredient(ingredient)}
               >
-                {ingredient.name}
+                <span className="block break-words">{ingredient.name}</span>
               </Button>
             ))}
           </div>

@@ -13,7 +13,6 @@ import { usePantry } from '@/hooks/usePantry';
 import { useIngredientStore } from '@/stores/useIngredientStore';
 
 export default function Home() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { selectedIngredients, setSelectedIngredients } = useIngredientStore();
   const { pantryItems } = usePantry();
 

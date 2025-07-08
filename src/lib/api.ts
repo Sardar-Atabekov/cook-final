@@ -1,127 +1,33 @@
-import { Ingredient } from '@/types/recipe';
+import { Ingredient, RecipeIngredient } from '@/types/recipe';
 import axios from 'axios';
 
 const api = axios.create({
   baseURL: 'http://localhost:5000/api/',
 });
 
-// Mock data for development
-const mockRecipes = [
-  {
-    id: '1',
-    title: 'Creamy Mushroom Pasta',
-    image: '/images/placeholder.svg?height=200&width=300',
-    cookingTime: 25,
-    matchPercentage: 85,
-    missingIngredients: ['heavy cream'],
-    country: 'Italy',
-    mealType: 'dinner',
-    dietTags: ['vegetarian'],
-    ingredients: [
-      'pasta',
-      'mushrooms',
-      'garlic',
-      'onion',
-      'heavy cream',
-      'parmesan',
-    ],
-    steps: [
-      'Cook pasta according to package instructions',
-      'Sauté mushrooms and garlic in olive oil',
-      'Add cream and simmer until thickened',
-      'Toss with pasta and serve with parmesan',
-    ],
-  },
-  {
-    id: '2',
-    title: 'Chicken Stir Fry',
-    image: '/images/placeholder.svg?height=200&width=300',
-    cookingTime: 15,
-    matchPercentage: 92,
-    missingIngredients: [],
-    country: 'China',
-    mealType: 'lunch',
-    dietTags: ['gluten-free'],
-    ingredients: [
-      'chicken breast',
-      'bell peppers',
-      'soy sauce',
-      'garlic',
-      'ginger',
-    ],
-    steps: [
-      'Cut chicken into strips',
-      'Heat oil in wok',
-      'Stir fry chicken until cooked',
-      'Add vegetables and sauce',
-    ],
-  },
-  {
-    id: '3',
-    title: 'Avocado Toast',
-    image: '/images/placeholder.svg?height=200&width=300',
-    cookingTime: 5,
-    matchPercentage: 100,
-    missingIngredients: [],
-    country: 'USA',
-    mealType: 'breakfast',
-    dietTags: ['vegan', 'healthy'],
-    ingredients: ['bread', 'avocado', 'lime', 'salt', 'pepper'],
-    steps: [
-      'Toast bread until golden',
-      'Mash avocado with lime juice',
-      'Spread on toast',
-      'Season with salt and pepper',
-    ],
-  },
-  {
-    id: '4',
-    title: 'Beef Tacos',
-    image: '/images/placeholder.svg?height=200&width=300',
-    cookingTime: 20,
-    matchPercentage: 75,
-    missingIngredients: ['tortillas', 'cheese'],
-    country: 'Mexico',
-    mealType: 'dinner',
-    dietTags: [],
-    ingredients: [
-      'ground beef',
-      'onion',
-      'garlic',
-      'cumin',
-      'tortillas',
-      'cheese',
-      'lettuce',
-    ],
-    steps: [
-      'Brown ground beef with onions',
-      'Add spices and cook until fragrant',
-      'Warm tortillas',
-      'Assemble tacos with toppings',
-    ],
-  },
-];
-
 export interface Recipe {
   description: string;
   cookTime: number;
-  servings: number;
-  difficulty: string;
   rating: unknown;
   prepTime: string;
   nutrition: unknown;
   id: string;
   title: string;
-  image: string;
   cookingTime: number;
-  matchPercentage: number;
-  missingIngredients: string[];
   country: string;
   mealType: string;
   dietTags: string[];
   ingredients: string[];
   steps: string[];
   loading?: boolean;
+  servings: number;
+  difficulty: string;
+  imageUrl: string;
+  instructions: string[];
+  sourceUrl?: string;
+  recipeIngredients: RecipeIngredient[];
+  matchPercentage?: number;
+  missingIngredients?: string[];
 }
 
 export interface SearchFilters {
@@ -132,39 +38,39 @@ export interface SearchFilters {
   limit?: number;
 }
 
-export const recipeApi = {
-  searchRecipes: async (
-    ingredients: string[],
-    filters: SearchFilters = {}
-  ): Promise<{
-    recipes: Recipe[];
-    total: number;
-    page: number;
-    totalPages: number;
-  }> => {
-    // Mock API delay
-  },
+// export const recipeApi = {
+//   searchRecipes: async (
+//     ingredients: string[],
+//     filters: SearchFilters = {}
+//   ): Promise<{
+//     recipes: Recipe[];
+//     total: number;
+//     page: number;
+//     totalPages: number;
+//   }> => {
+//     // Mock API delay
+//   },
 
-  getRecipe: async (id: string): Promise<Recipe> => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    const recipe = mockRecipes.find((r) => r.id === id);
-    if (!recipe) throw new Error('Recipe not found');
-    return recipe;
-  },
+//   getRecipe: async (id: string): Promise<Recipe> => {
+//     await new Promise((resolve) => setTimeout(resolve, 500));
+//     const recipe = mockRecipes.find((r) => r.id === id);
+//     if (!recipe) throw new Error('Recipe not found');
+//     return recipe;
+//   },
 
-  getSuggestedRecipes: async (): Promise<Recipe[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    const hour = new Date().getHours();
-    let mealType = 'lunch';
+//   getSuggestedRecipes: async (): Promise<Recipe[]> => {
+//     await new Promise((resolve) => setTimeout(resolve, 600));
+//     const hour = new Date().getHours();
+//     let mealType = 'lunch';
 
-    if (hour >= 6 && hour < 11) mealType = 'breakfast';
-    else if (hour >= 17 && hour < 22) mealType = 'dinner';
+//     if (hour >= 6 && hour < 11) mealType = 'breakfast';
+//     else if (hour >= 17 && hour < 22) mealType = 'dinner';
 
-    return mockRecipes
-      .filter((recipe) => recipe.mealType === mealType)
-      .slice(0, 4);
-  },
-};
+//     return mockRecipes
+//       .filter((recipe) => recipe.mealType === mealType)
+//       .slice(0, 4);
+//   },
+// };
 
 export const authApi = {
   login: async (email: string, password: string) => {
@@ -204,6 +110,70 @@ export const ingredientsApi = {
     const response = await api.get(`/ingredients/grouped`, {
       params: { lang },
     });
+    return response.data;
+  },
+};
+
+export const recipeApi = {
+  getRecipes: async (
+    searchIngredients: string[],
+    {
+      page,
+      limit,
+      mealType,
+      country,
+      dietTags,
+    }: {
+      page: number;
+      limit: number;
+      mealType: string;
+      country: string;
+      dietTags: string[];
+    },
+    lang: string,
+    searchQuery?: string // если хочешь добавить поисковую строку
+  ) => {
+    const offset = (page - 1) * limit;
+
+    const params: Record<string, any> = {
+      lang,
+      limit,
+      offset,
+    };
+
+    if (searchIngredients.length > 0) {
+      params.ingredients = searchIngredients.join(',');
+    }
+
+    if (searchQuery) {
+      params.search = searchQuery;
+    }
+
+    // можно оставить это для будущей фильтрации (если бек готов поддерживать):
+    // if (mealType !== 'all') params.mealType = mealType;
+    // if (country) params.country = country;
+    // if (dietTags.length > 0) params.dietTags = dietTags.join(',');
+
+    const response = await api.get('/recipes/recipes', { params });
+    return response.data; // { recipes, total, hasMore }
+  },
+
+  getSuggestedRecipes: async (lang: string): Promise<Recipe[]> => {
+    const hour = new Date().getHours();
+    let mealType = 'lunch';
+
+    if (hour >= 6 && hour < 11) mealType = 'breakfast';
+    else if (hour >= 17 && hour < 22) mealType = 'dinner';
+    const response = await api.get(`/recipes/recipes`, {
+      params: { lang },
+    });
+    return response.data
+      .filter((recipe: { mealType: string }) => recipe.mealType === mealType)
+      .slice(0, 4);
+  },
+
+  getRecipe: async (id: string) => {
+    const response = await api.get(`/recipes/recipes/${id}`);
     return response.data;
   },
 };

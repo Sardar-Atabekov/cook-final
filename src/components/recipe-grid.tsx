@@ -5,13 +5,13 @@ import { RecipeDetail } from './recipe-detail';
 import { SearchBar } from './search-bar';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ShoppingBasket } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { usePantry } from '@/hooks/usePantry';
 import { useSavedRecipes } from '@/hooks/useSavedRecipes';
 import { useQuery } from '@tanstack/react-query';
-// import { api } from '@/lib/api';
+import { recipeApi } from '@/lib/api';
 import type { Recipe } from '@/types/recipe';
+import { useLocale } from 'next-intl';
 
 interface RecipeGridProps {
   selectedIngredients: number[];
@@ -26,20 +26,35 @@ export function RecipeGrid({ selectedIngredients }: RecipeGridProps) {
   const { toast } = useToast();
   const { addMultipleToPantry } = usePantry();
   const { toggleSaveRecipe, isRecipeSaved } = useSavedRecipes();
+  const locale = useLocale();
 
-  // Используем поиск вместо обычных рецептов если есть запрос
   const { data: searchResults, isLoading: isSearching } = useQuery({
-    queryKey: ['/api/recipes/search', searchQuery],
-    queryFn: () => api.searchRecipes(searchQuery),
+    queryKey: ['/api/recipes/recipes', searchQuery],
+    queryFn: () =>
+      recipeApi.getRecipes(
+        [],
+        {
+          page: 1,
+          limit: 12,
+          mealType: 'all',
+          country: '',
+          dietTags: [],
+        },
+        locale
+      ),
     enabled: !!searchQuery,
   });
 
   const { recipes, total, isLoading, loadMore, hasMore, currentCount } =
     useRecipes(searchQuery ? [] : selectedIngredients);
 
-  // Определяем какие рецепты показывать
-  const displayRecipes = searchQuery ? searchResults?.recipes || [] : recipes;
-  const displayTotal = searchQuery ? searchResults?.total || 0 : total;
+  // Ограничиваем до 20 рецептов
+  const displayRecipes =
+    (searchQuery ? searchResults?.recipes : recipes)?.slice(0, 20) || [];
+  const displayTotal = Math.min(
+    10,
+    searchQuery ? searchResults?.total || 0 : total
+  );
   const displayLoading = searchQuery ? isSearching : isLoading;
 
   const handleSaveRecipe = (recipe: Recipe) => {
@@ -58,17 +73,14 @@ export function RecipeGrid({ selectedIngredients }: RecipeGridProps) {
   };
 
   const handleCookDish = (recipe: Recipe) => {
-    // Получаем все ингредиенты рецепта
     const recipeIngredients =
       recipe.recipeIngredients?.map((ri) => ({
         id: ri.ingredientId,
         name: ri.ingredient?.name || `Ингредиент ${ri.ingredientId}`,
       })) || [];
 
-    // Добавляем ингредиенты в кладовую
     addMultipleToPantry(recipeIngredients, recipe.title);
 
-    // Показываем уведомление
     toast({
       title: 'Готовим блюдо!',
       description: `Ингредиенты для "${recipe.title}" добавлены в кладовую. Приятного аппетита!`,
@@ -102,12 +114,11 @@ export function RecipeGrid({ selectedIngredients }: RecipeGridProps) {
               {searchQuery
                 ? `Найдено ${displayTotal} рецептов`
                 : selectedIngredients.length === 0
-                  ? `Показано ${Math.min(currentCount, displayTotal)} из ${displayTotal} рецептов`
-                  : `Показано ${Math.min(currentCount, displayTotal)} из ${displayTotal} рецептов по вашим ингредиентам`}
+                  ? `Показано ${displayRecipes.length} из ${displayTotal} рецептов`
+                  : `Показано ${displayRecipes.length} из ${displayTotal} рецептов по вашим ингредиентам`}
             </p>
           </div>
 
-          {/* Search Bar */}
           <div className="lg:w-96">
             <SearchBar
               placeholder="Поиск рецептов..."
@@ -115,46 +126,19 @@ export function RecipeGrid({ selectedIngredients }: RecipeGridProps) {
               className="w-full"
             />
           </div>
-          <div className="flex flex-col sm:flex-row gap-3">
-            {/* <Select value={dishTypeFilter} onValueChange={setDishTypeFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="All Dish Types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Dish Types</SelectItem>
-                <SelectItem value="breakfast">Breakfast</SelectItem>
-                <SelectItem value="lunch">Lunch</SelectItem>
-                <SelectItem value="dinner">Dinner</SelectItem>
-                <SelectItem value="dessert">Dessert</SelectItem>
-              </SelectContent>
-            </Select> */}
-
-            {/* <Select value={prepTimeFilter} onValueChange={setPrepTimeFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Any Prep Time" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Any Prep Time</SelectItem>
-                <SelectItem value="quick">Under 15 min</SelectItem>
-                <SelectItem value="medium">15-30 min</SelectItem>
-                <SelectItem value="long">30-60 min</SelectItem>
-                <SelectItem value="extended">Over 1 hour</SelectItem>
-              </SelectContent>
-            </Select> */}
-          </div>
         </div>
       </div>
 
       {/* Recipe Grid */}
-      {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-          {Array.from({ length: 8 }).map((_, index) => (
+      {displayLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+          {Array.from({ length: 10 }).map((_, index) => (
             <div key={index} className="space-y-3">
-              <Skeleton className="h-48 w-full rounded-lg" />
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-4 w-1/2" />
-              <Skeleton className="h-3 w-full" />
-              <Skeleton className="h-3 w-2/3" />
+              <Skeleton className="h-52 w-full rounded-lg bg-gray-300 animate-pulse" />
+              <Skeleton className="h-5 w-3/4 bg-gray-300 animate-pulse" />
+              <Skeleton className="h-5 w-1/2 bg-gray-300 animate-pulse" />
+              <Skeleton className="h-4 w-full bg-gray-300 animate-pulse" />
+              <Skeleton className="h-4 w-2/3 bg-gray-300 animate-pulse" />
             </div>
           ))}
         </div>
@@ -171,7 +155,7 @@ export function RecipeGrid({ selectedIngredients }: RecipeGridProps) {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
             {displayRecipes.map((recipe) => (
               <RecipeCard
                 key={recipe.id}
@@ -201,7 +185,6 @@ export function RecipeGrid({ selectedIngredients }: RecipeGridProps) {
         </>
       )}
 
-      {/* Recipe Detail Modal */}
       <RecipeDetail
         recipe={selectedRecipe}
         isOpen={isDetailOpen}

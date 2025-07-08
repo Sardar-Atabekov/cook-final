@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { RecipeCard } from '@/components/recipe-card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -8,46 +9,62 @@ import { Clock, Sunrise, Sun, Moon } from 'lucide-react';
 import { useLocale } from 'next-intl';
 import { useIngredientStore } from '@/stores/useIngredientStore';
 
+type TimeInfo = {
+  period: string;
+  greeting: string;
+  message: string;
+  icon: React.ElementType;
+  color: string;
+};
+
+function getTimeOfDayInfo(hour: number): TimeInfo {
+  if (hour >= 6 && hour < 11) {
+    return {
+      period: 'breakfast',
+      greeting: 'Good Morning!',
+      message: 'Start your day with these delicious breakfast recipes',
+      icon: Sunrise,
+      color: 'text-yellow-600',
+    };
+  } else if (hour >= 11 && hour < 17) {
+    return {
+      period: 'lunch',
+      greeting: 'Good Afternoon!',
+      message: 'Perfect lunch recipes to fuel your day',
+      icon: Sun,
+      color: 'text-blue-600',
+    };
+  } else {
+    return {
+      period: 'dinner',
+      greeting: 'Good Evening!',
+      message: 'Unwind with these satisfying dinner recipes',
+      icon: Moon,
+      color: 'text-blue-600',
+    };
+  }
+}
+
 export default function SuggestedPage() {
   const { selectedIngredients: ingredients } = useIngredientStore();
-
   const locale = useLocale();
+
   const { data: suggestedRecipes, isLoading } = useQuery({
     queryKey: ['suggested-recipes'],
     queryFn: recipeApi.getSuggestedRecipes,
   });
 
-  const getTimeOfDayInfo = () => {
+  const [timeInfo, setTimeInfo] = useState<TimeInfo | null>(null);
+
+  useEffect(() => {
     const hour = new Date().getHours();
+    setTimeInfo(getTimeOfDayInfo(hour));
+  }, []);
 
-    if (hour >= 6 && hour < 11) {
-      return {
-        period: 'breakfast',
-        greeting: 'Good Morning!',
-        message: 'Start your day with these delicious breakfast recipes',
-        icon: Sunrise,
-        color: 'text-yellow-600',
-      };
-    } else if (hour >= 11 && hour < 17) {
-      return {
-        period: 'lunch',
-        greeting: 'Good Afternoon!',
-        message: 'Perfect lunch recipes to fuel your day',
-        icon: Sun,
-        color: 'text-blue-600',
-      };
-    } else {
-      return {
-        period: 'dinner',
-        greeting: 'Good Evening!',
-        message: 'Unwind with these satisfying dinner recipes',
-        icon: Moon,
-        color: 'text-blue-600',
-      };
-    }
-  };
+  if (!timeInfo) {
+    return <div className="text-center py-12">Loading suggestions...</div>;
+  }
 
-  const timeInfo = getTimeOfDayInfo();
   const TimeIcon = timeInfo.icon;
 
   return (

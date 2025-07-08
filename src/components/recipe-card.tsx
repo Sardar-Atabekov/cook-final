@@ -4,94 +4,139 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, MapPin } from 'lucide-react';
+import { Clock, Heart } from 'lucide-react';
 import type { Recipe } from '@/lib/api';
 import { cn } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
-import { usePathname } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
 
 interface RecipeCardProps {
   recipe: Recipe;
-  userIngredients?: string[];
+  onClick?: () => void;
+  onSave?: () => void;
+  isSaved?: boolean;
 }
 
-export function RecipeCard({ recipe, userIngredients = [] }: RecipeCardProps) {
+export function RecipeCard({
+  recipe,
+  onClick,
+  onSave,
+  isSaved,
+}: RecipeCardProps) {
   const router = useRouter();
   const pathname = usePathname();
   const locale = useLocale();
 
   const getMatchColor = (percentage: number) => {
-    if (percentage >= 80) return 'bg-green-100 text-green-800';
-    if (percentage >= 60) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-red-100 text-red-800';
+    if (percentage >= 90) return 'bg-green-500';
+    if (percentage >= 80) return 'bg-green-400';
+    if (percentage >= 70) return 'bg-yellow-500';
+    return 'bg-orange-500';
+  };
+
+  const formatPrepTime = (minutes: number) => {
+    if (!minutes || isNaN(minutes)) return '—';
+    if (minutes < 60) return `${minutes} min`;
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return remainingMinutes > 0
+      ? `${hours}h ${remainingMinutes}m`
+      : `${hours}h`;
   };
 
   return (
     <Link href={`/${locale}/recipes/${recipe.id}`}>
-      <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer">
-        <div className="relative">
+      <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer h-full flex flex-col">
+        {/* Image wrapper */}
+        <div className="relative w-full h-48 overflow-hidden">
           <Image
-            src={recipe.image || '/images/images/placeholder.svg'}
+            src={recipe.imageUrl || '/images/placeholder.svg'}
             alt={recipe.title}
-            width={300}
-            height={200}
-            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+            fill
+            className="object-cover"
           />
-          <div className="absolute top-2 right-2">
-            <Badge
+
+          {onSave && (
+            <button
               className={cn(
-                'text-xs font-medium',
-                getMatchColor(recipe.matchPercentage)
+                'absolute top-3 right-3 p-2 rounded-full transition-colors',
+                isSaved
+                  ? 'bg-red-500 text-white'
+                  : 'bg-white/80 text-gray-600 hover:bg-white'
               )}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onSave();
+              }}
             >
-              {recipe.matchPercentage}% Match
-            </Badge>
-          </div>
-          {recipe.dietTags.length > 0 && (
-            <div className="absolute top-2 left-2">
-              <Badge
-                variant="secondary"
-                className="text-xs bg-white/90 text-gray-700"
-              >
-                {recipe.dietTags[0]}
-              </Badge>
-            </div>
+              <Heart className={cn('w-4 h-4', isSaved && 'fill-current')} />
+            </button>
           )}
         </div>
 
-        <CardContent className="p-4">
-          <h3 className="font-semibold text-lg text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
-            {recipe.title}
-          </h3>
-
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
-            <div className="flex items-center space-x-1">
-              <Clock className="h-4 w-4" />
-              <span>{recipe.cookingTime} mins</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <MapPin className="h-4 w-4" />
-              <span>{recipe.country}</span>
+        {/* Content */}
+        <CardContent className="p-4 flex flex-col flex-1">
+          <div className="flex items-center justify-between mb-2">
+            {recipe.matchPercentage !== undefined && (
+              <Badge
+                className={cn(
+                  'text-white text-xs font-medium',
+                  getMatchColor(recipe.matchPercentage)
+                )}
+              >
+                {recipe.matchPercentage}% Match
+              </Badge>
+            )}
+            <div className="flex items-center text-gray-500 text-sm">
+              <Clock className="w-4 h-4 mr-1" />
+              {formatPrepTime(recipe.prepTime)}
             </div>
           </div>
 
-          {recipe.missingIngredients.length > 0 && (
-            <div className="text-xs text-gray-500">
-              <span className="font-medium">Missing: </span>
-              <span>{recipe.missingIngredients.slice(0, 3).join(', ')}</span>
-              {recipe.missingIngredients.length > 3 && (
-                <span> +{recipe.missingIngredients.length - 3} more</span>
-              )}
-            </div>
-          )}
+          <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
+            {recipe.title}
+          </h3>
 
-          {recipe.missingIngredients.length === 0 &&
-            userIngredients.length > 0 && (
-              <div className="text-xs text-green-600 font-medium">
+          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+            {recipe.description}
+          </p>
+
+          <div className="text-sm mt-auto">
+            {recipe.missingIngredients &&
+            recipe.missingIngredients.length > 0 ? (
+              <>
+                <div className="text-xs text-gray-600 mb-1">
+                  Missing ingredients:
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {recipe.missingIngredients
+                    .slice(0, 3)
+                    .map((ingredient, index) => (
+                      <Badge
+                        key={index}
+                        variant="secondary"
+                        className="px-2 py-1 bg-orange-100 text-orange-800 text-xs"
+                      >
+                        {ingredient}
+                      </Badge>
+                    ))}
+                  {recipe.missingIngredients.length > 3 && (
+                    <Badge
+                      variant="secondary"
+                      className="px-2 py-1 bg-gray-100 text-gray-600 text-xs"
+                    >
+                      +{recipe.missingIngredients.length - 3} more
+                    </Badge>
+                  )}
+                </div>
+              </>
+            ) : (
+              <span className="text-green-600">
                 ✓ You have all ingredients!
-              </div>
+              </span>
             )}
+          </div>
         </CardContent>
       </Card>
     </Link>

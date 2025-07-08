@@ -34,6 +34,7 @@ export function IngredientSidebar({ className }: IngredientSidebarProps) {
     groupedCategories,
     setGroupedCategories,
     isCacheStale,
+    clearIngredients,
   } = useIngredientStore();
   const {
     data: categoriesData = groupedCategories,
@@ -190,6 +191,17 @@ export function IngredientSidebar({ className }: IngredientSidebarProps) {
               ))}
             </div>
           </div>
+        )}
+
+        {/* Clear All Button */}
+        {selectedIngredients.length > 0 && (
+          <Button
+            variant="outline"
+            className="w-full mt-4"
+            onClick={clearIngredients}
+          >
+            Clear All Ingredients
+          </Button>
         )}
       </div>
     </aside>

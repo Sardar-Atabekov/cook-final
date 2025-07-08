@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '@/lib/api';
+import { recipeApi } from '@/lib/api';
 
 export function useRecipes(ingredientIds: number[]) {
   const [offset, setOffset] = useState(0);
@@ -8,7 +8,8 @@ export function useRecipes(ingredientIds: number[]) {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['/api/recipes', { ingredients: ingredientIds, limit, offset }],
-    queryFn: () => api.getRecipes(ingredientIds, limit, offset),
+    queryFn: () =>
+      recipeApi.searchRecipes(ingredientIds.map(String), limit, offset),
   });
 
   const loadMore = () => {
