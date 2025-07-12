@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -9,28 +10,31 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Globe } from 'lucide-react';
-import { useLocale } from 'next-intl';
+import { getAvailableLocales } from '@/lib/locale-utils';
 import { useLanguageStore } from '@/stores/useLanguageStore';
 
-const languages = [
+const allLanguages = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
   { code: 'ru', name: 'Русский', flag: '🇷🇺' },
   { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-  { code: 'ar', name: 'العربية', flag: '🇸🇦' },
+  { code: 'es', name: 'Español', flag: '🇪🇸' },
   { code: 'zh', name: '中文', flag: '🇨🇳' },
   { code: 'fr', name: 'Français', flag: '🇫🇷' },
-  { code: 'es', name: 'Español', flag: '🇪🇸' },
 ];
+
+const availableLocales = getAvailableLocales();
+const languages = allLanguages.filter((lang) =>
+  availableLocales.includes(lang.code)
+);
 
 export function LanguageToggle() {
   const currentLocale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
   const setLanguage = useLanguageStore((state) => state.setLanguage);
-  const language = useLanguageStore((state) => state.language);
 
   const switchLanguage = (newLocale: string) => {
-    if (newLocale === language) return; // чтобы не перезапускать зря
+    if (newLocale === currentLocale) return; // чтобы не перезапускать зря
 
     // Обновляем стор, увеличиваем version
     setLanguage(newLocale);
@@ -61,7 +65,6 @@ export function LanguageToggle() {
           <DropdownMenuItem
             key={language.code}
             onClick={() => switchLanguage(language.code)}
-            className={currentLocale === language.code ? 'bg-accent' : ''}
           >
             <span className="mr-2">{language.flag}</span>
             {language.name}

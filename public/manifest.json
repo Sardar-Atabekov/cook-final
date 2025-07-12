@@ -1,0 +1,16 @@
+{
+  "name": "SuperCook - Recipe Finder",
+  "short_name": "SuperCook",
+  "description": "Find recipes with your ingredients",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/images/placeholder.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}

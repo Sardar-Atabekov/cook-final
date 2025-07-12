@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 interface LanguageStore {
-  language: string;
+  language: string | undefined;
   version: number;
   setLanguage: (lang: string) => void;
   getStorage?: any;
@@ -12,7 +12,7 @@ interface LanguageStore {
 export const useLanguageStore = create<LanguageStore>()(
   persist(
     (set) => ({
-      language: 'en',
+      language: undefined,
       version: 0,
       setLanguage: (lang) =>
         set((state) => ({

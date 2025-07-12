@@ -2,6 +2,7 @@
   "navigation": {
     "home": "Accueil",
     "recipes": "Recettes",
+    "search": "Recherche",
     "suggested": "Suggestions",
     "login": "Se connecter",
     "signup": "S'inscrire",
@@ -23,7 +24,24 @@
     "step3Description": "Suivez les instructions étape par étape pour créer des repas incroyables",
     "readyToCook": "Prêt à commencer à cuisiner ?",
     "readyToCookSubtitle": "Rejoignez des milliers de cuisiniers amateurs qui ne manquent jamais d'idées de repas",
-    "addFirstIngredient": "Ajoutez votre premier ingrédient"
+    "addFirstIngredient": "Ajoutez votre premier ingrédient",
+    "quickMeals": "Repas rapides",
+    "quickMealsDescription": "Idées de repas rapides qui peuvent être préparés en 30 minutes ou moins",
+    "popularToday": "Populaire aujourd'hui",
+    "trendingRecipes": "Les recettes les plus populaires recherchées aujourd'hui",
+    "surpriseMe": "Surprenez-moi",
+    "randomRecipe": "Vous ne savez pas quoi cuisiner ? Essayez une recette aléatoire"
+  },
+  "ux": {
+    "input": {
+      "placeholder": "Entrez des ingrédients (ex. poulet, riz, tomates)...",
+      "label": "Quels ingrédients avez-vous ?",
+      "loading": "Chargement...",
+      "noResults": "Aucun ingrédient trouvé",
+      "addIngredient": "Ajouter un ingrédient",
+      "emptyHint": "Commencez à taper pour ajouter des ingrédients...",
+      "searchButton": "Trouver des recettes"
+    }
   },
   "recipes": {
     "title": "Résultats des recettes",
@@ -139,5 +157,16 @@
     "dark": "Dark",
     "system": "System",
     "hours": "heures"
+  },
+  "Error": {
+    "title": "Quelque chose s'est mal passé !",
+    "description": "Une erreur inattendue s'est produite. Veuillez essayer de rafraîchir la page.",
+    "refresh": "Actualiser la page",
+    "home": "Accueil"
+  },
+  "NotFound": {
+    "title": "Page non trouvée",
+    "description": "Désolé, nous n'avons pas pu trouver la page que vous recherchez.",
+    "home": "Accueil"
   }
 }

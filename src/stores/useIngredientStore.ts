@@ -55,6 +55,12 @@ export const useIngredientStore = create<IngredientStore>()(
     }),
     {
       name: 'ingredient-store',
+      partialize: (state) => ({
+        selectedIngredients: state.selectedIngredients,
+        groupedCategories: state.groupedCategories,
+        lastUpdated: state.lastUpdated,
+        language: state.language,
+      }),
     }
   )
 );

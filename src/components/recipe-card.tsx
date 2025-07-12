@@ -4,12 +4,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Heart } from 'lucide-react';
+import { Clock, Heart, Star } from 'lucide-react';
 import type { Recipe } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { useRouter, usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
-
+// import { Clock, Star, Bookmark, BookmarkCheck } from "lucide-react";
 interface RecipeCardProps {
   recipe: Recipe;
   onClick?: () => void;
@@ -55,7 +55,16 @@ export function RecipeCard({
             fill
             className="object-cover"
           />
-
+          {recipe.matchPercentage !== undefined && (
+            <Badge
+              className={cn(
+                'text-white text-xs font-medium absolute  rounded-full top-3 left-3',
+                getMatchColor(Number(recipe.matchPercentage))
+              )}
+            >
+              {recipe.matchPercentage}% Match
+            </Badge>
+          )}
           {onSave && (
             <button
               className={cn(
@@ -78,19 +87,17 @@ export function RecipeCard({
         {/* Content */}
         <CardContent className="p-4 flex flex-col flex-1">
           <div className="flex items-center justify-between mb-2">
-            {recipe.matchPercentage !== undefined && (
-              <Badge
-                className={cn(
-                  'text-white text-xs font-medium',
-                  getMatchColor(recipe.matchPercentage)
-                )}
-              >
-                {recipe.matchPercentage}% Match
-              </Badge>
-            )}
             <div className="flex items-center text-gray-500 text-sm">
               <Clock className="w-4 h-4 mr-1" />
-              {formatPrepTime(recipe.prepTime)}
+              {formatPrepTime(Number(recipe.prepTime))}
+            </div>
+            <div className="flex items-center">
+              <Star className="mr-1 h-3 w-3 text-yellow-400 fill-current" />
+              <span>
+                {typeof recipe.rating === 'number' && !isNaN(recipe.rating)
+                  ? recipe.rating.toFixed(1)
+                  : '0.0'}
+              </span>
             </div>
           </div>
 
@@ -118,7 +125,7 @@ export function RecipeCard({
                         variant="secondary"
                         className="px-2 py-1 bg-orange-100 text-orange-800 text-xs"
                       >
-                        {ingredient}
+                        {ingredient.matchedName}
                       </Badge>
                     ))}
                   {recipe.missingIngredients.length > 3 && (
@@ -131,9 +138,13 @@ export function RecipeCard({
                   )}
                 </div>
               </>
-            ) : (
+            ) : recipe.matchPercentage == '100' ? (
               <span className="text-green-600">
                 ✓ You have all ingredients!
+              </span>
+            ) : (
+              <span className="text-red-600">
+                ✗ You don't have all ingredients!
               </span>
             )}
           </div>

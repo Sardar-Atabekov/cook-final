@@ -44,7 +44,6 @@ export default function RecipesPage() {
         {
           ...filters,
           page,
-          limit: 12,
         },
         locale // Pass the locale as the third argument
       ),

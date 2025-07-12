@@ -2,6 +2,7 @@
   "navigation": {
     "home": "首页",
     "recipes": "食谱",
+    "search": "搜索",
     "suggested": "推荐",
     "login": "登录",
     "signup": "注册",
@@ -23,7 +24,24 @@
     "step3Description": "按照分步说明制作美味佳肴",
     "readyToCook": "准备开始烹饪了吗？",
     "readyToCookSubtitle": "加入数千名永远不缺餐点创意的家庭厨师",
-    "addFirstIngredient": "添加您的第一个食材"
+    "addFirstIngredient": "添加您的第一个食材",
+    "quickMeals": "快速餐点",
+    "quickMealsDescription": "可以在30分钟或更短时间内制作的快速餐点创意",
+    "popularToday": "今日热门",
+    "trendingRecipes": "今天人们搜索的最热门食谱",
+    "surpriseMe": "给我惊喜",
+    "randomRecipe": "不知道做什么菜？试试随机食谱"
+  },
+  "ux": {
+    "input": {
+      "placeholder": "输入食材（例如：鸡肉、米饭、西红柿）...",
+      "label": "您有什么食材？",
+      "loading": "加载中...",
+      "noResults": "未找到食材",
+      "addIngredient": "添加食材",
+      "emptyHint": "开始输入以添加食材...",
+      "searchButton": "查找食谱"
+    }
   },
   "recipes": {
     "title": "食谱结果",
@@ -139,5 +157,16 @@
     "close": "关闭",
     "minutes": "分钟",
     "hours": "小时"
+  },
+  "Error": {
+    "title": "出现错误！",
+    "description": "发生意外错误。请尝试刷新页面。",
+    "refresh": "刷新页面",
+    "home": "返回首页"
+  },
+  "NotFound": {
+    "title": "页面未找到",
+    "description": "抱歉，我们找不到您要查找的页面。",
+    "home": "返回首页"
   }
 }

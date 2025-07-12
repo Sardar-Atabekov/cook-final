@@ -1,4 +1,6 @@
-import { memo, useMemo } from 'react';
+'use client';
+
+import { memo, useMemo, useState, useEffect } from 'react';
 import { Recipe, IngredientCategory } from '@/types';
 
 // Мемоизированный компонент карточки рецепта для оптимизации рендеринга

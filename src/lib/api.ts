@@ -2,7 +2,7 @@ import { Ingredient, RecipeIngredient } from '@/types/recipe';
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api/',
+  baseURL: 'http://localhost:5005/api/',
 });
 
 export interface Recipe {
@@ -26,8 +26,8 @@ export interface Recipe {
   instructions: string[];
   sourceUrl?: string;
   recipeIngredients: RecipeIngredient[];
-  matchPercentage?: number;
-  missingIngredients?: string[];
+  matchPercentage?: string;
+  missingIngredients?: RecipeIngredient[];
 }
 
 export interface SearchFilters {
@@ -116,44 +116,34 @@ export const ingredientsApi = {
 
 export const recipeApi = {
   getRecipes: async (
-    searchIngredients: string[],
-    {
-      page,
-      limit,
-      mealType,
-      country,
-      dietTags,
-    }: {
-      page: number;
+    ingredientIds: number[],
+    options: {
+      offset: number;
       limit: number;
       mealType: string;
       country: string;
       dietTags: string[];
+      search?: string;
     },
-    lang: string,
-    searchQuery?: string // если хочешь добавить поисковую строку
+    lang: string
   ) => {
-    const offset = (page - 1) * limit;
-
-    const params: Record<string, any> = {
+    const params: any = {
       lang,
-      limit,
-      offset,
+      offset: options.offset,
+      limit: options.limit,
+      mealType: options.mealType,
+      country: options.country,
+      dietTags: options.dietTags,
     };
 
-    if (searchIngredients.length > 0) {
-      params.ingredients = searchIngredients.join(',');
+    // Если есть поиск по тексту, передаём только его
+    if (options.search && options.search.trim().length > 0) {
+      params.search = options.search.trim();
+    } else if (ingredientIds.length > 0) {
+      params.ingredients = ingredientIds.join(',');
     }
 
-    if (searchQuery) {
-      params.search = searchQuery;
-    }
-
-    // можно оставить это для будущей фильтрации (если бек готов поддерживать):
-    // if (mealType !== 'all') params.mealType = mealType;
-    // if (country) params.country = country;
-    // if (dietTags.length > 0) params.dietTags = dietTags.join(',');
-
+    console.log('params', params);
     const response = await api.get('/recipes/recipes', { params });
     return response.data; // { recipes, total, hasMore }
   },
@@ -164,7 +154,7 @@ export const recipeApi = {
 
     if (hour >= 6 && hour < 11) mealType = 'breakfast';
     else if (hour >= 17 && hour < 22) mealType = 'dinner';
-    const response = await api.get(`/recipes/recipes`, {
+    const response = await api.get(`/recipes`, {
       params: { lang },
     });
     return response.data
@@ -172,8 +162,10 @@ export const recipeApi = {
       .slice(0, 4);
   },
 
-  getRecipe: async (id: string) => {
-    const response = await api.get(`/recipes/recipes/${id}`);
+  getRecipe: async (id: string, ingredientIds: number[]) => {
+    const response = await api.get(`/recipes/recipes/${id}`, {
+      params: { ingredientIds },
+    });
     return response.data;
   },
 };

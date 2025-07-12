@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 'use client';
 import { useState } from 'react';
 import { IngredientSidebar } from '@/components/ingredient-sidebar';
@@ -18,16 +17,16 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="flex h-screen">
-        {/* Desktop Sidebar - показывать на всех экранах */}
+      <div className="flex">
+        {/* Desktop Sidebar */}
         <IngredientSidebar
-          className="block"
+          className="block sticky top-0 h-screen"
           selectedIngredients={selectedIngredients}
           onIngredientsChange={setSelectedIngredients}
         />
 
         {/* Main Content */}
-        <main className="flex-1 p-6 overflow-y-auto">
+        <main className="flex-1 h-full overflow-y-auto p-6 mb-10">
           <RecipeGrid selectedIngredients={selectedIngredients} />
         </main>
 
@@ -50,7 +49,7 @@ export default function Home() {
         </Sheet>
 
         {/* Pantry Button */}
-        <PantryDrawer>
+        {/* <PantryDrawer>
           <Button
             className="fixed bottom-6 right-20 bg-green-600 hover:bg-green-700 text-white p-4 rounded-full shadow-lg z-40"
             size="icon"
@@ -62,7 +61,7 @@ export default function Home() {
               </span>
             )}
           </Button>
-        </PantryDrawer>
+        </PantryDrawer> */}
 
         {/* Toast notifications */}
         <Toaster />

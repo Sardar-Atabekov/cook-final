@@ -1,58 +1,91 @@
-import { useState, useMemo } from 'react';
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { X, Search } from 'lucide-react';
 
 import { useIngredientsSearch } from '@/hooks/useIngredients';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { IngredientCategory as IngredientCategoryComponent } from './ingredientCategory';
 
-import { cn } from '@/lib/utils';
 import { ingredientsApi } from '@/lib/api';
+import { cn } from '@/lib/utils';
 import { useIngredientStore } from '@/stores/useIngredientStore';
-
 import { useLanguageStore } from '@/stores/useLanguageStore';
-import { Ingredient } from '@/types/recipe';
-import { IngredientCategory } from './ingredientCategory';
-import { Search, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
+
+import type { Ingredient, IngredientCategory } from '@/types/recipe';
 
 function SkeletonBlock() {
   return <div className="animate-pulse bg-gray-200 rounded h-8 w-full mb-2" />;
 }
 
-interface IngredientSidebarProps {
+interface IngredientSidebarInnerProps {
   className?: string;
+  initialGroupedCategories: IngredientCategory[];
 }
 
-export function IngredientSidebar({ className }: IngredientSidebarProps) {
+export function IngredientSidebar({
+  className,
+  initialGroupedCategories,
+}: IngredientSidebarInnerProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const { language, version } = useLanguageStore();
+  const t = useTranslations('ux.sidebar');
+  const locale = useLocale();
+
   const {
     selectedIngredients,
     addIngredient,
     removeIngredient,
+    clearIngredients,
     groupedCategories,
     setGroupedCategories,
     isCacheStale,
-    clearIngredients,
   } = useIngredientStore();
+
+  // ✅ 1. Инициализация стора вручную
+  useEffect(() => {
+    if (groupedCategories.length === 0) {
+      setGroupedCategories(initialGroupedCategories, locale);
+    }
+  }, []);
+
+  // ✅ 2. Вызываем запрос только если явно устарел кэш
+  const shouldFetch = isCacheStale(locale);
+
   const {
-    data: categoriesData = groupedCategories,
+    data: fetchedCategories,
     isLoading: categoriesLoading,
-  } = useQuery<IngredientCategory[]>({
-    queryKey: ['ingredients', 'grouped', language, version],
+    error,
+  } = useQuery({
+    queryKey: ['ingredients', 'grouped', locale],
     queryFn: async () => {
-      if (!isCacheStale(language) && groupedCategories.length > 0) {
-        return groupedCategories;
-      }
-      const data = await ingredientsApi.getGroupedIngredients(language);
-      setGroupedCategories(data, language);
+      const data = await ingredientsApi.getGroupedIngredients(locale);
+      setGroupedCategories(data, locale);
       return data;
     },
-    staleTime: 3 * 24 * 60 * 60 * 1000,
+    enabled: shouldFetch,
+    staleTime: Infinity,
+    retry: (failureCount, error: any) => {
+      // Don't retry on connection refused errors
+      if (
+        error?.code === 'ERR_NETWORK' ||
+        error?.message?.includes('ERR_CONNECTION_REFUSED')
+      ) {
+        return false;
+      }
+      return failureCount < 2;
+    },
   });
-  const t = useTranslations('ux.sidebar');
-  // id выбранных ингредиентов для подсветки
+
+  const categoriesData = useMemo(() => {
+    if (!shouldFetch && groupedCategories.length > 0) return groupedCategories;
+    return fetchedCategories ?? [];
+  }, [shouldFetch, groupedCategories, fetchedCategories]);
+
   const selectedIngredientIds = useMemo(
     () => selectedIngredients.map((i) => i.id),
     [selectedIngredients]
@@ -71,7 +104,7 @@ export function IngredientSidebar({ className }: IngredientSidebarProps) {
   return (
     <aside
       className={cn(
-        'w-80 min-w-80 bg-white shadow-lg border-r border-gray-200 overflow-y-auto h-screen  pr-0',
+        'w-80 min-w-80 bg-white shadow-lg border-r border-gray-200 overflow-y-auto h-screen pr-0',
         className
       )}
     >
@@ -127,18 +160,17 @@ export function IngredientSidebar({ className }: IngredientSidebarProps) {
               </div>
             )}
 
-            {/* Категории под поиском для структуры */}
+            {/* Категории под поиском */}
             <div className="space-y-4 mb-6">
               {categoriesLoading
                 ? [...Array(3)].map((_, i) => <SkeletonBlock key={i} />)
-                : categoriesData.map((category, idx) => (
-                    <IngredientCategory
+                : categoriesData.map((category: any, idx: number) => (
+                    <IngredientCategoryComponent
                       key={category.id}
                       category={category}
                       ingredients={category.ingredients}
                       selectedIngredientIds={selectedIngredientIds}
                       isLoading={categoriesLoading}
-                      // defaultOpen={idx === 0}
                       onToggleIngredient={toggleIngredient}
                     />
                   ))}
@@ -149,19 +181,31 @@ export function IngredientSidebar({ className }: IngredientSidebarProps) {
         {/* Категории без поиска */}
         {searchQuery.trim().length === 0 && (
           <div className="space-y-4">
-            {categoriesLoading
-              ? [...Array(5)].map((_, i) => <SkeletonBlock key={i} />)
-              : categoriesData.map((category, idx) => (
-                  <IngredientCategory
-                    key={category.id}
-                    category={category}
-                    ingredients={category.ingredients}
-                    selectedIngredientIds={selectedIngredientIds}
-                    isLoading={categoriesLoading}
-                    defaultOpen={idx === 0}
-                    onToggleIngredient={toggleIngredient}
-                  />
-                ))}
+            {error && (error as any)?.code === 'ERR_NETWORK' ? (
+              <div className="text-center py-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Сервер недоступен
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  Не удается загрузить ингредиенты. Пожалуйста, попробуйте
+                  позже.
+                </p>
+              </div>
+            ) : categoriesLoading ? (
+              [...Array(5)].map((_, i) => <SkeletonBlock key={i} />)
+            ) : (
+              categoriesData.map((category: any, idx: number) => (
+                <IngredientCategoryComponent
+                  key={category.id}
+                  category={category}
+                  ingredients={category.ingredients}
+                  selectedIngredientIds={selectedIngredientIds}
+                  isLoading={categoriesLoading}
+                  defaultOpen={idx === 0}
+                  onToggleIngredient={toggleIngredient}
+                />
+              ))
+            )}
           </div>
         )}
 
@@ -193,7 +237,7 @@ export function IngredientSidebar({ className }: IngredientSidebarProps) {
           </div>
         )}
 
-        {/* Clear All Button */}
+        {/* Clear All */}
         {selectedIngredients.length > 0 && (
           <Button
             variant="outline"

@@ -78,6 +78,14 @@ export function Navigation() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem>
+                    {/* <LogOut className="h-4 w-4 mr-2" /> */}
+                    {/* {t('logout')} */}Избранные
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    {/* <LogOut className="h-4 w-4 mr-2" /> */}
+                    {/* {t('logout')} */}Мои готовки
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={logout}>
                     <LogOut className="h-4 w-4 mr-2" />
                     {t('logout')}

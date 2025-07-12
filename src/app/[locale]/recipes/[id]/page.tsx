@@ -33,7 +33,11 @@ export default function RecipePage() {
     error,
   } = useQuery({
     queryKey: ['recipe', recipeId],
-    queryFn: () => recipeApi.getRecipe(recipeId),
+    queryFn: () =>
+      recipeApi.getRecipe(
+        recipeId,
+        userIngredients.map((ingredient) => ingredient.id)
+      ),
   });
 
   console.log('recipe', recipe);
@@ -69,24 +73,23 @@ export default function RecipePage() {
     );
   }
 
-  const hasIngredient = (ingredient: string) => {
-    return userIngredients.some(
-      (userIngredient) =>
-        ingredient.toLowerCase().includes(userIngredient.toLowerCase()) ||
-        userIngredient.toLowerCase().includes(ingredient.toLowerCase())
-    );
-  };
+  // const hasIngredient = (ingredient: string) => {
+  //   return userIngredients.some(
+  //     (userIngredient) =>
+  //       ingredient.toLowerCase().includes(userIngredient.toLowerCase()) ||
+  //       userIngredient.toLowerCase().includes(ingredient.toLowerCase())
+  //   );
+  // };
 
-  const ownedIngredients = recipe.ingredients.filter(hasIngredient);
-  const missingIngredients = recipe.ingredients.filter(
-    (ingredient) => !hasIngredient(ingredient)
-  );
+  // const ownedIngredients = recipe.recipeIngredients.filter((ingredient) =>
+  //   hasIngredient(ingredient.ingredient)
+  // );
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Back Button */}
       <Button variant="ghost" asChild className="mb-6">
-        <Link href={`/${locale}/recipes`}>
+        <Link href={`/${locale}/search`}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           {t('backToRecipes')}
         </Link>
@@ -96,7 +99,7 @@ export default function RecipePage() {
       <div className="mb-8">
         <div className="relative h-64 md:h-80 rounded-lg overflow-hidden mb-6">
           <Image
-            src={recipe.image || '/images/placeholder.svg'}
+            src={recipe.imageUrl || '/images/placeholder.svg'}
             alt={recipe.title}
             fill
             className="object-cover"
@@ -106,17 +109,7 @@ export default function RecipePage() {
             <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
               {recipe.title}
             </h1>
-            <div className="flex flex-wrap gap-2">
-              {recipe.dietTags.map((tag) => (
-                <Badge
-                  key={tag}
-                  variant="secondary"
-                  className="bg-white/90 text-gray-800"
-                >
-                  {tag}
-                </Badge>
-              ))}
-            </div>
+            <div className="flex flex-wrap gap-2"></div>
           </div>
         </div>
 
@@ -124,7 +117,7 @@ export default function RecipePage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="flex items-center space-x-2 text-gray-600">
             <Clock className="h-5 w-5" />
-            <span>{recipe.cookingTime} mins</span>
+            <span>{recipe.prepTime} mins</span>
           </div>
           <div className="flex items-center space-x-2 text-gray-600">
             <MapPin className="h-5 w-5" />
@@ -157,15 +150,8 @@ export default function RecipePage() {
             </Badge>
           </div>
           <div className="text-sm text-gray-600">
-            You have {ownedIngredients.length} of {recipe.ingredients.length}{' '}
-            ingredients
-            {missingIngredients.length > 0 && (
-              <span className="block mt-1">
-                Missing: {missingIngredients.slice(0, 3).join(', ')}
-                {missingIngredients.length > 3 &&
-                  ` +${missingIngredients.length - 3} more`}
-              </span>
-            )}
+            You have {recipe.recipeIngredients.length} of{' '}
+            {recipe.recipeIngredients.length} ingredients
           </div>
         </div>
       </div>
@@ -178,21 +164,21 @@ export default function RecipePage() {
           </CardHeader>
           <CardContent>
             <ul className="space-y-3">
-              {recipe.ingredients.map((ingredient, index) => (
+              {recipe.recipeIngredients.map((ingredient, index) => (
                 <li key={index} className="flex items-center space-x-3">
-                  {hasIngredient(ingredient) ? (
+                  {userIngredients.includes(ingredient) ? (
                     <Check className="h-5 w-5 text-green-600 flex-shrink-0" />
                   ) : (
                     <X className="h-5 w-5 text-red-500 flex-shrink-0" />
                   )}
                   <span
                     className={`${
-                      hasIngredient(ingredient)
+                      userIngredients.includes(ingredient)
                         ? 'text-green-800'
                         : 'text-gray-900'
                     }`}
                   >
-                    {ingredient}
+                    {ingredient.name}
                   </span>
                 </li>
               ))}
@@ -206,8 +192,8 @@ export default function RecipePage() {
             <CardTitle>Instructions</CardTitle>
           </CardHeader>
           <CardContent>
-            <ol className="space-y-4">
-              {recipe.steps.map((step, index) => (
+            {/* <ol className="space-y-4"> */}
+            {/* {recipe.steps.map((step, index) => (
                 <li key={index} className="flex space-x-3">
                   <span className="flex-shrink-0 w-6 h-6 text-brand-blue text-white rounded-full flex items-center justify-center text-sm font-medium">
                     {index + 1}
@@ -215,7 +201,7 @@ export default function RecipePage() {
                   <span className="text-gray-700">{step}</span>
                 </li>
               ))}
-            </ol>
+            </ol> */}
           </CardContent>
         </Card>
       </div>

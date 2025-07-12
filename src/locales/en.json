@@ -198,5 +198,16 @@
     "hours": "hours",
     "back": "Back",
     "next": "Next"
+  },
+  "Error": {
+    "title": "Something went wrong!",
+    "description": "An unexpected error occurred. Please try refreshing the page.",
+    "refresh": "Refresh Page",
+    "home": "Go Home"
+  },
+  "NotFound": {
+    "title": "Page Not Found",
+    "description": "Sorry, we couldn't find the page you're looking for.",
+    "home": "Go Home"
   }
 }

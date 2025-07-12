@@ -2,6 +2,7 @@
   "navigation": {
     "home": "Startseite",
     "recipes": "Rezepte",
+    "search": "Suche",
     "suggested": "Vorschläge",
     "login": "Anmelden",
     "signup": "Registrieren",
@@ -23,7 +24,24 @@
     "step3Description": "Folgen Sie Schritt-für-Schritt-Anleitungen, um erstaunliche Gerichte zu kreieren",
     "readyToCook": "Bereit zum Kochen?",
     "readyToCookSubtitle": "Schließen Sie sich Tausenden von Hobbyköchen an, denen nie die Ideen für Mahlzeiten ausgehen",
-    "addFirstIngredient": "Erste Zutat hinzufügen"
+    "addFirstIngredient": "Erste Zutat hinzufügen",
+    "quickMeals": "Schnelle Mahlzeiten",
+    "quickMealsDescription": "Schnelle Mahlzeiten-Ideen, die in 30 Minuten oder weniger zubereitet werden können",
+    "popularToday": "Heute beliebt",
+    "trendingRecipes": "Die beliebtesten Rezepte, die heute gesucht werden",
+    "surpriseMe": "Überraschen Sie mich",
+    "randomRecipe": "Wissen Sie nicht, was Sie kochen sollen? Probieren Sie ein zufälliges Rezept"
+  },
+  "ux": {
+    "input": {
+      "placeholder": "Zutaten eingeben (z.B. Hähnchen, Reis, Tomaten)...",
+      "label": "Welche Zutaten haben Sie?",
+      "loading": "Laden...",
+      "noResults": "Keine Zutaten gefunden",
+      "addIngredient": "Zutat hinzufügen",
+      "emptyHint": "Beginnen Sie mit der Eingabe, um Zutaten hinzuzufügen...",
+      "searchButton": "Rezepte finden"
+    }
   },
   "recipes": {
     "title": "Rezept-Ergebnisse",
@@ -139,5 +157,16 @@
     "dark": "Dark",
     "system": "System",
     "hours": "Stunden"
+  },
+  "Error": {
+    "title": "Etwas ist schiefgelaufen!",
+    "description": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie, die Seite zu aktualisieren.",
+    "refresh": "Seite aktualisieren",
+    "home": "Zur Startseite"
+  },
+  "NotFound": {
+    "title": "Seite nicht gefunden",
+    "description": "Entschuldigung, wir konnten die gesuchte Seite nicht finden.",
+    "home": "Zur Startseite"
   }
 }

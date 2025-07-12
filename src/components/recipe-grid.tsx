@@ -1,5 +1,6 @@
+'use client';
+
 import { useState } from 'react';
-import { useRecipes } from '@/hooks/useRecipes';
 import { RecipeCard } from './recipe-card';
 import { RecipeDetail } from './recipe-detail';
 import { SearchBar } from './search-bar';
@@ -8,54 +9,33 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { usePantry } from '@/hooks/usePantry';
 import { useSavedRecipes } from '@/hooks/useSavedRecipes';
-import { useQuery } from '@tanstack/react-query';
-import { recipeApi } from '@/lib/api';
-import type { Recipe } from '@/types/recipe';
 import { useLocale } from 'next-intl';
+import { useRecipes } from '@/hooks/useRecipes';
+import type { Recipe } from '@/types/recipe';
 
-interface RecipeGridProps {
-  selectedIngredients: number[];
-}
-
-export function RecipeGrid({ selectedIngredients }: RecipeGridProps) {
+export function RecipeGrid({ selectedIngredients }) {
   const [dishTypeFilter, setDishTypeFilter] = useState('all');
   const [prepTimeFilter, setPrepTimeFilter] = useState('all');
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
   const { toast } = useToast();
   const { addMultipleToPantry } = usePantry();
   const { toggleSaveRecipe, isRecipeSaved } = useSavedRecipes();
   const locale = useLocale();
 
-  const { data: searchResults, isLoading: isSearching } = useQuery({
-    queryKey: ['/api/recipes/recipes', searchQuery],
-    queryFn: () =>
-      recipeApi.getRecipes(
-        [],
-        {
-          page: 1,
-          limit: 12,
-          mealType: 'all',
-          country: '',
-          dietTags: [],
-        },
-        locale
-      ),
-    enabled: !!searchQuery,
-  });
+  const selectedIngredientIDs = selectedIngredients.map((i) => i.id);
 
-  const { recipes, total, isLoading, loadMore, hasMore, currentCount } =
-    useRecipes(searchQuery ? [] : selectedIngredients);
+  const { recipes, total, isLoading, loadMore, hasMore, currentCount, error } =
+    useRecipes({
+      ingredientIds: searchQuery.trim() ? [] : selectedIngredientIDs,
+      searchText: searchQuery,
+      lang: locale,
+      limit: 20,
+    });
 
-  // Ограничиваем до 20 рецептов
-  const displayRecipes =
-    (searchQuery ? searchResults?.recipes : recipes)?.slice(0, 20) || [];
-  const displayTotal = Math.min(
-    10,
-    searchQuery ? searchResults?.total || 0 : total
-  );
-  const displayLoading = searchQuery ? isSearching : isLoading;
+  const isInitialLoading = isLoading && recipes.length === 0;
 
   const handleSaveRecipe = (recipe: Recipe) => {
     toggleSaveRecipe(recipe.id, recipe.title);
@@ -85,55 +65,53 @@ export function RecipeGrid({ selectedIngredients }: RecipeGridProps) {
       title: 'Готовим блюдо!',
       description: `Ингредиенты для "${recipe.title}" добавлены в кладовую. Приятного аппетита!`,
     });
-
-    console.log(
-      'Cooking dish:',
-      recipe.title,
-      'Added ingredients to pantry:',
-      recipeIngredients
-    );
   };
-
-  // Показываем все рецепты, если ингредиенты не выбраны
-  const displayMessage = selectedIngredients.length === 0;
 
   return (
     <div className="flex-1">
-      {/* Filters and Search */}
-      <div className="mb-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">
-              {searchQuery
-                ? `Результаты поиска: "${searchQuery}"`
-                : selectedIngredients.length === 0
-                  ? 'Все рецепты'
-                  : 'Рецепты для вас'}
-            </h2>
-            <p className="text-gray-600">
-              {searchQuery
-                ? `Найдено ${displayTotal} рецептов`
-                : selectedIngredients.length === 0
-                  ? `Показано ${displayRecipes.length} из ${displayTotal} рецептов`
-                  : `Показано ${displayRecipes.length} из ${displayTotal} рецептов по вашим ингредиентам`}
-            </p>
-          </div>
+      {/* Заголовок и поиск */}
+      <div className="mb-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">
+            {searchQuery
+              ? `Результаты поиска: "${searchQuery}"`
+              : selectedIngredients.length === 0
+                ? 'Все рецепты'
+                : 'Рецепты для вас'}
+          </h2>
+          <p className="text-gray-600">
+            {searchQuery
+              ? `Найдено ${total} рецептов`
+              : selectedIngredients.length === 0
+                ? `Показано ${currentCount} из ${total} рецептов`
+                : `Показано ${currentCount} из ${total} рецептов по вашим ингредиентам`}
+          </p>
+        </div>
 
-          <div className="lg:w-96">
-            <SearchBar
-              placeholder="Поиск рецептов..."
-              onSearch={setSearchQuery}
-              className="w-full"
-            />
-          </div>
+        <div className="lg:w-96">
+          <SearchBar
+            placeholder="Поиск рецептов..."
+            onSearch={setSearchQuery}
+            className="w-full"
+          />
         </div>
       </div>
 
-      {/* Recipe Grid */}
-      {displayLoading ? (
+      {/* Состояния загрузки / отсутствие данных / список рецептов */}
+      {error && (error as any)?.code === 'ERR_NETWORK' ? (
+        <div className="text-center py-16">
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            Сервер недоступен
+          </h3>
+          <p className="text-gray-600">
+            Не удается подключиться к серверу рецептов. Пожалуйста, попробуйте
+            позже.
+          </p>
+        </div>
+      ) : isInitialLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-          {Array.from({ length: 10 }).map((_, index) => (
-            <div key={index} className="space-y-3">
+          {Array.from({ length: 20 }).map((_, idx) => (
+            <div key={idx} className="space-y-3">
               <Skeleton className="h-52 w-full rounded-lg bg-gray-300 animate-pulse" />
               <Skeleton className="h-5 w-3/4 bg-gray-300 animate-pulse" />
               <Skeleton className="h-5 w-1/2 bg-gray-300 animate-pulse" />
@@ -142,10 +120,10 @@ export function RecipeGrid({ selectedIngredients }: RecipeGridProps) {
             </div>
           ))}
         </div>
-      ) : displayRecipes.length === 0 ? (
+      ) : !isLoading && total === 0 ? (
         <div className="text-center py-16">
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            {searchQuery ? 'Рецепты не найдены' : 'Рецепты не найдены'}
+            Рецепты не найдены
           </h3>
           <p className="text-gray-600">
             {searchQuery
@@ -156,7 +134,7 @@ export function RecipeGrid({ selectedIngredients }: RecipeGridProps) {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-            {displayRecipes.map((recipe) => (
+            {recipes.map((recipe) => (
               <RecipeCard
                 key={recipe.id}
                 recipe={recipe}
@@ -167,33 +145,23 @@ export function RecipeGrid({ selectedIngredients }: RecipeGridProps) {
             ))}
           </div>
 
-          {/* Load More Button - только для обычного режима */}
+          {/* Кнопка "Показать больше" */}
           {!searchQuery && hasMore && (
             <div className="text-center mt-8">
               <Button
                 onClick={loadMore}
                 className="bg-blue-600 hover:bg-blue-700"
-                disabled={displayLoading}
+                disabled={isLoading}
               >
                 Показать больше рецептов
               </Button>
               <p className="text-sm text-gray-500 mt-2">
-                Показано {currentCount} из {displayTotal} рецептов
+                Показано {currentCount} из {total} рецептов
               </p>
             </div>
           )}
         </>
       )}
-
-      <RecipeDetail
-        recipe={selectedRecipe}
-        isOpen={isDetailOpen}
-        onClose={() => {
-          setIsDetailOpen(false);
-          setSelectedRecipe(null);
-        }}
-        onCookDish={handleCookDish}
-      />
     </div>
   );
 }

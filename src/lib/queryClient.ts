@@ -48,7 +48,17 @@ export const queryClient = new QueryClient({
       refetchInterval: false,
       refetchOnWindowFocus: false,
       staleTime: Infinity,
-      retry: false,
+      retry: (failureCount, error: any) => {
+        // Don't retry on connection refused errors
+        if (
+          error?.code === 'ERR_NETWORK' ||
+          error?.message?.includes('ERR_CONNECTION_REFUSED')
+        ) {
+          return false;
+        }
+        return failureCount < 2;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
     mutations: {
       retry: false,

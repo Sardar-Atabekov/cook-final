@@ -50,8 +50,8 @@ export default function SuggestedPage() {
   const locale = useLocale();
 
   const { data: suggestedRecipes, isLoading } = useQuery({
-    queryKey: ['suggested-recipes'],
-    queryFn: recipeApi.getSuggestedRecipes,
+    queryKey: ['suggested-recipes', locale],
+    queryFn: () => recipeApi.getSuggestedRecipes(locale),
   });
 
   const [timeInfo, setTimeInfo] = useState<TimeInfo | null>(null);

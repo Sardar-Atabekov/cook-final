@@ -17,7 +17,8 @@ module.exports = {
     '@typescript-eslint/no-var-requires': 'off',
     'react/no-unescaped-entities': 'off',
     '@typescript-eslint/no-explicit-any': 'warn',
-    'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'warn',
+
+    'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
   },
   settings: {
     react: {
