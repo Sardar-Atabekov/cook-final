@@ -1,37 +1,30 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { X, Search } from 'lucide-react';
-
-import { useIngredientsSearch } from '@/hooks/useIngredients';
+import { useTranslations, useLocale } from 'next-intl';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { IngredientCategory as IngredientCategoryComponent } from './ingredientCategory';
-
-import { ingredientsApi } from '@/lib/api';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useIngredientStore } from '@/stores/useIngredientStore';
-import { useLanguageStore } from '@/stores/useLanguageStore';
-import { useTranslations } from 'next-intl';
-import { useLocale } from 'next-intl';
-
-import type { Ingredient, IngredientCategory } from '@/types/recipe';
+import { ingredientsApi } from '@/lib/api';
+import { useIngredientsSearch } from '@/hooks/useIngredients';
+import { IngredientCategory as IngredientCategoryComponent } from './ingredientCategory';
 
 function SkeletonBlock() {
   return <div className="animate-pulse bg-gray-200 rounded h-8 w-full mb-2" />;
 }
 
-interface IngredientSidebarInnerProps {
-  className?: string;
-  initialGroupedCategories: IngredientCategory[];
-}
-
 export function IngredientSidebar({
   className,
   initialGroupedCategories,
-}: IngredientSidebarInnerProps) {
+}: {
+  className?: string;
+  initialGroupedCategories: any[];
+}) {
   const [searchQuery, setSearchQuery] = useState('');
   const t = useTranslations('ux.sidebar');
   const locale = useLocale();
@@ -46,52 +39,59 @@ export function IngredientSidebar({
     isCacheStale,
   } = useIngredientStore();
 
-  // ✅ 1. Инициализация стора вручную
+  // 1. Если в zustand есть категории для текущего языка — показываем их
+  // 2. Если нет — используем initialGroupedCategories (и кладём их в zustand)
   useEffect(() => {
-    if (groupedCategories.length === 0) {
+    console.log('Hydration check:', {
+      groupedCategoriesLength: groupedCategories?.length || 0,
+      initialGroupedCategoriesLength: initialGroupedCategories?.length || 0,
+      locale,
+    });
+
+    if (
+      (groupedCategories ?? []).length === 0 &&
+      (initialGroupedCategories ?? []).length > 0
+    ) {
+      console.log('Hydrating Zustand with initialGroupedCategories');
       setGroupedCategories(initialGroupedCategories, locale);
     }
-  }, []);
+  }, [
+    groupedCategories,
+    initialGroupedCategories,
+    locale,
+    setGroupedCategories,
+  ]);
 
-  // ✅ 2. Вызываем запрос только если явно устарел кэш
+  // 3. Если кэш устарел — делаем запрос к API и обновляем zustand
   const shouldFetch = isCacheStale(locale);
-
-  const {
-    data: fetchedCategories,
-    isLoading: categoriesLoading,
-    error,
-  } = useQuery({
+  useQuery({
     queryKey: ['ingredients', 'grouped', locale],
     queryFn: async () => {
       const data = await ingredientsApi.getGroupedIngredients(locale);
+      console.log('data', data);
       setGroupedCategories(data, locale);
       return data;
     },
     enabled: shouldFetch,
     staleTime: Infinity,
-    retry: (failureCount, error: any) => {
-      // Don't retry on connection refused errors
-      if (
-        error?.code === 'ERR_NETWORK' ||
-        error?.message?.includes('ERR_CONNECTION_REFUSED')
-      ) {
-        return false;
-      }
-      return failureCount < 2;
-    },
   });
 
+  // Для отображения используем initialGroupedCategories если есть, иначе groupedCategories из zustand
   const categoriesData = useMemo(() => {
-    if (!shouldFetch && groupedCategories.length > 0) return groupedCategories;
-    return fetchedCategories ?? [];
-  }, [shouldFetch, groupedCategories, fetchedCategories]);
+    // Если есть initialGroupedCategories - показываем их сразу
+    if ((initialGroupedCategories ?? []).length > 0) {
+      return initialGroupedCategories;
+    }
+    // Иначе используем данные из zustand
+    return groupedCategories ?? [];
+  }, [initialGroupedCategories, groupedCategories]);
 
   const selectedIngredientIds = useMemo(
     () => selectedIngredients.map((i) => i.id),
     [selectedIngredients]
   );
 
-  const toggleIngredient = (ingredient: Ingredient) => {
+  const toggleIngredient = (ingredient: any) => {
     if (selectedIngredientIds.includes(ingredient.id)) {
       removeIngredient(ingredient.id);
     } else {
@@ -99,7 +99,58 @@ export function IngredientSidebar({
     }
   };
 
-  const { data: searchResults = [] } = useIngredientsSearch(searchQuery);
+  // Поиск ингредиентов (оставим как есть, если есть useIngredientsSearch)
+  const { data: searchResults = [] } = useIngredientsSearch?.(searchQuery) || {
+    data: [],
+  };
+
+  console.log('searchResults', searchResults);
+
+  // Показываем скелетон только если нет данных вообще
+  const shouldShowSkeleton = categoriesData.length === 0;
+
+  console.log('Skeleton check:', {
+    categoriesDataLength: categoriesData.length,
+    initialGroupedCategoriesLength: initialGroupedCategories?.length || 0,
+    shouldShowSkeleton,
+  });
+
+  if (shouldShowSkeleton) {
+    return (
+      <aside
+        className={cn(
+          'w-80 min-w-80 bg-white shadow-lg border-r border-gray-200 overflow-y-auto h-screen pr-0',
+          className
+        )}
+      >
+        <div className="p-6 pr-1">
+          {/* Заголовок и поиск */}
+          <div className="mb-6">
+            <Skeleton className="h-6 w-32 mb-4" />
+            <div className="relative">
+              <Skeleton className="h-10 w-full" />
+            </div>
+          </div>
+
+          <Skeleton className="h-4 w-full mb-4" />
+
+          {/* Скелетон категорий */}
+          <div className="space-y-4">
+            {Array.from({ length: 5 }).map((_, idx) => (
+              <div key={idx} className="space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <div className="grid grid-cols-2 gap-2">
+                  {Array.from({ length: 4 }).map((_, ingredientIdx) => (
+                    <Skeleton key={ingredientIdx} className="h-8 w-full" />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </aside>
+    );
+  }
 
   return (
     <aside
@@ -137,7 +188,7 @@ export function IngredientSidebar({
                   {t('searchResults')}
                 </h3>
                 <div className="grid grid-cols-2 gap-2">
-                  {searchResults.map((ingredient) => (
+                  {searchResults.map((ingredient: any) => (
                     <Button
                       key={ingredient.id}
                       variant="ghost"
@@ -162,18 +213,16 @@ export function IngredientSidebar({
 
             {/* Категории под поиском */}
             <div className="space-y-4 mb-6">
-              {categoriesLoading
-                ? [...Array(3)].map((_, i) => <SkeletonBlock key={i} />)
-                : categoriesData.map((category: any, idx: number) => (
-                    <IngredientCategoryComponent
-                      key={category.id}
-                      category={category}
-                      ingredients={category.ingredients}
-                      selectedIngredientIds={selectedIngredientIds}
-                      isLoading={categoriesLoading}
-                      onToggleIngredient={toggleIngredient}
-                    />
-                  ))}
+              {categoriesData.map((category: any, idx: number) => (
+                <IngredientCategoryComponent
+                  key={category.id}
+                  category={category}
+                  ingredients={category.ingredients}
+                  selectedIngredientIds={selectedIngredientIds}
+                  isLoading={false} // Always false here as we are using zustand data
+                  onToggleIngredient={toggleIngredient}
+                />
+              ))}
             </div>
           </>
         )}
@@ -181,31 +230,17 @@ export function IngredientSidebar({
         {/* Категории без поиска */}
         {searchQuery.trim().length === 0 && (
           <div className="space-y-4">
-            {error && (error as any)?.code === 'ERR_NETWORK' ? (
-              <div className="text-center py-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Сервер недоступен
-                </h3>
-                <p className="text-gray-600 text-sm">
-                  Не удается загрузить ингредиенты. Пожалуйста, попробуйте
-                  позже.
-                </p>
-              </div>
-            ) : categoriesLoading ? (
-              [...Array(5)].map((_, i) => <SkeletonBlock key={i} />)
-            ) : (
-              categoriesData.map((category: any, idx: number) => (
-                <IngredientCategoryComponent
-                  key={category.id}
-                  category={category}
-                  ingredients={category.ingredients}
-                  selectedIngredientIds={selectedIngredientIds}
-                  isLoading={categoriesLoading}
-                  defaultOpen={idx === 0}
-                  onToggleIngredient={toggleIngredient}
-                />
-              ))
-            )}
+            {categoriesData.map((category: any, idx: number) => (
+              <IngredientCategoryComponent
+                key={category.id}
+                category={category}
+                ingredients={category.ingredients}
+                selectedIngredientIds={selectedIngredientIds}
+                isLoading={false} // Always false here as we are using zustand data
+                defaultOpen={idx === 0}
+                onToggleIngredient={toggleIngredient}
+              />
+            ))}
           </div>
         )}
 
@@ -216,7 +251,7 @@ export function IngredientSidebar({
               {t('selected', { count: selectedIngredients.length })}
             </h3>
             <div className="flex flex-wrap gap-2">
-              {selectedIngredients.map((ingredient) => (
+              {selectedIngredients.map((ingredient: any) => (
                 <Badge
                   key={ingredient.id}
                   variant="default"
