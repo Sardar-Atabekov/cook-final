@@ -42,17 +42,10 @@ export function IngredientSidebar({
   // 1. Если в zustand есть категории для текущего языка — показываем их
   // 2. Если нет — используем initialGroupedCategories (и кладём их в zustand)
   useEffect(() => {
-    console.log('Hydration check:', {
-      groupedCategoriesLength: groupedCategories?.length || 0,
-      initialGroupedCategoriesLength: initialGroupedCategories?.length || 0,
-      locale,
-    });
-
     if (
       (groupedCategories ?? []).length === 0 &&
       (initialGroupedCategories ?? []).length > 0
     ) {
-      console.log('Hydrating Zustand with initialGroupedCategories');
       setGroupedCategories(initialGroupedCategories, locale);
     }
   }, [
@@ -62,17 +55,37 @@ export function IngredientSidebar({
     setGroupedCategories,
   ]);
 
+  // Очищаем старые данные при смене языка
+  useEffect(() => {
+    const currentLang = useIngredientStore.getState().language;
+    if (currentLang && currentLang !== locale) {
+      // Очищаем старые данные при смене языка
+      setGroupedCategories([], locale);
+    }
+  }, [locale, setGroupedCategories]);
+
   // 3. Если кэш устарел — делаем запрос к API и обновляем zustand
   const shouldFetch = isCacheStale(locale);
+
+  // Получаем текущий язык из Zustand
+  const currentLang = useIngredientStore.getState().language;
+
+  // Загружаем данные если нет данных для текущего языка
+  const hasDataForCurrentLang =
+    (initialGroupedCategories ?? []).length > 0 ||
+    ((groupedCategories ?? []).length > 0 && currentLang === locale);
+
+  // Не делаем клиентский запрос если данные уже загружены через SSR/SSG
+  const shouldFetchForLanguage = !hasDataForCurrentLang && !shouldFetch;
+
   useQuery({
     queryKey: ['ingredients', 'grouped', locale],
     queryFn: async () => {
       const data = await ingredientsApi.getGroupedIngredients(locale);
-      console.log('data', data);
       setGroupedCategories(data, locale);
       return data;
     },
-    enabled: shouldFetch,
+    enabled: shouldFetch || shouldFetchForLanguage,
     staleTime: Infinity,
   });
 
@@ -82,9 +95,13 @@ export function IngredientSidebar({
     if ((initialGroupedCategories ?? []).length > 0) {
       return initialGroupedCategories;
     }
-    // Иначе используем данные из zustand
-    return groupedCategories ?? [];
-  }, [initialGroupedCategories, groupedCategories]);
+    // Иначе используем данные из zustand только если язык совпадает
+    const currentLang = useIngredientStore.getState().language;
+    if (currentLang === locale) {
+      return groupedCategories ?? [];
+    }
+    return [];
+  }, [initialGroupedCategories, groupedCategories, locale]);
 
   const selectedIngredientIds = useMemo(
     () => selectedIngredients.map((i) => i.id),
@@ -104,16 +121,9 @@ export function IngredientSidebar({
     data: [],
   };
 
-  console.log('searchResults', searchResults);
-
-  // Показываем скелетон только если нет данных вообще
-  const shouldShowSkeleton = categoriesData.length === 0;
-
-  console.log('Skeleton check:', {
-    categoriesDataLength: categoriesData.length,
-    initialGroupedCategoriesLength: initialGroupedCategories?.length || 0,
-    shouldShowSkeleton,
-  });
+  // Показываем скелетон только если нет данных вообще И идет загрузка для нового языка
+  const shouldShowSkeleton =
+    categoriesData.length === 0 && shouldFetchForLanguage;
 
   if (shouldShowSkeleton) {
     return (

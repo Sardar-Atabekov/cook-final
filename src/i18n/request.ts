@@ -6,16 +6,10 @@ export default async function getRequestConfig(params: {
 }) {
   let locale = params.locale;
 
-  console.log('getRequestConfig called with params:', {
-    locale: params.locale,
-    hasRequestLocale: typeof params.requestLocale === 'function',
-  });
-
   // Если locale не передан — пытаемся получить из браузера
   if (!locale && typeof params.requestLocale === 'function') {
     try {
       locale = await params.requestLocale();
-      console.log('Detected browser locale:', locale);
     } catch (error) {
       console.warn('Failed to detect browser locale', error);
     }
@@ -23,7 +17,6 @@ export default async function getRequestConfig(params: {
 
   // Проверяем, что locale поддерживается
   const safeLocale = locales.includes(locale || '') ? locale : 'en';
-  console.log('Final locale selected:', safeLocale);
 
   return {
     locale: safeLocale,

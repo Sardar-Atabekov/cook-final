@@ -107,10 +107,19 @@ export const ingredientsApi = {
   },
 
   getGroupedIngredients: async (lang: string) => {
-    const response = await api.get(`/ingredients/grouped`, {
-      params: { lang },
-    });
-    return response.data;
+    // Используем fetch с кэшированием для ускорения загрузки
+    const response = await fetch(
+      `http://localhost:5005/api/ingredients/grouped?lang=${lang}`,
+      {
+        next: { revalidate: 36000 }, // Кэшируем на 1 час
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
   },
 };
 
@@ -143,7 +152,6 @@ export const recipeApi = {
       params.ingredients = ingredientIds.join(',');
     }
 
-    console.log('params', params);
     const response = await api.get('/recipes/recipes', { params });
     return response.data; // { recipes, total, hasMore }
   },

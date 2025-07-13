@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { Providers } from './providers';
 import { Navigation } from '@/components/navigation';
 import { Toaster } from '@/components/ui/toaster';
+import { PreloadCategories } from '@/components/preload-categories';
 
 const locales = ['en', 'ru', 'de', 'es', 'zh', 'fr'];
 
@@ -32,6 +33,7 @@ export default async function LocaleLayout(props: {
           <Navigation />
           <main>{children}</main>
           <Toaster />
+          <PreloadCategories />
         </div>
       </Providers>
     </NextIntlClientProvider>

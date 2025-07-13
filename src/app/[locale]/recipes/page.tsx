@@ -54,7 +54,6 @@ export default function RecipesPage() {
     setPage(1); // Reset page when filters change
   }, [filters]);
 
-  console.log('data', data);
   if (searchIngredients.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

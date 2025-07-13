@@ -68,7 +68,6 @@ export default getRequestConfig(async ({ locale }) => {
           timeZone: 'Europe/Moscow',
         };
       } catch (fallbackError) {
-        console.error('Failed to load fallback messages:', fallbackError);
         notFound();
       }
     }

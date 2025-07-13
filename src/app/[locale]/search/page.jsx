@@ -4,6 +4,9 @@ import { RecipeGridWrapper } from '@/components/recipe-grid-wrapper';
 
 // SSR/SSG page for /search
 
+// Кэшируем страницу на 1 час для ускорения загрузки
+export const revalidate = 36000;
+
 export default async function SearchPage({ params }) {
   const { locale } = await params;
   // Получаем категории на сервере (SSR/SSG)
