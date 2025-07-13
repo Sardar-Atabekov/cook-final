@@ -25,8 +25,16 @@ export default getRequestConfig(async ({ locale }) => {
     console.log('getRequestConfig called with locale:', locale);
   }
 
+  // Handle undefined locale by using default
+  if (!locale) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Locale is undefined, using default:', defaultLocale);
+    }
+    locale = defaultLocale;
+  }
+
   // Validate that the incoming `locale` parameter is valid
-  if (!locale || !locales.includes(locale)) {
+  if (!locales.includes(locale)) {
     if (process.env.NODE_ENV === 'development') {
       console.log('Locale not found or invalid:', locale);
     }

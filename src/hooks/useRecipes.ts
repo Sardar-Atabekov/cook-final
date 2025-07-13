@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { recipeApi } from '@/lib/api'; // или твой путь
+import { recipeApi } from '@/lib/api';
 import type { Recipe } from '@/types/recipe';
 
 interface UseRecipesParams {
@@ -8,6 +8,9 @@ interface UseRecipesParams {
   searchText: string;
   lang: string;
   limit: number;
+  mealType?: string;
+  country?: string;
+  dietTags?: string[];
 }
 
 export function useRecipes({
@@ -15,13 +18,24 @@ export function useRecipes({
   searchText,
   lang,
   limit,
+  mealType = 'all',
+  country = 'all',
+  dietTags = [],
 }: UseRecipesParams) {
   const [page, setPage] = useState(1);
   const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
 
   const prevParamsRef = useRef<string>('');
 
-  const paramsKey = JSON.stringify({ ingredientIds, searchText, lang, limit });
+  const paramsKey = JSON.stringify({
+    ingredientIds,
+    searchText,
+    lang,
+    limit,
+    mealType,
+    country,
+    dietTags,
+  });
 
   // если параметры поменялись — сбрасываем страницу и рецепты
   useEffect(() => {
@@ -32,19 +46,31 @@ export function useRecipes({
     }
   }, [paramsKey]);
 
-  const { data, isLoading, error } = useQuery<{
+  const { data, isLoading, error, isFetching } = useQuery<{
     recipes: Recipe[];
     total: number;
   }>({
-    queryKey: ['recipes', { ingredientIds, searchText, lang, limit, page }],
+    queryKey: [
+      'recipes',
+      {
+        ingredientIds,
+        searchText,
+        lang,
+        limit,
+        mealType,
+        country,
+        dietTags,
+        page,
+      },
+    ],
     queryFn: () => {
       const offset = (page - 1) * limit;
       const filters = {
         offset,
         limit,
-        mealType: 'all',
-        country: '',
-        dietTags: [],
+        mealType: mealType === 'all' ? '' : mealType || '',
+        country: country === 'all' ? '' : country || '',
+        dietTags: dietTags || [],
         search: searchText.trim() || undefined,
       };
       const ingredients = searchText.trim() ? [] : ingredientIds;
@@ -86,7 +112,7 @@ export function useRecipes({
   return {
     recipes: allRecipes,
     total: data?.total || 0,
-    isLoading,
+    isLoading: isLoading || isFetching,
     loadMore,
     hasMore:
       (page - 1) * limit + (data?.recipes?.length || 0) <

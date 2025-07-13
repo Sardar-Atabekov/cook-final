@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -19,6 +19,8 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Filter } from 'lucide-react';
+import { recipeApi } from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
 
 export interface FilterState {
   mealType: string;
@@ -26,43 +28,48 @@ export interface FilterState {
   dietTags: string[];
 }
 
+interface Tag {
+  id: number;
+  name: string;
+  tag: string;
+  type: 'meal_type' | 'kitchen' | 'diet';
+}
+
 interface RecipeFiltersProps {
   filters: FilterState;
   onFiltersChange: (filters: FilterState) => void;
 }
 
-const mealTypes = [
-  { value: 'all', label: 'All Meals' },
-  { value: 'breakfast', label: 'Breakfast' },
-  { value: 'lunch', label: 'Lunch' },
-  { value: 'dinner', label: 'Dinner' },
-  { value: 'snack', label: 'Snack' },
+const sort = [
+  { value: 'all', label: 'All' },
+  { value: 'popular', label: 'Popular' },
+  { value: 'new', label: 'New' },
+  { value: 'random', label: 'Random' },
 ];
-
-const countries = [
-  { value: 'all', label: 'All Countries' },
-  { value: 'Italy', label: 'Italian' },
-  { value: 'China', label: 'Chinese' },
-  { value: 'Mexico', label: 'Mexican' },
-  { value: 'USA', label: 'American' },
-  { value: 'India', label: 'Indian' },
-  { value: 'France', label: 'French' },
-];
-
-const dietTags = [
-  { value: 'vegetarian', label: 'Vegetarian' },
-  { value: 'vegan', label: 'Vegan' },
-  { value: 'gluten-free', label: 'Gluten Free' },
-  { value: 'dairy-free', label: 'Dairy Free' },
-  { value: 'low-carb', label: 'Low Carb' },
-  { value: 'healthy', label: 'Healthy' },
-];
-
 export function RecipeFilters({
   filters,
   onFiltersChange,
 }: RecipeFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
+
+  const { data: tags = [] } = useQuery<Tag[]>({
+    queryKey: ['tags'],
+    queryFn: () => recipeApi.getAllTags(),
+  });
+
+  const mealTypes = useMemo(
+    () =>
+      Array.isArray(tags) ? tags.filter((t) => t.type === 'meal_type') : [],
+    [tags]
+  );
+  const countries = useMemo(
+    () => (Array.isArray(tags) ? tags.filter((t) => t.type === 'kitchen') : []),
+    [tags]
+  );
+  const diets = useMemo(
+    () => (Array.isArray(tags) ? tags.filter((t) => t.type === 'diet') : []),
+    [tags]
+  );
 
   const handleDietTagChange = (tag: string, checked: boolean) => {
     const newDietTags = checked
@@ -80,11 +87,10 @@ export function RecipeFilters({
     });
   };
 
-  const activeFiltersCount = [
-    filters.mealType !== 'all' ? 1 : 0,
-    filters.country !== 'all' ? 1 : 0,
-    filters.dietTags.length,
-  ].reduce((a, b) => a + b, 0);
+  const activeFiltersCount =
+    (filters.mealType && filters.mealType !== 'all' ? 1 : 0) +
+    (filters.country && filters.country !== 'all' ? 1 : 0) +
+    filters.dietTags.length;
 
   return (
     <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
@@ -100,9 +106,10 @@ export function RecipeFilters({
             <SelectValue placeholder="Meal Type" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="all">All Meal Types</SelectItem>
             {mealTypes.map((type) => (
-              <SelectItem key={type.value} value={type.value}>
-                {type.label}
+              <SelectItem key={type.tag} value={type.tag}>
+                {type.name}
               </SelectItem>
             ))}
           </SelectContent>
@@ -118,9 +125,10 @@ export function RecipeFilters({
             <SelectValue placeholder="Country" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="all">All Countries</SelectItem>
             {countries.map((country) => (
-              <SelectItem key={country.value} value={country.value}>
-                {country.label}
+              <SelectItem key={country.tag} value={country.tag}>
+                {country.name}
               </SelectItem>
             ))}
           </SelectContent>
@@ -162,12 +170,13 @@ export function RecipeFilters({
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Select meal type" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="all">All Meal Types</SelectItem>
                     {mealTypes.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
+                      <SelectItem key={type.tag} value={type.tag}>
+                        {type.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -185,12 +194,13 @@ export function RecipeFilters({
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Select country" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="all">All Countries</SelectItem>
                     {countries.map((country) => (
-                      <SelectItem key={country.value} value={country.value}>
-                        {country.label}
+                      <SelectItem key={country.tag} value={country.tag}>
+                        {country.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -202,20 +212,17 @@ export function RecipeFilters({
                   Diet Tags
                 </label>
                 <div className="space-y-3">
-                  {dietTags.map((tag) => (
-                    <div
-                      key={tag.value}
-                      className="flex items-center space-x-2"
-                    >
+                  {diets.map((tag) => (
+                    <div key={tag.tag} className="flex items-center space-x-2">
                       <Checkbox
-                        id={tag.value}
-                        checked={filters.dietTags.includes(tag.value)}
+                        id={tag.tag}
+                        checked={filters.dietTags.includes(tag.tag)}
                         onCheckedChange={(checked) =>
-                          handleDietTagChange(tag.value, checked as boolean)
+                          handleDietTagChange(tag.tag, checked as boolean)
                         }
                       />
-                      <label htmlFor={tag.value} className="text-sm">
-                        {tag.label}
+                      <label htmlFor={tag.tag} className="text-sm">
+                        {tag.name}
                       </label>
                     </div>
                   ))}

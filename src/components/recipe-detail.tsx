@@ -9,22 +9,26 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Clock, Users, ChefHat, ExternalLink, X } from 'lucide-react';
+import { Clock, Users, ChefHat, ExternalLink, X, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Recipe } from '@/types';
+import type { Recipe } from '@/lib/api';
 
 interface RecipeDetailProps {
   recipe: Recipe | null;
   isOpen: boolean;
   onClose: () => void;
+  onSave?: () => void;
   onCookDish: (recipe: Recipe) => void;
+  isSaved?: boolean;
 }
 
 export function RecipeDetail({
   recipe,
   isOpen,
   onClose,
+  onSave,
   onCookDish,
+  isSaved = false,
 }: RecipeDetailProps) {
   if (!recipe) return null;
 
@@ -54,9 +58,25 @@ export function RecipeDetail({
             <DialogTitle className="text-2xl font-bold text-gray-900 pr-4">
               {recipe.title}
             </DialogTitle>
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="w-4 h-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+              {onSave && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onSave}
+                  className={cn(
+                    isSaved
+                      ? 'text-red-500 hover:text-red-600'
+                      : 'text-gray-500 hover:text-gray-600'
+                  )}
+                >
+                  <Heart className={cn('w-5 h-5', isSaved && 'fill-current')} />
+                </Button>
+              )}
+              <Button variant="ghost" size="icon" onClick={onClose}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
           <DialogDescription className="text-gray-700 leading-relaxed">
             {recipe.description}

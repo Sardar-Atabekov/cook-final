@@ -186,5 +186,33 @@
     "title": "Страница не найдена",
     "description": "Извините, мы не смогли найти страницу, которую вы ищете.",
     "home": "На главную"
+  },
+  "search": {
+    "defaultTitle": "Поиск рецептов - Найдите идеальное блюдо",
+    "defaultDescription": "Ищите среди тысяч рецептов, чтобы найти идеальное блюдо для любого случая",
+    "searchTitle": "Результаты поиска \"{query}\" - Поиск рецептов",
+    "searchDescription": "Найдите лучшие рецепты, соответствующие \"{query}\". Откройте новые блюда и вдохновение для готовки.",
+    "ingredientsTitle": "Рецепты по ингредиентам - Поиск рецептов",
+    "ingredientsDescription": "Найдите рецепты на основе ингредиентов, которые есть у вас дома. Больше не нужно думать, что приготовить!",
+    "searchResultsTitle": "Результаты поиска: \"{query}\"",
+    "allRecipesTitle": "Все рецепты",
+    "personalizedRecipesTitle": "Рецепты для вас",
+    "searchResultsCount": "Найдено {count} рецептов",
+    "allRecipesCount": "Показано {current} из {total} рецептов",
+    "personalizedRecipesCount": "Показано {current} из {total} рецептов по вашим ингредиентам",
+    "searchPlaceholder": "Поиск рецептов...",
+    "serverUnavailable": "Сервер недоступен",
+    "serverUnavailableDesc": "Не удается подключиться к серверу рецептов. Пожалуйста, попробуйте позже.",
+    "noRecipesFound": "Рецепты не найдены",
+    "noRecipesFoundSearch": "Попробуйте изменить поисковый запрос",
+    "noRecipesFoundIngredients": "Попробуйте выбрать другие ингредиенты или изменить фильтры",
+    "loadMore": "Показать больше рецептов",
+    "showingCount": "Показано {current} из {total} рецептов",
+    "recipeSaved": "Рецепт сохранен",
+    "recipeRemoved": "Рецепт удален",
+    "recipeSavedDesc": "\"{title}\" добавлен в избранные",
+    "recipeRemovedDesc": "\"{title}\" удален из избранных",
+    "cookingTitle": "Готовим блюдо!",
+    "cookingDesc": "Ингредиенты для \"{title}\" добавлены в кладовую. Приятного аппетита!"
   }
 }

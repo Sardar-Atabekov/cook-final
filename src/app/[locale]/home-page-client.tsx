@@ -88,9 +88,9 @@ export function HomePageClient() {
               {t('subtitle')}
             </p>
 
-            <div className="mb-8">
+            {/* <div className="mb-8">
               <IngredientInput ref={inputRef} />
-            </div>
+            </div> */}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto mt-5">

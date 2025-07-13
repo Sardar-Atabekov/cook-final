@@ -39,8 +39,8 @@ export default function RecipesPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['recipes', searchIngredients, filters, page],
     queryFn: () =>
-      recipeApi.searchRecipes(
-        searchIngredients,
+      recipeApi.getRecipes(
+        searchIngredients.map((ingredient) => parseInt(ingredient)),
         {
           ...filters,
           page,

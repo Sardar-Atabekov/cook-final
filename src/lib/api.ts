@@ -38,40 +38,6 @@ export interface SearchFilters {
   limit?: number;
 }
 
-// export const recipeApi = {
-//   searchRecipes: async (
-//     ingredients: string[],
-//     filters: SearchFilters = {}
-//   ): Promise<{
-//     recipes: Recipe[];
-//     total: number;
-//     page: number;
-//     totalPages: number;
-//   }> => {
-//     // Mock API delay
-//   },
-
-//   getRecipe: async (id: string): Promise<Recipe> => {
-//     await new Promise((resolve) => setTimeout(resolve, 500));
-//     const recipe = mockRecipes.find((r) => r.id === id);
-//     if (!recipe) throw new Error('Recipe not found');
-//     return recipe;
-//   },
-
-//   getSuggestedRecipes: async (): Promise<Recipe[]> => {
-//     await new Promise((resolve) => setTimeout(resolve, 600));
-//     const hour = new Date().getHours();
-//     let mealType = 'lunch';
-
-//     if (hour >= 6 && hour < 11) mealType = 'breakfast';
-//     else if (hour >= 17 && hour < 22) mealType = 'dinner';
-
-//     return mockRecipes
-//       .filter((recipe) => recipe.mealType === mealType)
-//       .slice(0, 4);
-//   },
-// };
-
 export const authApi = {
   login: async (email: string, password: string) => {
     const response = await api.post('/auth/login', { email, password });
@@ -111,7 +77,7 @@ export const ingredientsApi = {
     const response = await fetch(
       `http://localhost:5005/api/ingredients/grouped?lang=${lang}`,
       {
-        next: { revalidate: 36000 }, // Кэшируем на 1 час
+        next: { revalidate: 36000 }, // Кэшируем на 10 часов
       }
     );
 
@@ -148,6 +114,7 @@ export const recipeApi = {
     // Если есть поиск по тексту, передаём только его
     if (options.search && options.search.trim().length > 0) {
       params.search = options.search.trim();
+      params.ingredientIds = ingredientIds.join(',');
     } else if (ingredientIds.length > 0) {
       params.ingredients = ingredientIds.join(',');
     }
@@ -162,7 +129,7 @@ export const recipeApi = {
 
     if (hour >= 6 && hour < 11) mealType = 'breakfast';
     else if (hour >= 17 && hour < 22) mealType = 'dinner';
-    const response = await api.get(`/recipes`, {
+    const response = await api.get(`/recipes/recipes`, {
       params: { lang },
     });
     return response.data
@@ -171,9 +138,13 @@ export const recipeApi = {
   },
 
   getRecipe: async (id: string, ingredientIds: number[]) => {
-    const response = await api.get(`/recipes/recipes/${id}`, {
+    const response = await api.get(`/recipes/recipe/${id}`, {
       params: { ingredientIds },
     });
+    return response.data;
+  },
+  getAllTags: async () => {
+    const response = await api.get(`/recipes/tags`);
     return response.data;
   },
 };

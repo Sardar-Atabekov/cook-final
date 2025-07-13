@@ -113,9 +113,7 @@ export function RecipeCard({
             {recipe.missingIngredients &&
             recipe.missingIngredients.length > 0 ? (
               <>
-                <div className="text-xs text-gray-600 mb-1">
-                  Missing ingredients:
-                </div>
+                <div className="text-xs text-gray-600 mb-1">Не хватает:</div>
                 <div className="flex flex-wrap gap-1">
                   {recipe.missingIngredients
                     .slice(0, 3)

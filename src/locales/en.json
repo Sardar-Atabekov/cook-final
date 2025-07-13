@@ -185,5 +185,33 @@
     "title": "Page Not Found",
     "description": "Sorry, we couldn't find the page you're looking for.",
     "home": "Go Home"
+  },
+  "search": {
+    "defaultTitle": "Search Recipes - Find Your Perfect Meal",
+    "defaultDescription": "Search through thousands of recipes to find the perfect meal for any occasion",
+    "searchTitle": "Search Results for \"{query}\" - Recipe Finder",
+    "searchDescription": "Find the best recipes matching \"{query}\". Discover new dishes and cooking inspiration.",
+    "ingredientsTitle": "Recipes by Ingredients - Recipe Finder",
+    "ingredientsDescription": "Find recipes based on the ingredients you have at home. No more wondering what to cook!",
+    "searchResultsTitle": "Search Results: \"{query}\"",
+    "allRecipesTitle": "All Recipes",
+    "personalizedRecipesTitle": "Recipes for You",
+    "searchResultsCount": "Found {count} recipes",
+    "allRecipesCount": "Showing {current} of {total} recipes",
+    "personalizedRecipesCount": "Showing {current} of {total} recipes based on your ingredients",
+    "searchPlaceholder": "Search recipes...",
+    "serverUnavailable": "Server Unavailable",
+    "serverUnavailableDesc": "Unable to connect to the recipe server. Please try again later.",
+    "noRecipesFound": "No Recipes Found",
+    "noRecipesFoundSearch": "Try changing your search query",
+    "noRecipesFoundIngredients": "Try selecting different ingredients or changing filters",
+    "loadMore": "Load More Recipes",
+    "showingCount": "Showing {current} of {total} recipes",
+    "recipeSaved": "Recipe Saved",
+    "recipeRemoved": "Recipe Removed",
+    "recipeSavedDesc": "\"{title}\" has been added to your favorites",
+    "recipeRemovedDesc": "\"{title}\" has been removed from your favorites",
+    "cookingTitle": "Let's Cook!",
+    "cookingDesc": "Ingredients for \"{title}\" have been added to your pantry. Enjoy your meal!"
   }
 }

@@ -12,6 +12,8 @@ import { useSavedRecipes } from '@/hooks/useSavedRecipes';
 import { useLocale } from 'next-intl';
 import { useRecipes } from '@/hooks/useRecipes';
 import type { Recipe } from '@/types/recipe';
+import { RecipeFilters, type FilterState } from '@/components/recipe-filters';
+
 import {
   Select,
   SelectContent,
@@ -20,7 +22,11 @@ import {
   SelectValue,
 } from '@radix-ui/react-select';
 
-export function RecipeGrid({ selectedIngredients }) {
+interface RecipeGridProps {
+  selectedIngredients: Array<{ id: number; name: string }>;
+}
+
+export function RecipeGrid({ selectedIngredients }: RecipeGridProps) {
   const [dishTypeFilter, setDishTypeFilter] = useState('all');
   const [prepTimeFilter, setPrepTimeFilter] = useState('all');
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
@@ -53,7 +59,11 @@ export function RecipeGrid({ selectedIngredients }) {
         : `"${recipe.title}" добавлен в избранные`,
     });
   };
-
+  const [filters, setFilters] = useState<FilterState>({
+    mealType: 'all',
+    country: 'all',
+    dietTags: [],
+  });
   const handleRecipeClick = (recipe: Recipe) => {
     setSelectedRecipe(recipe);
     setIsDetailOpen(true);
@@ -61,7 +71,7 @@ export function RecipeGrid({ selectedIngredients }) {
 
   const handleCookDish = (recipe: Recipe) => {
     const recipeIngredients =
-      recipe.recipeIngredients?.map((ri) => ({
+      recipe.recipeIngredients?.map((ri: any) => ({
         id: ri.ingredientId,
         name: ri.ingredient?.name || `Ингредиент ${ri.ingredientId}`,
       })) || [];
@@ -102,32 +112,8 @@ export function RecipeGrid({ selectedIngredients }) {
             className="w-full"
           />
         </div>
-        <div className="flex flex-row gap-3">
-          <Select value={dishTypeFilter} onValueChange={setDishTypeFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="All Dish Types" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Dish Types</SelectItem>
-              <SelectItem value="breakfast">Breakfast</SelectItem>
-              <SelectItem value="lunch">Lunch</SelectItem>
-              <SelectItem value="dinner">Dinner</SelectItem>
-              <SelectItem value="dessert">Dessert</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={prepTimeFilter} onValueChange={setPrepTimeFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Any Prep Time" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Any Prep Time</SelectItem>
-              <SelectItem value="quick">Under 15 min</SelectItem>
-              <SelectItem value="medium">15-30 min</SelectItem>
-              <SelectItem value="long">30-60 min</SelectItem>
-              <SelectItem value="extended">Over 1 hour</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="mb-8">
+          <RecipeFilters filters={filters} onFiltersChange={setFilters} />
         </div>
       </div>
 
@@ -171,7 +157,7 @@ export function RecipeGrid({ selectedIngredients }) {
             {recipes.map((recipe) => (
               <RecipeCard
                 key={recipe.id}
-                recipe={recipe}
+                recipe={recipe as any}
                 onClick={() => handleRecipeClick(recipe)}
                 onSave={() => handleSaveRecipe(recipe)}
                 isSaved={isRecipeSaved(recipe.id)}
