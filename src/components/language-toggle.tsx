@@ -1,5 +1,4 @@
 'use client';
-
 import { usePathname, useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
@@ -14,12 +13,33 @@ import { getAvailableLocales } from '@/lib/locale-utils';
 import { useLanguageStore } from '@/stores/useLanguageStore';
 
 const allLanguages = [
-  { code: 'en', name: 'English', flag: '🇺🇸' },
   { code: 'ru', name: 'Русский', flag: '🇷🇺' },
+  { code: 'en', name: 'English', flag: '🇺🇸' },
+  { code: 'ar', name: 'العربية', flag: '🇸🇦' },
+  { code: 'bg', name: 'Български', flag: '🇧🇬' },
+  { code: 'cs', name: 'Čeština', flag: '🇨🇿' },
+  { code: 'da', name: 'Dansk', flag: '🇩🇰' },
   { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
   { code: 'es', name: 'Español', flag: '🇪🇸' },
-  { code: 'zh', name: '中文', flag: '🇨🇳' },
+  { code: 'el', name: 'Ελληνικά', flag: '🇬🇷' },
+  { code: 'fi', name: 'Suomi', flag: '🇫🇮' },
   { code: 'fr', name: 'Français', flag: '🇫🇷' },
+  { code: 'hu', name: 'Magyar', flag: '🇭🇺' },
+  { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' },
+  { code: 'id', name: 'Bahasa Indonesia', flag: '🇮🇩' },
+  { code: 'it', name: 'Italiano', flag: '🇮🇹' },
+  { code: 'he', name: 'עִברִית', flag: '🇮🇱' },
+  { code: 'ja', name: '日本語', flag: '🇯🇵' },
+  { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
+  { code: 'pl', name: 'Polski', flag: '🇵🇱' },
+  { code: 'pt', name: 'Português', flag: '🇵🇹' },
+  { code: 'ro', name: 'Română', flag: '🇷🇴' },
+  { code: 'sk', name: 'Slovenčina', flag: '🇸🇰' },
+  { code: 'sr', name: 'Српски', flag: '🇷🇸' },
+  { code: 'sv', name: 'Svenska', flag: '🇸🇪' },
+  { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
+  { code: 'zh', name: '中文', flag: '🇨🇳' },
+  { code: 'be', name: 'Беларуская', flag: '🇧🇾' },
 ];
 
 const availableLocales = getAvailableLocales();
@@ -60,16 +80,24 @@ export function LanguageToggle() {
           </span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {languages.map((language) => (
-          <DropdownMenuItem
-            key={language.code}
-            onClick={() => switchLanguage(language.code)}
-          >
-            <span className="mr-2">{language.flag}</span>
-            {language.name}
-          </DropdownMenuItem>
-        ))}
+      <DropdownMenuContent
+        align="end"
+        className="w-48 max-h-96 overflow-y-auto"
+        side="bottom"
+        sideOffset={4}
+      >
+        <div className="grid grid-cols-1 gap-0">
+          {languages.map((language) => (
+            <DropdownMenuItem
+              key={language.code}
+              onClick={() => switchLanguage(language.code)}
+              className="flex items-center justify-start px-3 py-2 text-sm cursor-pointer hover:bg-accent focus:bg-accent"
+            >
+              <span className="mr-3 text-base">{language.flag}</span>
+              <span className="truncate">{language.name}</span>
+            </DropdownMenuItem>
+          ))}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );
