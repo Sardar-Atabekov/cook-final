@@ -16,7 +16,8 @@
     "tolgee:pull": "tolgee pull --project-id 19519 --format JSON_I18NEXT src/locales",
     "tolgee:push": "tolgee push --api-key $TOLGEE_API_KEY --project-id 19519 --format JSON_I18NEXT src/locales",
     "tolgee:sync": "npm run tolgee:pull && npm run tolgee:push",
-    "build": "next build"
+    "build": "next build",
+    "test": "vitest run"
   },
   "dependencies": {
     "@commitlint/config-conventional": "^19.8.1",
@@ -102,7 +103,10 @@
     "stylelint-config-tailwindcss": "^1.0.0",
     "stylelint-order": "^7.0.0",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^1.4.0",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/jest-dom": "^6.0.0"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [

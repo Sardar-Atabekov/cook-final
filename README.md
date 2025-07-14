@@ -180,3 +180,50 @@ rm -rf .next
 ## License
 
 This project is licensed under the MIT License.
+
+## Тестирование
+
+В проекте используется [Vitest](https://vitest.dev/) для юнит-тестирования React-компонентов.
+
+### Запуск тестов
+
+```bash
+pnpm test
+```
+
+Пример теста находится в `src/components/ui/button.test.tsx`.
+
+---
+
+## CI/CD (GitHub Actions)
+
+В проекте настроен CI через GitHub Actions:
+
+- Проверка кода линтером (ESLint)
+- Проверка форматирования (Prettier)
+- Проверка стилей (Stylelint)
+- Type-check (TypeScript)
+- Запуск тестов (Vitest)
+- Сборка проекта
+
+Файл workflow: `.github/workflows/ci.yml`
+
+---
+
+## Деплой на Railway через GitHub
+
+1. Зарегистрируйтесь на [Railway](https://railway.app/).
+2. Создайте новый проект и выберите опцию "Deploy from GitHub repo".
+3. Подключите ваш репозиторий.
+4. Railway автоматически определит Next.js и настроит деплой.
+5. В разделе **Variables** добавьте переменные окружения из `.env.local` (например, `NEXT_PUBLIC_DEFAULT_LOCALE`, `NEXT_PUBLIC_AVAILABLE_LOCALES`).
+6. После каждого пуша в ветку `main` или `master` Railway будет автоматически собирать и деплоить приложение.
+
+Если при установке зависимостей возникает ошибка `pnpm i --frozen-lockfile did not complete successfully: exit code: 1`, убедитесь, что:
+
+- В репозитории присутствует актуальный `pnpm-lock.yaml`.
+- Все зависимости корректно указаны в `package.json`.
+- В настройках Railway выбран **Build Command**: `pnpm install --frozen-lockfile && pnpm build`
+- В настройках Railway выбран **Start Command**: `pnpm start`
+
+---
