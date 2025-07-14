@@ -29,22 +29,22 @@ A Next.js 15.2.4 application for searching and discovering recipes based on avai
 - Node.js 18+
 - npm or pnpm
 
-### Installation
+### Установка
 
-1. Clone the repository:
+1. Клонируйте репозиторий:
 
 ```bash
 git clone <repository-url>
 cd cook-front
 ```
 
-2. Install dependencies:
+2. Установите зависимости:
 
 ```bash
 npm install
 ```
 
-3. Set up environment variables:
+3. Настройте переменные окружения:
 
 ```bash
 cp .env.example .env.local
@@ -188,7 +188,7 @@ This project is licensed under the MIT License.
 ### Запуск тестов
 
 ```bash
-pnpm test
+npm test
 ```
 
 Пример теста находится в `src/components/ui/button.test.tsx`.
@@ -219,11 +219,11 @@ pnpm test
 5. В разделе **Variables** добавьте переменные окружения из `.env.local` (например, `NEXT_PUBLIC_DEFAULT_LOCALE`, `NEXT_PUBLIC_AVAILABLE_LOCALES`).
 6. После каждого пуша в ветку `main` или `master` Railway будет автоматически собирать и деплоить приложение.
 
-Если при установке зависимостей возникает ошибка `pnpm i --frozen-lockfile did not complete successfully: exit code: 1`, убедитесь, что:
+Если при установке зависимостей возникает ошибка, убедитесь, что:
 
-- В репозитории присутствует актуальный `pnpm-lock.yaml`.
+- В репозитории присутствует актуальный `package-lock.json`.
 - Все зависимости корректно указаны в `package.json`.
-- В настройках Railway выбран **Build Command**: `pnpm install --frozen-lockfile && pnpm build`
-- В настройках Railway выбран **Start Command**: `pnpm start`
+- В настройках Railway выбран **Build Command**: `npm install && npm run build`
+- В настройках Railway выбран **Start Command**: `npm start`
 
 ---
