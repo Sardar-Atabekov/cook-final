@@ -10,7 +10,7 @@ interface UseRecipesParams {
   limit: number;
   mealType?: string;
   country?: string;
-  dietTags?: string[];
+  dietTags?: string;
 }
 
 export function useRecipes({
@@ -20,7 +20,7 @@ export function useRecipes({
   limit,
   mealType = 'all',
   country = 'all',
-  dietTags = [],
+  dietTags = 'all',
 }: UseRecipesParams) {
   const [page, setPage] = useState(1);
   const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
@@ -70,14 +70,15 @@ export function useRecipes({
         limit,
         mealType: mealType === 'all' ? '' : mealType || '',
         country: country === 'all' ? '' : country || '',
-        dietTags: dietTags || [],
+        dietTags: dietTags === 'all' ? '' : dietTags || '',
         search: searchText.trim() || undefined,
       };
       const ingredients = searchText.trim() ? [] : ingredientIds;
       return recipeApi.getRecipes(ingredients, filters, lang);
     },
     placeholderData: (previousData) => previousData,
-    staleTime: 10000 * 60,
+    staleTime: 5 * 60 * 1000, // 5 минут
+    gcTime: 10 * 60 * 1000, // 10 минут
     retry: (failureCount, error: any) => {
       // Don't retry on connection refused errors
       if (

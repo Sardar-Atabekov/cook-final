@@ -33,7 +33,7 @@ export interface Recipe {
 export interface SearchFilters {
   mealType?: string;
   country?: string;
-  dietTags?: string[];
+  dietTags?: string;
   page?: number;
   limit?: number;
 }
@@ -97,7 +97,7 @@ export const recipeApi = {
       limit: number;
       mealType: string;
       country: string;
-      dietTags: string[];
+      dietTags: string;
       search?: string;
     },
     lang: string
@@ -144,7 +144,33 @@ export const recipeApi = {
     return response.data;
   },
   getAllTags: async () => {
-    const response = await api.get(`/recipes/tags`);
-    return response.data;
+    try {
+      const response = await api.get(`/recipes/tags`);
+      console.log('API Tags response:', response.data);
+      return response.data.tags || response.data;
+    } catch (error) {
+      console.error('Error fetching tags:', error);
+      throw error;
+    }
+  },
+
+  // SSR версия с кешированием
+  getAllTagsSSR: async () => {
+    try {
+      const response = await fetch('http://localhost:5005/api/recipes/tags', {
+        next: { revalidate: 3600 }, // Кэшируем на 1 час
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('SSR Tags response:', data);
+      return data.tags;
+    } catch (error) {
+      console.error('Error fetching SSR tags:', error);
+      throw error;
+    }
   },
 };

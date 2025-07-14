@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -25,36 +24,42 @@ import { useQuery } from '@tanstack/react-query';
 export interface FilterState {
   mealType: string;
   country: string;
-  dietTags: string[];
+  dietTags: string; // Используем строку для id тега
 }
 
 interface Tag {
   id: number;
   name: string;
   tag: string;
+  slug: string;
   type: 'meal_type' | 'kitchen' | 'diet';
 }
 
 interface RecipeFiltersProps {
   filters: FilterState;
   onFiltersChange: (filters: FilterState) => void;
+  initialTags?: Tag[]; // Добавляем поддержку начальных тегов
 }
 
-const sort = [
-  { value: 'all', label: 'All' },
-  { value: 'popular', label: 'Popular' },
-  { value: 'new', label: 'New' },
-  { value: 'random', label: 'Random' },
-];
 export function RecipeFilters({
   filters,
   onFiltersChange,
+  initialTags = [],
 }: RecipeFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const { data: tags = [] } = useQuery<Tag[]>({
+  const {
+    data: tags = initialTags,
+    isLoading,
+    error,
+  } = useQuery<Tag[]>({
     queryKey: ['tags'],
     queryFn: () => recipeApi.getAllTags(),
+    staleTime: 10 * 60 * 1000, // 10 минут
+    gcTime: 30 * 60 * 1000, // 30 минут (заменил cacheTime на gcTime)
+    retry: 3,
+    // Используем начальные данные если они есть
+    initialData: initialTags.length > 0 ? initialTags : undefined,
   });
 
   const mealTypes = useMemo(
@@ -62,42 +67,75 @@ export function RecipeFilters({
       Array.isArray(tags) ? tags.filter((t) => t.type === 'meal_type') : [],
     [tags]
   );
+
   const countries = useMemo(
     () => (Array.isArray(tags) ? tags.filter((t) => t.type === 'kitchen') : []),
     [tags]
   );
+
   const diets = useMemo(
     () => (Array.isArray(tags) ? tags.filter((t) => t.type === 'diet') : []),
     [tags]
   );
 
-  const handleDietTagChange = (tag: string, checked: boolean) => {
-    const newDietTags = checked
-      ? [...filters.dietTags, tag]
-      : filters.dietTags.filter((t) => t !== tag);
-
-    onFiltersChange({ ...filters, dietTags: newDietTags });
-  };
-
   const clearFilters = () => {
     onFiltersChange({
       mealType: 'all',
       country: 'all',
-      dietTags: [],
+      dietTags: 'all',
     });
   };
 
   const activeFiltersCount =
     (filters.mealType && filters.mealType !== 'all' ? 1 : 0) +
     (filters.country && filters.country !== 'all' ? 1 : 0) +
-    filters.dietTags.length;
+    (filters.dietTags && filters.dietTags !== 'all' ? 1 : 0);
 
+  // Показываем состояние загрузки только если нет начальных данных
+  if (isLoading && initialTags.length === 0) {
+    return (
+      <div className="flex items-center space-x-4">
+        <div className="animate-pulse">
+          <div className="h-9 bg-gray-200 rounded-md w-40"></div>
+        </div>
+        <div className="animate-pulse">
+          <div className="h-9 bg-gray-200 rounded-md w-40"></div>
+        </div>
+        <div className="animate-pulse">
+          <div className="h-9 bg-gray-200 rounded-md w-40"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Показываем ошибку
+  if (error) {
+    return (
+      <div className="text-red-500 text-sm">
+        Ошибка загрузки фильтров: {error.message}
+      </div>
+    );
+  }
+
+  console.log('Tags loaded:', {
+    totalTags: tags.length,
+    mealTypes: mealTypes.length,
+    countries: countries.length,
+    diets: diets.length,
+    sampleMealTypes: mealTypes
+      .slice(0, 3)
+      .map((t) => ({ name: t.name, slug: t.slug })),
+    sampleCountries: countries
+      .slice(0, 3)
+      .map((t) => ({ name: t.name, slug: t.slug })),
+    sampleDiets: diets.slice(0, 3).map((t) => ({ name: t.name, slug: t.slug })),
+  });
   return (
     <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
       {/* Desktop Filters */}
       <div className="hidden md:flex items-center space-x-4">
         <Select
-          value={filters.mealType}
+          value={filters.mealType || 'all'}
           onValueChange={(value) =>
             onFiltersChange({ ...filters, mealType: value })
           }
@@ -108,7 +146,7 @@ export function RecipeFilters({
           <SelectContent>
             <SelectItem value="all">All Meal Types</SelectItem>
             {mealTypes.map((type) => (
-              <SelectItem key={type.tag} value={type.tag}>
+              <SelectItem key={type.id} value={type.id.toString()}>
                 {type.name}
               </SelectItem>
             ))}
@@ -116,7 +154,7 @@ export function RecipeFilters({
         </Select>
 
         <Select
-          value={filters.country}
+          value={filters.country || 'all'}
           onValueChange={(value) =>
             onFiltersChange({ ...filters, country: value })
           }
@@ -127,8 +165,30 @@ export function RecipeFilters({
           <SelectContent>
             <SelectItem value="all">All Countries</SelectItem>
             {countries.map((country) => (
-              <SelectItem key={country.tag} value={country.tag}>
+              <SelectItem key={country.id} value={country.id.toString()}>
                 {country.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={filters.dietTags || 'all'}
+          onValueChange={(value) =>
+            onFiltersChange({
+              ...filters,
+              dietTags: value,
+            })
+          }
+        >
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Diet" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Diets</SelectItem>
+            {diets.map((diet) => (
+              <SelectItem key={diet.id} value={diet.id.toString()}>
+                {diet.name}
               </SelectItem>
             ))}
           </SelectContent>
@@ -164,7 +224,7 @@ export function RecipeFilters({
                   Meal Type
                 </label>
                 <Select
-                  value={filters.mealType}
+                  value={filters.mealType || 'all'}
                   onValueChange={(value) =>
                     onFiltersChange({ ...filters, mealType: value })
                   }
@@ -175,7 +235,7 @@ export function RecipeFilters({
                   <SelectContent>
                     <SelectItem value="all">All Meal Types</SelectItem>
                     {mealTypes.map((type) => (
-                      <SelectItem key={type.tag} value={type.tag}>
+                      <SelectItem key={type.id} value={type.id.toString()}>
                         {type.name}
                       </SelectItem>
                     ))}
@@ -188,7 +248,7 @@ export function RecipeFilters({
                   Country
                 </label>
                 <Select
-                  value={filters.country}
+                  value={filters.country || 'all'}
                   onValueChange={(value) =>
                     onFiltersChange({ ...filters, country: value })
                   }
@@ -199,7 +259,10 @@ export function RecipeFilters({
                   <SelectContent>
                     <SelectItem value="all">All Countries</SelectItem>
                     {countries.map((country) => (
-                      <SelectItem key={country.tag} value={country.tag}>
+                      <SelectItem
+                        key={country.id}
+                        value={country.id.toString()}
+                      >
                         {country.name}
                       </SelectItem>
                     ))}
@@ -208,25 +271,28 @@ export function RecipeFilters({
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-3 block">
-                  Diet Tags
-                </label>
-                <div className="space-y-3">
-                  {diets.map((tag) => (
-                    <div key={tag.tag} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={tag.tag}
-                        checked={filters.dietTags.includes(tag.tag)}
-                        onCheckedChange={(checked) =>
-                          handleDietTagChange(tag.tag, checked as boolean)
-                        }
-                      />
-                      <label htmlFor={tag.tag} className="text-sm">
-                        {tag.name}
-                      </label>
-                    </div>
-                  ))}
-                </div>
+                <label className="text-sm font-medium mb-2 block">Diet</label>
+                <Select
+                  value={filters.dietTags || 'all'}
+                  onValueChange={(value) =>
+                    onFiltersChange({
+                      ...filters,
+                      dietTags: value,
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select diet" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Diets</SelectItem>
+                    {diets.map((diet) => (
+                      <SelectItem key={diet.id} value={diet.id.toString()}>
+                        {diet.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <Button

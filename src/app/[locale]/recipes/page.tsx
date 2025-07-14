@@ -1,161 +1,132 @@
-'use client';
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { ingredientsApi, recipeApi } from '@/lib/api';
+import { IngredientSidebar } from '@/components/ingredient-sidebar';
+import { RecipeGridWrapper } from '@/components/recipe-grid-wrapper';
+import { getTranslations } from 'next-intl/server';
 
-import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useSearchParams, useParams } from 'next/navigation';
-import { useLocale, useTranslations } from 'next-intl';
-import { RecipeCard } from '@/components/recipe-card';
-import { RecipeFilters, type FilterState } from '@/components/recipe-filters';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { recipeApi } from '@/lib/api';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useIngredientStore } from '@/stores/useIngredientStore';
+// Кэшируем страницу на 1 час для ускорения загрузки
+export const revalidate = 3600;
 
-export default function RecipesPage() {
-  const searchParams = useSearchParams();
-  const params = useParams();
-  const locale = useLocale();
-  const { selectedIngredients } = useIngredientStore();
-  const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState<FilterState>({
-    mealType: 'all',
-    country: 'all',
-    dietTags: [],
-  });
-  const t = useTranslations('recipes');
+interface RecipesPageProps {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{
+    ingredients?: string;
+    mealType?: string;
+    country?: string;
+    dietTags?: string;
+    page?: string;
+  }>;
+}
 
-  // Get ingredients from URL params or store
-  const urlIngredients = searchParams.get('ingredients')?.split(',') || [];
-  const searchIngredients: string[] =
-    urlIngredients.length > 0
-      ? urlIngredients
-      : selectedIngredients.map((ingredient: any) =>
-          typeof ingredient === 'string'
-            ? ingredient
-            : (ingredient.id ?? ingredient.name)
-        );
+export async function generateMetadata({
+  params,
+  searchParams,
+}: RecipesPageProps): Promise<Metadata> {
+  const { locale } = await params;
+  const paramsResolved = await searchParams;
+  const t = await getTranslations({ locale, namespace: 'recipes' });
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['recipes', searchIngredients, filters, page],
-    queryFn: () =>
-      recipeApi.getRecipes(
-        searchIngredients.map((ingredient) => parseInt(ingredient)),
-        {
-          ...filters,
-          page,
-        },
-        locale // Pass the locale as the third argument
-      ),
-    enabled: searchIngredients.length > 0,
-  });
+  const ingredients = paramsResolved.ingredients;
 
-  useEffect(() => {
-    setPage(1); // Reset page when filters change
-  }, [filters]);
+  let title = t('defaultTitle');
+  let description = t('defaultDescription');
 
-  if (searchIngredients.length === 0) {
+  if (ingredients) {
+    title = t('ingredientsTitle');
+    description = t('ingredientsDescription');
+  }
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
+  };
+}
+
+export default async function RecipesPage({
+  params,
+  searchParams,
+}: RecipesPageProps) {
+  const { locale } = await params;
+  const resolvedParams = await searchParams;
+
+  // Валидация параметров
+  const page = parseInt(resolvedParams.page || '1');
+  if (page < 1 || page > 100) {
+    notFound();
+  }
+
+  // Получаем категории ингредиентов на сервере (SSR/SSG)
+  let initialGroupedCategories = [];
+  try {
+    initialGroupedCategories =
+      await ingredientsApi.getGroupedIngredients(locale);
+  } catch (e) {
+    console.error('Failed to load ingredient categories:', e);
+    initialGroupedCategories = [];
+  }
+
+  // Получаем теги фильтров на сервере (SSR/SSG)
+  let initialTags = [];
+  try {
+    initialTags = await recipeApi.getAllTagsSSR();
+  } catch (e) {
+    console.error('Failed to load filter tags:', e);
+    initialTags = [];
+  }
+
+  // Парсим параметры
+  const ingredientIds = resolvedParams.ingredients
+    ? resolvedParams.ingredients
+        .split(',')
+        .map((id) => parseInt(id))
+        .filter((id) => !isNaN(id))
+    : [];
+
+  if (ingredientIds.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            {t('noIngredients')}
-          </h1>
-          <p className="text-gray-600 mb-8">{t('noIngredientsDescription')}</p>
-          <Button onClick={() => window.history.back()}>{t('goBack')}</Button>
+      <div className="min-h-screen bg-gray-50">
+        <div className="flex">
+          <IngredientSidebar
+            className="block sticky top-0 h-screen"
+            initialGroupedCategories={initialGroupedCategories}
+          />
+          <main className="flex-1 h-full overflow-y-auto p-6 mb-10">
+            <div className="text-center py-16">
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">
+                Выберите ингредиенты
+              </h1>
+              <p className="text-gray-600">
+                Пожалуйста, выберите ингредиенты для поиска рецептов
+              </p>
+            </div>
+          </main>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('title')}</h1>
-        <p className="text-gray-600">
-          {t('foundWith', { ingredients: searchIngredients.join(', ') })}
-        </p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="flex">
+        <IngredientSidebar
+          className="block sticky top-0 h-screen"
+          initialGroupedCategories={initialGroupedCategories}
+        />
+        <main className="flex-1 h-full overflow-y-auto p-6 mb-10">
+          <RecipeGridWrapper initialTags={initialTags} />
+        </main>
       </div>
-
-      {/* Filters */}
-      <div className="mb-8">
-        <RecipeFilters filters={filters} onFiltersChange={setFilters} />
-      </div>
-
-      {/* Results */}
-      {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="space-y-3">
-              <Skeleton className="h-48 w-full rounded-lg" />
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-4 w-1/2" />
-            </div>
-          ))}
-        </div>
-      ) : error ? (
-        <div className="text-center py-12">
-          <p className="text-red-600 mb-4">{t('error')}</p>
-          <Button onClick={() => window.location.reload()}>
-            {t('tryAgain')}
-          </Button>
-        </div>
-      ) : data?.recipes.length === 0 ? (
-        <div className="text-center py-12">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            {t('noRecipesFound')}
-          </h2>
-          <p className="text-gray-600 mb-4">{t('noRecipesDescription')}</p>
-          <Button
-            onClick={() =>
-              setFilters({ mealType: 'all', country: 'all', dietTags: [] })
-            }
-          >
-            {t('clearFilters')}
-          </Button>
-        </div>
-      ) : (
-        <>
-          {/* Recipe Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-            {data?.recipes.map((recipe) => (
-              <RecipeCard
-                key={recipe.id}
-                recipe={recipe}
-                userIngredients={searchIngredients}
-              />
-            ))}
-          </div>
-
-          {/* Pagination */}
-          {data && data.totalPages > 1 && (
-            <div className="flex justify-center items-center space-x-4">
-              <Button
-                variant="outline"
-                onClick={() => setPage(page - 1)}
-                disabled={page === 1}
-              >
-                <ChevronLeft className="h-4 w-4 mr-2" />
-                {t('previous')}
-              </Button>
-
-              <span className="text-sm text-gray-600">
-                {t('page', { current: page, total: data.totalPages })}
-              </span>
-
-              <Button
-                variant="outline"
-                onClick={() => setPage(page + 1)}
-                disabled={page === data.totalPages}
-              >
-                {t('next')}
-                <ChevronRight className="h-4 w-4 ml-2" />
-              </Button>
-            </div>
-          )}
-        </>
-      )}
     </div>
   );
 }

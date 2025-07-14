@@ -26,6 +26,7 @@ interface SearchPageClientProps {
   initialPage: number;
   initialRecipes: Recipe[];
   initialTotal: number;
+  initialTags?: any[];
 }
 
 export function SearchPageClient({
@@ -38,6 +39,7 @@ export function SearchPageClient({
   initialPage,
   initialRecipes,
   initialTotal,
+  initialTags = [],
 }: SearchPageClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -52,7 +54,7 @@ export function SearchPageClient({
   const [filters, setFilters] = useState<FilterState>({
     mealType: initialMealType || 'all',
     country: initialCountry || 'all',
-    dietTags: initialDietTags,
+    dietTags: initialDietTags.length > 0 ? initialDietTags[0] : 'all',
   });
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -148,7 +150,7 @@ export function SearchPageClient({
       updateURL({
         mealType: newFilters.mealType,
         country: newFilters.country,
-        dietTags: newFilters.dietTags.join(','),
+        dietTags: newFilters.dietTags,
         page: 1,
       });
     },
@@ -287,6 +289,7 @@ export function SearchPageClient({
         <RecipeFilters
           filters={filters}
           onFiltersChange={handleFiltersChange}
+          initialTags={initialTags}
         />
       </div>
 

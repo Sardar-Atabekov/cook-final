@@ -81,6 +81,15 @@ export default async function SearchPage({
     initialGroupedCategories = [];
   }
 
+  // Получаем теги фильтров на сервере (SSR/SSG)
+  let initialTags = [];
+  try {
+    initialTags = await recipeApi.getAllTagsSSR();
+  } catch (e) {
+    console.error('Failed to load filter tags:', e);
+    initialTags = [];
+  }
+
   // Парсим параметры поиска
   const searchQuery = resolvedParams.q?.trim() || '';
   const ingredientIds = resolvedParams.ingredients
@@ -91,9 +100,7 @@ export default async function SearchPage({
     : [];
   const mealType = resolvedParams.mealType || 'all';
   const country = resolvedParams.country || 'all';
-  const dietTags = resolvedParams.dietTags
-    ? resolvedParams.dietTags.split(',').filter((tag) => tag.trim())
-    : [];
+  const dietTags = resolvedParams.dietTags || 'all';
 
   // Получаем начальные рецепты для SSR (только для первой страницы)
   let initialRecipes = [];
@@ -106,7 +113,7 @@ export default async function SearchPage({
         limit: 20,
         mealType: mealType === 'all' ? '' : mealType,
         country: country === 'all' ? '' : country,
-        dietTags,
+        dietTags: dietTags === 'all' ? '' : country,
         search: searchQuery || undefined,
       };
 
@@ -143,6 +150,7 @@ export default async function SearchPage({
             initialPage={page}
             initialRecipes={initialRecipes}
             initialTotal={totalRecipes}
+            initialTags={initialTags}
           />
         </main>
       </div>

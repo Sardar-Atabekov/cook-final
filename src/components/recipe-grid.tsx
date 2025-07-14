@@ -24,9 +24,13 @@ import {
 
 interface RecipeGridProps {
   selectedIngredients: Array<{ id: number; name: string }>;
+  filters?: FilterState;
 }
 
-export function RecipeGrid({ selectedIngredients }: RecipeGridProps) {
+export function RecipeGrid({
+  selectedIngredients,
+  filters = { mealType: 'all', country: 'all', dietTags: 'all' },
+}: RecipeGridProps) {
   const [dishTypeFilter, setDishTypeFilter] = useState('all');
   const [prepTimeFilter, setPrepTimeFilter] = useState('all');
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
@@ -46,6 +50,9 @@ export function RecipeGrid({ selectedIngredients }: RecipeGridProps) {
       searchText: searchQuery,
       lang: locale,
       limit: 20,
+      mealType: filters.mealType,
+      country: filters.country,
+      dietTags: filters.dietTags,
     });
 
   const isInitialLoading = isLoading && recipes.length === 0;
@@ -59,11 +66,6 @@ export function RecipeGrid({ selectedIngredients }: RecipeGridProps) {
         : `"${recipe.title}" добавлен в избранные`,
     });
   };
-  const [filters, setFilters] = useState<FilterState>({
-    mealType: 'all',
-    country: 'all',
-    dietTags: [],
-  });
   const handleRecipeClick = (recipe: Recipe) => {
     setSelectedRecipe(recipe);
     setIsDetailOpen(true);
@@ -111,9 +113,6 @@ export function RecipeGrid({ selectedIngredients }: RecipeGridProps) {
             onSearch={setSearchQuery}
             className="w-full"
           />
-        </div>
-        <div className="mb-8">
-          <RecipeFilters filters={filters} onFiltersChange={setFilters} />
         </div>
       </div>
 
