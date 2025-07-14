@@ -5,8 +5,8 @@ import { IngredientSidebar } from '@/components/ingredient-sidebar';
 import { RecipeGridWrapper } from '@/components/recipe-grid-wrapper';
 import { getTranslations } from 'next-intl/server';
 
-// Кэшируем страницу на 1 час для ускорения загрузки
-export const revalidate = 3600;
+// Кэшируем страницу на 7 дней для ускорения загрузки
+export const revalidate = 7 * 24 * 60 * 60;
 
 interface RecipesPageProps {
   params: Promise<{ locale: string }>;

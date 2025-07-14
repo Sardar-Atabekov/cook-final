@@ -5,8 +5,8 @@ import { IngredientSidebar } from '@/components/ingredient-sidebar';
 import { SearchPageClient } from '@/components/search-page-client';
 import { getTranslations } from 'next-intl/server';
 
-// Кэшируем страницу на 1 час для ускорения загрузки
-export const revalidate = 3600;
+// Кэшируем страницу на 7 дней для ускорения загрузки
+export const revalidate = 7 * 24 * 60 * 60;
 
 interface SearchPageProps {
   params: Promise<{ locale: string }>;
@@ -113,7 +113,7 @@ export default async function SearchPage({
         limit: 20,
         mealType: mealType === 'all' ? '' : mealType,
         country: country === 'all' ? '' : country,
-        dietTags: dietTags === 'all' ? '' : country,
+        dietTags: dietTags === 'all' ? '' : dietTags,
         search: searchQuery || undefined,
       };
 

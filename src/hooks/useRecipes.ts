@@ -77,8 +77,8 @@ export function useRecipes({
       return recipeApi.getRecipes(ingredients, filters, lang);
     },
     placeholderData: (previousData) => previousData,
-    staleTime: 5 * 60 * 1000, // 5 минут
-    gcTime: 10 * 60 * 1000, // 10 минут
+    staleTime: 5 * 60 * 1000, // 5 минут для рецептов
+    gcTime: 30 * 60 * 1000, // 30 минут для рецептов
     retry: (failureCount, error: any) => {
       // Don't retry on connection refused errors
       if (

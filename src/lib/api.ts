@@ -77,7 +77,7 @@ export const ingredientsApi = {
     const response = await fetch(
       `http://localhost:5005/api/ingredients/grouped?lang=${lang}`,
       {
-        next: { revalidate: 36000 }, // Кэшируем на 10 часов
+        next: { revalidate: 7 * 24 * 60 * 60 }, // Кэшируем на 7 дней
       }
     );
 
@@ -158,7 +158,7 @@ export const recipeApi = {
   getAllTagsSSR: async () => {
     try {
       const response = await fetch('http://localhost:5005/api/recipes/tags', {
-        next: { revalidate: 3600 }, // Кэшируем на 1 час
+        next: { revalidate: 7 * 24 * 60 * 60 }, // Кэшируем на 7 дней
       });
 
       if (!response.ok) {

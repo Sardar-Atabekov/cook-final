@@ -50,7 +50,7 @@ export const useIngredientStore = create<IngredientStore>()(
         const currentLang = get().language;
         if (!last) return true;
         if (currentLang !== lang) return true; // если язык поменялся — stale
-        return Date.now() - last > 3 * 24 * 60 * 60 * 1000;
+        return Date.now() - last > 7 * 24 * 60 * 60 * 1000; // 7 дней
       },
     }),
     {

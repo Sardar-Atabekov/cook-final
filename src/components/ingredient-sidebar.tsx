@@ -86,7 +86,8 @@ export function IngredientSidebar({
       return data;
     },
     enabled: shouldFetch || shouldFetchForLanguage,
-    staleTime: Infinity,
+    staleTime: 7 * 24 * 60 * 60 * 1000, // 7 дней
+    gcTime: 7 * 24 * 60 * 60 * 1000, // 7 дней
   });
 
   // Для отображения используем initialGroupedCategories если есть, иначе groupedCategories из zustand

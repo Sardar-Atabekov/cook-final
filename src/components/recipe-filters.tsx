@@ -55,8 +55,8 @@ export function RecipeFilters({
   } = useQuery<Tag[]>({
     queryKey: ['tags'],
     queryFn: () => recipeApi.getAllTags(),
-    staleTime: 10 * 60 * 1000, // 10 минут
-    gcTime: 30 * 60 * 1000, // 30 минут (заменил cacheTime на gcTime)
+    staleTime: 7 * 24 * 60 * 60 * 1000, // 7 дней
+    gcTime: 7 * 24 * 60 * 60 * 1000, // 7 дней
     retry: 3,
     // Используем начальные данные если они есть
     initialData: initialTags.length > 0 ? initialTags : undefined,

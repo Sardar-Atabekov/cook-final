@@ -22,7 +22,7 @@ interface SearchPageClientProps {
   initialIngredientIds: number[];
   initialMealType: string;
   initialCountry: string;
-  initialDietTags: string[];
+  initialDietTags: string;
   initialPage: number;
   initialRecipes: Recipe[];
   initialTotal: number;
@@ -54,7 +54,7 @@ export function SearchPageClient({
   const [filters, setFilters] = useState<FilterState>({
     mealType: initialMealType || 'all',
     country: initialCountry || 'all',
-    dietTags: initialDietTags.length > 0 ? initialDietTags[0] : 'all',
+    dietTags: initialDietTags || 'all',
   });
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -104,17 +104,7 @@ export function SearchPageClient({
       }
 
       if (params.dietTags !== undefined) {
-        if (
-          params.dietTags &&
-          Array.isArray(params.dietTags) &&
-          params.dietTags.length > 0
-        ) {
-          newSearchParams.set('dietTags', params.dietTags.join(','));
-        } else if (
-          params.dietTags &&
-          typeof params.dietTags === 'string' &&
-          params.dietTags.length > 0
-        ) {
+        if (params.dietTags && params.dietTags !== 'all') {
           newSearchParams.set('dietTags', params.dietTags);
         } else {
           newSearchParams.delete('dietTags');
