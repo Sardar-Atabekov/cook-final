@@ -205,6 +205,7 @@
     "noRecipesFound": "No Recipes Found",
     "noRecipesFoundSearch": "Try changing your search query",
     "noRecipesFoundIngredients": "Try selecting different ingredients or changing filters",
+    "noRecipesFoundHint": "Try changing filters, search query, or add more ingredients.",
     "loadMore": "Load More Recipes",
     "showingCount": "Showing {current} of {total} recipes",
     "recipeSaved": "Recipe Saved",

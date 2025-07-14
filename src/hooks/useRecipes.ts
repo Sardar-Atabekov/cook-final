@@ -11,6 +11,7 @@ interface UseRecipesParams {
   mealType?: string;
   country?: string;
   dietTags?: string;
+  page?: number;
 }
 
 export function useRecipes({
@@ -21,8 +22,8 @@ export function useRecipes({
   mealType = 'all',
   country = 'all',
   dietTags = 'all',
+  page = 1,
 }: UseRecipesParams) {
-  const [page, setPage] = useState(1);
   const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
 
   const prevParamsRef = useRef<string>('');
@@ -35,13 +36,13 @@ export function useRecipes({
     mealType,
     country,
     dietTags,
+    page,
   });
 
-  // если параметры поменялись — сбрасываем страницу и рецепты
+  // если параметры поменялись — сбрасываем рецепты
   useEffect(() => {
     if (prevParamsRef.current !== paramsKey) {
       prevParamsRef.current = paramsKey;
-      setPage(1);
       setAllRecipes([]);
     }
   }, [paramsKey]);
@@ -93,28 +94,13 @@ export function useRecipes({
 
   useEffect(() => {
     if (!data) return;
-
-    if (page === 1) {
-      setAllRecipes(data.recipes ?? []);
-    } else {
-      const newRecipes = (data.recipes ?? []).filter(
-        (r) => !allRecipes.some((pr) => pr.id === r.id)
-      );
-      setAllRecipes((prev) => [...prev, ...newRecipes]);
-    }
-  }, [data, page]);
-
-  const loadMore = () => {
-    if ((page - 1) * limit + (data?.recipes.length || 0) < (data?.total || 0)) {
-      setPage((prev) => prev + 1);
-    }
-  };
+    setAllRecipes(data.recipes ?? []);
+  }, [data]);
 
   return {
     recipes: allRecipes,
     total: data?.total || 0,
     isLoading: isLoading || isFetching,
-    loadMore,
     hasMore:
       (page - 1) * limit + (data?.recipes?.length || 0) <
       (data?.total || Infinity),

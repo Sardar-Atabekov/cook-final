@@ -37,7 +37,8 @@ export function RecipeDetail({
     onClose();
   };
 
-  const getDifficultyColor = (difficulty: string) => {
+  const getDifficultyColor = (difficulty: string | null | undefined) => {
+    if (!difficulty) return 'bg-gray-100 text-gray-800';
     switch (difficulty.toLowerCase()) {
       case 'easy':
         return 'bg-green-100 text-green-800';
