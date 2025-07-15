@@ -150,13 +150,14 @@ export default function RecipePage() {
             </Badge>
           </div>
           <div className="text-sm text-gray-600">
-            You have {recipe.recipeIngredients.length} of{' '}
-            {recipe.recipeIngredients.length} ingredients
+            You have{' '}
+            {recipe.recipeIngredients.length - recipe.missingIngredients.length}{' '}
+            of {recipe.recipeIngredients.length} ingredients
           </div>
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className="grid md:grid-cols-1 gap-8">
         {/* Ingredients */}
         <Card>
           <CardHeader>
@@ -178,7 +179,7 @@ export default function RecipePage() {
                         : 'text-gray-900'
                     }`}
                   >
-                    {ingredient.name}
+                    {ingredient.line}
                   </span>
                 </li>
               ))}
@@ -187,13 +188,13 @@ export default function RecipePage() {
         </Card>
 
         {/* Instructions */}
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle>Instructions</CardTitle>
           </CardHeader>
           <CardContent>
             {/* <ol className="space-y-4"> */}
-            {/* {recipe.steps.map((step, index) => (
+        {/* {recipe.steps.map((step, index) => (
                 <li key={index} className="flex space-x-3">
                   <span className="flex-shrink-0 w-6 h-6 text-brand-blue text-white rounded-full flex items-center justify-center text-sm font-medium">
                     {index + 1}
@@ -202,8 +203,8 @@ export default function RecipePage() {
                 </li>
               ))}
             </ol> */}
-          </CardContent>
-        </Card>
+        {/* </CardContent>
+        </Card> */}
       </div>
 
       {/* Action Buttons */}

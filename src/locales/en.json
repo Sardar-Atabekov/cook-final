@@ -53,6 +53,18 @@
       "selected": "Selected Ingredients ({count})",
       "showLess": "Show Less",
       "showMore": "Show More"
+    },
+    "tags": {
+      "appetizer": "Appetizer and Snacks",
+      "breakfast": "Breakfast and Brunch",
+      "lunch": "Lunch",
+      "bakedGoods": "Baked Goods",
+      "desserts": "Desserts",
+      "salads": "Salads",
+      "mainDish": "Main Dish",
+      "sideDish": "Side Dish",
+      "soups": "Soups and Stews",
+      "special": "Special Occasions"
     }
   },
   "auth": {

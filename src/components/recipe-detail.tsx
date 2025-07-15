@@ -9,9 +9,18 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Clock, Users, ChefHat, ExternalLink, X, Heart } from 'lucide-react';
+import {
+  Clock,
+  Users,
+  ChefHat,
+  ExternalLink,
+  X,
+  Heart,
+  Star,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Recipe } from '@/lib/api';
+import { useTranslations } from 'next-intl';
 
 interface RecipeDetailProps {
   recipe: Recipe | null;
@@ -30,6 +39,7 @@ export function RecipeDetail({
   onCookDish,
   isSaved = false,
 }: RecipeDetailProps) {
+  const tTags = useTranslations('ux.tags');
   if (!recipe) return null;
 
   const handleCookDish = () => {
@@ -51,6 +61,7 @@ export function RecipeDetail({
     }
   };
 
+  console.log(recipe);
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -74,9 +85,6 @@ export function RecipeDetail({
                   <Heart className={cn('w-5 h-5', isSaved && 'fill-current')} />
                 </Button>
               )}
-              <Button variant="ghost" size="icon" onClick={onClose}>
-                <X className="w-4 h-4" />
-              </Button>
             </div>
           </div>
           <DialogDescription className="text-gray-700 leading-relaxed">
@@ -110,10 +118,54 @@ export function RecipeDetail({
               <ChefHat className="w-3 h-3 mr-1" />
               {recipe.difficulty}
             </Badge>
+            <div className="flex items-center">
+              <Star className="mr-1 h-3 w-3 text-yellow-400 fill-current" />
+              <span>
+                {typeof recipe.rating === 'number' && !isNaN(recipe.rating)
+                  ? recipe.rating.toFixed(1)
+                  : '0.0'}
+              </span>
+            </div>
             {recipe.matchPercentage && (
               <Badge variant="secondary">
                 Совпадение: {recipe.matchPercentage}%
               </Badge>
+            )}
+          </div>
+
+          {/* Diets, Kitchens, Meal Types */}
+          <div className="flex flex-wrap gap-2 mt-2">
+            {recipe.dietTags && recipe.dietTags.length > 0 && (
+              <>
+                <span className="font-semibold text-gray-700">
+                  {tTags('diet') || 'Диета'}:
+                </span>
+                {recipe.dietTags.map((diet, idx) => (
+                  <Badge key={diet || idx} variant="outline">
+                    {tTags(diet) || diet}
+                  </Badge>
+                ))}
+              </>
+            )}
+            {recipe.country && (
+              <>
+                <span className="font-semibold text-gray-700 ml-4">
+                  {tTags('kitchen') || 'Кухня'}:
+                </span>
+                <Badge variant="outline">
+                  {tTags(recipe.country) || recipe.country}
+                </Badge>
+              </>
+            )}
+            {recipe.mealType && (
+              <>
+                <span className="font-semibold text-gray-700 ml-4">
+                  {tTags('mealType') || 'Тип блюда'}:
+                </span>
+                <Badge variant="outline">
+                  {tTags(recipe.mealType) || recipe.mealType}
+                </Badge>
+              </>
             )}
           </div>
         </DialogHeader>
@@ -135,8 +187,8 @@ export function RecipeDetail({
                 )}
               >
                 <span className="font-medium text-gray-900">
-                  {recipeIngredient.ingredient?.matchedName ||
-                    `${recipeIngredient.matchedName}`}
+                  {recipeIngredient.ingredient?.line ||
+                    `${recipeIngredient.line}`}
                 </span>
                 <div className="flex items-center gap-2">
                   <span className="text-gray-600">
@@ -165,6 +217,7 @@ export function RecipeDetail({
                       variant="outline"
                       className="text-yellow-700 border-yellow-300"
                     >
+                      {' '}
                       {ingredient.matchedName}
                     </Badge>
                   ))}
