@@ -146,9 +146,10 @@ export default function RecipesPage() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('title')}</h1>
-        <p className="text-gray-600">
+        {/* <p className="text-gray-600">
           {t('foundWith', { ingredients: searchIngredients.join(', ') })}
-        </p>
+        </p> */}
+        {/* <p className="text-gray-600">{t('foundWith')}</p> */}
       </div>
 
       {/* Filters */}
