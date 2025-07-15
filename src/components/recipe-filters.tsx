@@ -24,7 +24,7 @@ import { useQuery } from '@tanstack/react-query';
 export interface FilterState {
   mealType: string;
   country: string;
-  dietTags: string; // Используем строку для id тега
+  dietTags: string; // dietTags — строка, а не массив
 }
 
 interface Tag {
@@ -117,19 +117,24 @@ export function RecipeFilters({
     );
   }
 
-  console.log('Tags loaded:', {
-    totalTags: tags.length,
-    mealTypes: mealTypes.length,
-    countries: countries.length,
-    diets: diets.length,
-    sampleMealTypes: mealTypes
-      .slice(0, 3)
-      .map((t) => ({ name: t.name, slug: t.slug })),
-    sampleCountries: countries
-      .slice(0, 3)
-      .map((t) => ({ name: t.name, slug: t.slug })),
-    sampleDiets: diets.slice(0, 3).map((t) => ({ name: t.name, slug: t.slug })),
-  });
+  const actions = [
+    {
+      label: 'Quick',
+      value: 'quick',
+    },
+    {
+      label: 'Popular',
+      value: 'popular',
+    },
+    {
+      label: 'Random',
+      value: 'random',
+    },
+    {
+      label: 'Suggested',
+      value: 'suggested',
+    },
+  ];
   return (
     <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
       {/* Desktop Filters */}
@@ -189,6 +194,24 @@ export function RecipeFilters({
             {diets.map((diet) => (
               <SelectItem key={diet.id} value={diet.id.toString()}>
                 {diet.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={filters.country || 'all'}
+          onValueChange={(value) =>
+            onFiltersChange({ ...filters, country: value })
+          }
+        >
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Country" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Actions</SelectItem>
+            {actions.map((action) => (
+              <SelectItem key={action.value} value={action.value}>
+                {action.label}
               </SelectItem>
             ))}
           </SelectContent>

@@ -8,6 +8,11 @@ import { getTranslations } from 'next-intl/server';
 // Кэшируем страницу на 7 дней для ускорения загрузки
 export const revalidate = 7 * 24 * 60 * 60;
 
+// Убедитесь, что экспорт выглядит так:
+export const config = {
+  revalidate: 3600, // 1 час
+};
+
 interface SearchPageProps {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{

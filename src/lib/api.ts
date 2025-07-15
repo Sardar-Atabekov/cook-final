@@ -166,11 +166,35 @@ export const recipeApi = {
       }
 
       const data = await response.json();
-      console.log('SSR Tags response:', data);
       return data.tags;
     } catch (error) {
       console.error('Error fetching SSR tags:', error);
       throw error;
     }
+  },
+};
+
+export const userRecipesApi = {
+  getSavedRecipes: async (token: string) => {
+    const response = await api.get('/user/saved-recipes', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  },
+  saveRecipe: async (token: string, recipeId: string) => {
+    const response = await api.post(
+      '/user/save-recipe',
+      { recipeId },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return response.data;
+  },
+  unsaveRecipe: async (token: string, recipeId: string) => {
+    const response = await api.delete(`/user/save-recipe/${recipeId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
   },
 };

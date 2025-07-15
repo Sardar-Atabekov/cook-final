@@ -135,8 +135,8 @@ export function RecipeDetail({
                 )}
               >
                 <span className="font-medium text-gray-900">
-                  {recipeIngredient.ingredient?.name ||
-                    `Ингредиент ${recipeIngredient.ingredientId}`}
+                  {recipeIngredient.ingredient?.matchedName ||
+                    `${recipeIngredient.matchedName}`}
                 </span>
                 <div className="flex items-center gap-2">
                   <span className="text-gray-600">
@@ -165,7 +165,7 @@ export function RecipeDetail({
                       variant="outline"
                       className="text-yellow-700 border-yellow-300"
                     >
-                      {ingredient}
+                      {ingredient.matchedName}
                     </Badge>
                   ))}
                 </div>

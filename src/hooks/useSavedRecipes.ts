@@ -1,70 +1,64 @@
-import { useState, useEffect } from 'react';
-
-export interface SavedRecipe {
-  id: number;
-  title: string;
-  savedAt: Date;
-}
+import { useState, useEffect, useCallback } from 'react';
+import { userRecipesApi } from '@/lib/api';
+import { useAuthStore } from '@/stores/useAuthStore';
+import type { Recipe } from '@/lib/api';
 
 export function useSavedRecipes() {
-  const [savedRecipes, setSavedRecipes] = useState<SavedRecipe[]>([]);
+  const { token } = useAuthStore();
+  const [savedRecipes, setSavedRecipes] = useState<Recipe[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Загружаем сохраненные рецепты из localStorage при инициализации
+  // Загрузка сохранённых рецептов с сервера
   useEffect(() => {
-    const saved = localStorage.getItem('supercook-saved-recipes');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setSavedRecipes(
-          parsed.map((recipe: any) => ({
-            ...recipe,
-            savedAt: new Date(recipe.savedAt),
-          }))
-        );
-      } catch (e) {
-        console.error('Error loading saved recipes from localStorage:', e);
-      }
+    if (!token) {
+      setSavedRecipes([]);
+      return;
     }
-  }, []);
+    setLoading(true);
+    userRecipesApi
+      .getSavedRecipes(token)
+      .then((data) => setSavedRecipes(data.recipes || data))
+      .catch(() => setSavedRecipes([]))
+      .finally(() => setLoading(false));
+  }, [token]);
 
-  // Сохраняем рецепты в localStorage при изменениях
-  useEffect(() => {
-    localStorage.setItem(
-      'supercook-saved-recipes',
-      JSON.stringify(savedRecipes)
-    );
-  }, [savedRecipes]);
+  const isRecipeSaved = useCallback(
+    (id: string | number) => {
+      return savedRecipes.some((r) => r.id === id || r.id === String(id));
+    },
+    [savedRecipes]
+  );
 
-  const saveRecipe = (id: number, title: string) => {
-    setSavedRecipes((prev) => {
-      if (prev.some((recipe) => recipe.id === id)) {
-        return prev; // Уже сохранен
-      }
-      return [...prev, { id, title, savedAt: new Date() }];
-    });
+  const saveRecipe = async (id: string | number) => {
+    if (!token) return;
+    await userRecipesApi.saveRecipe(token, String(id));
+    // После успешного сохранения — обновляем список
+    const data = await userRecipesApi.getSavedRecipes(token);
+    setSavedRecipes(data.recipes || data);
   };
 
-  const unsaveRecipe = (id: number) => {
-    setSavedRecipes((prev) => prev.filter((recipe) => recipe.id !== id));
+  const unsaveRecipe = async (id: string | number) => {
+    if (!token) return;
+    await userRecipesApi.unsaveRecipe(token, String(id));
+    // После успешного удаления — обновляем список
+    const data = await userRecipesApi.getSavedRecipes(token);
+    setSavedRecipes(data.recipes || data);
   };
 
-  const isRecipeSaved = (id: number) => {
-    return savedRecipes.some((recipe) => recipe.id === id);
-  };
-
-  const toggleSaveRecipe = (id: number, title: string) => {
+  const toggleSaveRecipe = async (id: string | number) => {
     if (isRecipeSaved(id)) {
-      unsaveRecipe(id);
+      await unsaveRecipe(id);
     } else {
-      saveRecipe(id, title);
+      await saveRecipe(id);
     }
   };
 
   return {
     savedRecipes,
+    isRecipeSaved,
     saveRecipe,
     unsaveRecipe,
-    isRecipeSaved,
     toggleSaveRecipe,
+    loading,
   };
 }

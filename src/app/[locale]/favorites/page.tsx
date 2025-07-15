@@ -12,18 +12,14 @@ import { recipeApi } from '@/lib/api';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useIngredientStore } from '@/stores/useIngredientStore';
 
-export default function RecipesPage() {
+export default function FavoritesPage() {
   const searchParams = useSearchParams();
   const params = useParams();
   const locale = useLocale();
   const { selectedIngredients } = useIngredientStore();
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState<FilterState>({
-    mealType: 'all',
-    country: 'all',
-    dietTags: [],
-  });
-  const t = useTranslations('recipes');
+
+  const t = useTranslations('favorites');
 
   // Get ingredients from URL params or store
   const urlIngredients = searchParams.get('ingredients')?.split(',') || [];
@@ -37,7 +33,7 @@ export default function RecipesPage() {
         );
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['recipes', searchIngredients, filters, page],
+    queryKey: ['recipes', searchIngredients, page],
     queryFn: () =>
       recipeApi.getRecipes(
         searchIngredients,
@@ -50,38 +46,9 @@ export default function RecipesPage() {
     enabled: searchIngredients.length > 0,
   });
 
-  useEffect(() => {
-    setPage(1); // Reset page when filters change
-  }, [filters]);
-
-  if (searchIngredients.length === 0) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            {t('noIngredients')}
-          </h1>
-          <p className="text-gray-600 mb-8">{t('noIngredientsDescription')}</p>
-          <Button onClick={() => window.history.back()}>{t('goBack')}</Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('title')}</h1>
-        <p className="text-gray-600">
-          {t('foundWith', { ingredients: searchIngredients.join(', ') })}
-        </p>
-      </div>
-
-      {/* Filters */}
-      <div className="mb-8">
-        <RecipeFilters filters={filters} onFiltersChange={setFilters} />
-      </div>
 
       {/* Results */}
       {isLoading ? (
@@ -107,13 +74,6 @@ export default function RecipesPage() {
             {t('noRecipesFound')}
           </h2>
           <p className="text-gray-600 mb-4">{t('noRecipesDescription')}</p>
-          <Button
-            onClick={() =>
-              setFilters({ mealType: 'all', country: 'all', dietTags: [] })
-            }
-          >
-            {t('clearFilters')}
-          </Button>
         </div>
       ) : (
         <>

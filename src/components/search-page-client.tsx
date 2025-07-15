@@ -47,7 +47,11 @@ export function SearchPageClient({
   const t = useTranslations('search');
   const { toast } = useToast();
   const { addMultipleToPantry } = usePantry();
-  const { toggleSaveRecipe, isRecipeSaved } = useSavedRecipes();
+  const {
+    toggleSaveRecipe,
+    isRecipeSaved,
+    loading: savedLoading,
+  } = useSavedRecipes();
   const { selectedIngredients } = useIngredientStore();
 
   // Состояние поиска
@@ -280,13 +284,11 @@ export function SearchPageClient({
   const skeletonCount = 20;
 
   // Обработчики рецептов
-  const handleSaveRecipe = (recipe: Recipe) => {
-    const recipeIdNum =
-      typeof recipe.id === 'string' ? parseInt(recipe.id, 10) : recipe.id;
-    toggleSaveRecipe(recipeIdNum, recipe.title);
+  const handleSaveRecipe = async (recipe: Recipe) => {
+    await toggleSaveRecipe(recipe.id);
     toast({
-      title: isRecipeSaved(recipeIdNum) ? t('recipeRemoved') : t('recipeSaved'),
-      description: isRecipeSaved(recipeIdNum)
+      title: isRecipeSaved(recipe.id) ? t('recipeRemoved') : t('recipeSaved'),
+      description: isRecipeSaved(recipe.id)
         ? t('recipeRemovedDesc', { title: recipe.title })
         : t('recipeSavedDesc', { title: recipe.title }),
     });
@@ -412,11 +414,7 @@ export function SearchPageClient({
                 recipe={recipe}
                 onClick={() => handleRecipeClick(recipe)}
                 onSave={() => handleSaveRecipe(recipe)}
-                isSaved={isRecipeSaved(
-                  typeof recipe.id === 'string'
-                    ? parseInt(recipe.id, 10)
-                    : recipe.id
-                )}
+                isSaved={isRecipeSaved(recipe.id)}
               />
             ))}
           </div>

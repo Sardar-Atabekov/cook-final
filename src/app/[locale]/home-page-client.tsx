@@ -11,7 +11,7 @@ import { useIngredientStore } from '@/stores/useIngredientStore';
 
 import { ChefHat, Search, Clock, Users, Star, Dice6 } from 'lucide-react';
 
-type QuickAction = 'quick' | 'popular' | 'random';
+type QuickAction = 'quick' | 'popular' | 'random' | 'suggested';
 
 const quickActions: {
   icon: React.ElementType;
@@ -20,6 +20,13 @@ const quickActions: {
   descriptionKey: string;
   action: QuickAction;
 }[] = [
+  {
+    icon: Clock,
+    color: 'text-brand-green',
+    titleKey: 'recommended',
+    descriptionKey: 'recommendedDescription',
+    action: 'suggested',
+  },
   {
     icon: Clock,
     color: 'text-brand-green',
@@ -63,9 +70,9 @@ export function HomePageClient() {
 
   const handleQuickAction = (action: QuickAction) => {
     const paths: Record<QuickAction, string> = {
-      quick: `/${locale}/recipes?type=quick`,
+      quick: `/${locale}/recipes?sort=quick`,
       popular: `/${locale}/recipes?sort=popular`,
-      random: `/${locale}/recipes?random=true`,
+      random: `/${locale}/recipes?sort=random`,
     };
     router.push(paths[action]);
   };

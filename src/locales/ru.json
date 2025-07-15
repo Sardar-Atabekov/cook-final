@@ -30,7 +30,9 @@
     "popularToday": "Популярные рецепты сегодня",
     "trendingRecipes": "Самые популярные рецепты, которые ищут сегодня",
     "surpriseMe": "Случайный рецепт",
-    "randomRecipe": "Не знаете, что приготовить? Попробуйте наш случайный рецепт"
+    "randomRecipe": "Не знаете, что приготовить? Попробуйте наш случайный рецепт",
+    "recommended": "Рекомендованные рецепты",
+    "recommendedDescription": "Рекомендованные рецепты для вас"
   },
   "ux": {
     "input": {
@@ -123,6 +125,25 @@
     "healthy": "Здоровое",
     "match": "{percentage}% совпадение",
     "missing": "Отсутствует: {ingredients}",
+    "hasAllIngredients": "У вас есть все ингредиенты!",
+    "previous": "Предыдущая",
+    "next": "Следующая",
+    "page": "Страница {current} из {total}",
+    "allRecipes": "Все рецепты",
+    "savedRecipes": "Сохранённые рецепты",
+    "loginToSeeSaved": "Войдите, чтобы просматривать сохранённые рецепты",
+    "noSavedRecipes": "У вас нет сохранённых рецептов"
+  },
+  "favorites": {
+    "title": "Избранные рецепты",
+    "foundWith": "Ваши рецепты",
+    "goBack": "Назад",
+    "clearFilters": "Очистить фильтры",
+    "filters": "Фильтры",
+    "breakfast": "Завтрак",
+    "lunch": "Обед",
+    "dinner": "Ужин",
+    "snack": "Перекус",
     "hasAllIngredients": "У вас есть все ингредиенты!",
     "previous": "Предыдущая",
     "next": "Следующая",

@@ -80,7 +80,8 @@ export function Navigation() {
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem>
                     {/* <LogOut className="h-4 w-4 mr-2" /> */}
-                    {/* {t('logout')} */}Избранные
+                    {/* {t('logout')} */}
+                    <Link href={`/${locale}/favorites`}>Избранные</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     {/* <LogOut className="h-4 w-4 mr-2" /> */}

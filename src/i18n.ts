@@ -8,7 +8,7 @@ const getAvailableLocales = () => {
   if (envLocales) {
     return envLocales.split(',').map((locale) => locale.trim());
   }
-  return ['en', 'ru', 'de', 'es', 'zh', 'fr'];
+  return ['en', 'ru', 'de', 'es', 'zh', 'fr', 'ro', 'sk'];
 };
 
 // Get default locale from environment or use 'en'
