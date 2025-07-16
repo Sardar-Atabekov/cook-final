@@ -1,7 +1,7 @@
 'use client';
 import { useQuery } from '@tanstack/react-query';
 import { useIngredientStore } from '@/stores/useIngredientStore';
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Clock, Coffee, Sun, Moon, RefreshCw } from 'lucide-react';
 import { RecipeCard } from '@/components/recipe-card';
 import { RecipeDetail } from '@/components/recipe-detail';
@@ -17,6 +17,7 @@ import Head from 'next/head';
 import { recipeApi } from '@/lib/api';
 import { SuggestedSection } from '@/components/suggested-section';
 import { useTags } from '@/hooks/useTags';
+import { useTagsStore } from '@/stores/useTagsStore';
 
 function toRecipe(recipe: RecipeWithIngredients | null): Recipe | null {
   if (!recipe) return null;
@@ -68,10 +69,19 @@ export function SuggestedClient({
   initialRandom,
 }: SuggestedClientProps) {
   const { selectedIngredients } = useIngredientStore();
+  const ingredientIds = selectedIngredients.map((i) => i.id);
   const [selectedRecipe, setSelectedRecipe] =
     useState<RecipeWithIngredients | null>(null);
   const t = useTranslations('suggested');
   const { tags } = useTags(locale, initialTags);
+  const setTags = useTagsStore((state) => state.setTags);
+
+  // Сохраняем initialTags в глобальный store при первом рендере
+  useEffect(() => {
+    if (initialTags && initialTags.length > 0) {
+      setTags(initialTags);
+    }
+  }, [initialTags]);
 
   // Получаем mealTypes (теги) с initialData
   const mealTypes = Array.isArray(tags)
@@ -88,29 +98,6 @@ export function SuggestedClient({
   const breakfastId = getMealTypeId('breakfast');
   const lunchId = getMealTypeId('lunch');
   const dinnerId = getMealTypeId('main');
-
-  // Определяем mealType по времени суток
-  const currentHour = new Date().getHours();
-  let mealType = 'dinner';
-  let mealIcon = Clock;
-  let mealColor = 'text-slate-600';
-  if (currentHour < 12) {
-    mealType = 'breakfast';
-    mealIcon = Coffee;
-    mealColor = 'text-amber-600';
-  } else if (currentHour < 16) {
-    mealType = 'lunch';
-    mealIcon = Sun;
-    mealColor = 'text-yellow-600';
-  } else {
-    mealType = 'dinner';
-    mealIcon = Moon;
-    mealColor = 'text-blue-600';
-  }
-  const MealIcon = mealIcon;
-
-  // Получаем id ингредиентов
-  const ingredientIds = selectedIngredients.map((i) => i.id);
 
   // Получаем рецепты для каждого типа с initialData
   const {
@@ -185,28 +172,53 @@ export function SuggestedClient({
     refetchDinner();
   };
 
-  // Основная секция — только для текущего времени суток
-  let currentRecipes: RecipeWithIngredients[] = [];
-  if (mealType === 'breakfast') currentRecipes = breakfastRecipes;
-  else if (mealType === 'lunch') currentRecipes = lunchRecipes;
-  else if (mealType === 'dinner') currentRecipes = dinnerRecipes;
+  // --- Определяем mealType по локальному времени пользователя ---
+  const [localMealType, setLocalMealType] = useState<
+    'breakfast' | 'lunch' | 'dinner'
+  >('dinner');
+  const [mealIcon, setMealIcon] = useState<'coffee' | 'sun' | 'moon'>('moon');
+  const [mealColor, setMealColor] = useState('text-slate-600');
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) {
+      setLocalMealType('breakfast');
+      setMealIcon('coffee');
+      setMealColor('text-amber-600');
+    } else if (hour < 16) {
+      setLocalMealType('lunch');
+      setMealIcon('sun');
+      setMealColor('text-yellow-600');
+    } else {
+      setLocalMealType('dinner');
+      setMealIcon('moon');
+      setMealColor('text-blue-600');
+    }
+  }, []);
+  const MealIcon =
+    mealIcon === 'coffee' ? Coffee : mealIcon === 'sun' ? Sun : Moon;
 
-  // Для блока "More Inspiration" — случайные рецепты (без фильтрации)
-  const { data: randomRecipes = [] } = useQuery({
-    queryKey: ['random', locale],
-    queryFn: async () => {
-      const filters = {
-        offset: 0,
-        limit: 6,
-        mealType: '',
-        country: '',
-        dietTags: '',
-      };
-      const result = await recipeApi.getRecipes([], filters, locale);
-      return result.recipes || [];
-    },
-    initialData: initialRandom,
-  });
+  // --- Мемоизация списков рецептов ---
+  const memoBreakfastRecipes = useMemo(
+    () => breakfastRecipes,
+    [breakfastRecipes]
+  );
+  const memoLunchRecipes = useMemo(() => lunchRecipes, [lunchRecipes]);
+  const memoDinnerRecipes = useMemo(() => dinnerRecipes, [dinnerRecipes]);
+  const memoRandomRecipes = useMemo(() => initialRandom, [initialRandom]);
+
+  // --- Табы для выбора времени суток ---
+  const [activeTab, setActiveTab] = useState<'breakfast' | 'lunch' | 'dinner'>(
+    localMealType
+  );
+  useEffect(() => {
+    setActiveTab(localMealType);
+  }, [localMealType]);
+
+  // --- Главный блок ---
+  let currentRecipes: RecipeWithIngredients[] = [];
+  if (activeTab === 'breakfast') currentRecipes = memoBreakfastRecipes;
+  else if (activeTab === 'lunch') currentRecipes = memoLunchRecipes;
+  else if (activeTab === 'dinner') currentRecipes = memoDinnerRecipes;
 
   return (
     <>
@@ -214,7 +226,7 @@ export function SuggestedClient({
         <title>Suggested Meals | RecipeMatch</title>
         <meta
           name="description"
-          content={`Discover personalized meal suggestions for ${mealType}. Find recipes based on the time of day and your available ingredients.`}
+          content={`Discover personalized meal suggestions for ${activeTab}. Find recipes based on the time of day and your available ingredients.`}
         />
         <meta property="og:title" content="Suggested Meals | RecipeMatch" />
         <meta
@@ -231,29 +243,42 @@ export function SuggestedClient({
               <MealIcon className={`h-12 w-12 ${mealColor} mr-3`} />
               <h1 className="text-3xl font-bold text-slate-900">
                 Suggested for{' '}
-                {mealType.charAt(0).toUpperCase() + mealType.slice(1)}
+                {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
               </h1>
             </div>
             <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Based on the current time, here are some perfect meal suggestions
+              Based on your local time, here are some perfect meal suggestions
               for you.
               {selectedIngredients.length > 0 &&
                 ` We've considered your ${selectedIngredients.length} selected ingredients.`}
             </p>
-
-            {/* <div className="flex justify-center mt-6">
+            {/* Табы для выбора времени суток */}
+            <div className="flex justify-center gap-4 mt-6">
               <Button
-                onClick={handleRefresh}
-                disabled={isLoading}
-                variant="outline"
+                variant={activeTab === 'breakfast' ? 'default' : 'outline'}
+                onClick={() => setActiveTab('breakfast')}
                 className="flex items-center"
               >
-                <RefreshCw
-                  className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
-                />
-                Refresh Suggestions
+                <Coffee className="h-4 w-4 mr-2 text-amber-600" />
+                Breakfast
               </Button>
-            </div> */}
+              <Button
+                variant={activeTab === 'lunch' ? 'default' : 'outline'}
+                onClick={() => setActiveTab('lunch')}
+                className="flex items-center"
+              >
+                <Sun className="h-4 w-4 mr-2 text-yellow-600" />
+                Lunch
+              </Button>
+              <Button
+                variant={activeTab === 'dinner' ? 'default' : 'outline'}
+                onClick={() => setActiveTab('dinner')}
+                className="flex items-center"
+              >
+                <Moon className="h-4 w-4 mr-2 text-blue-600" />
+                Dinner
+              </Button>
+            </div>
           </div>
 
           {/* Error Handling */}
@@ -279,7 +304,7 @@ export function SuggestedClient({
               <h2 className="text-2xl font-bold text-slate-900 flex items-center">
                 <MealIcon className={`h-6 w-6 ${mealColor} mr-2`} />
                 Perfect for{' '}
-                {mealType.charAt(0).toUpperCase() + mealType.slice(1)}
+                {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
               </h2>
               {selectedIngredients.length > 0 && (
                 <Link href={`/${locale}/recipes`} legacyBehavior>
@@ -331,11 +356,11 @@ export function SuggestedClient({
                         className={`h-16 w-16 ${mealColor} mx-auto mb-4`}
                       />
                       <h3 className="text-lg font-medium text-slate-900 mb-2">
-                        No {mealType} recipes available
+                        No {activeTab} recipes available
                       </h3>
                       <p className="text-slate-600 mb-4">
-                        We don't have specific {mealType} recipes at the moment,
-                        but check out our other suggestions below!
+                        We don't have specific {activeTab} recipes at the
+                        moment, but check out our other suggestions below!
                       </p>
                     </CardContent>
                   </Card>
@@ -356,7 +381,7 @@ export function SuggestedClient({
                 title="Breakfast"
                 icon={<Coffee className="h-5 w-5 text-amber-600" />}
                 colorClass="text-amber-600"
-                recipes={breakfastRecipes}
+                recipes={memoBreakfastRecipes}
                 isLoading={isBreakfastLoading}
                 onRecipeClick={setSelectedRecipe}
               />
@@ -365,7 +390,7 @@ export function SuggestedClient({
                 title="Lunch"
                 icon={<Sun className="h-5 w-5 text-yellow-600" />}
                 colorClass="text-yellow-600"
-                recipes={lunchRecipes}
+                recipes={memoLunchRecipes}
                 isLoading={isLunchLoading}
                 onRecipeClick={setSelectedRecipe}
               />
@@ -374,7 +399,7 @@ export function SuggestedClient({
                 title="Dinner"
                 icon={<Moon className="h-5 w-5 text-blue-600" />}
                 colorClass="text-blue-600"
-                recipes={dinnerRecipes}
+                recipes={memoDinnerRecipes}
                 isLoading={isDinnerLoading}
                 onRecipeClick={setSelectedRecipe}
               />
@@ -382,7 +407,7 @@ export function SuggestedClient({
           </section>
 
           {/* More Inspiration */}
-          {randomRecipes.length > 0 && (
+          {memoRandomRecipes.length > 0 && (
             <section>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-slate-900">
@@ -394,7 +419,7 @@ export function SuggestedClient({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {randomRecipes.map((recipe: RecipeWithIngredients) => (
+                {memoRandomRecipes.map((recipe: RecipeWithIngredients) => (
                   <div
                     key={recipe.id}
                     onClick={() => setSelectedRecipe(recipe)}
