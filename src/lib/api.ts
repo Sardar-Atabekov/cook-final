@@ -62,16 +62,6 @@ export const ingredientsApi = {
     return response.data;
   },
 
-  getById: async (id: string) => {
-    const response = await api.get(`/ingredients/${id}`);
-    return response.data;
-  },
-
-  getAllCategories: async () => {
-    const response = await api.get(`/ingredients/categories`);
-    return response.data;
-  },
-
   getGroupedIngredients: async (lang: string) => {
     // Используем fetch с кэшированием для ускорения загрузки
     const response = await fetch(

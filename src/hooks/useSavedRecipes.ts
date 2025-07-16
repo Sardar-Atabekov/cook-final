@@ -1,64 +1,48 @@
-import { useState, useEffect, useCallback } from 'react';
-import { userRecipesApi } from '@/lib/api';
 import { useAuthStore } from '@/stores/useAuthStore';
-import type { Recipe } from '@/lib/api';
+import { userRecipesApi } from '@/lib/api';
 
 export function useSavedRecipes() {
   const { token } = useAuthStore();
-  const [savedRecipes, setSavedRecipes] = useState<Recipe[]>([]);
-  const [loading, setLoading] = useState(false);
 
-  // Загрузка сохранённых рецептов с сервера
-  useEffect(() => {
-    if (!token) {
-      setSavedRecipes([]);
-      return;
+  // Проверка сохранён ли рецепт на сервере
+  const isRecipeSavedServer = async (id: string | number) => {
+    if (!token) return false;
+    try {
+      const data = await userRecipesApi.getSavedRecipes(token);
+      const recipes = data.recipes || data;
+      return recipes.some((r: any) => r.id === id || r.id === String(id));
+    } catch {
+      return false;
     }
-    setLoading(true);
-    userRecipesApi
-      .getSavedRecipes(token)
-      .then((data) => setSavedRecipes(data.recipes || data))
-      .catch(() => setSavedRecipes([]))
-      .finally(() => setLoading(false));
-  }, [token]);
+  };
 
-  const isRecipeSaved = useCallback(
-    (id: string | number) => {
-      return savedRecipes.some((r) => r.id === id || r.id === String(id));
-    },
-    [savedRecipes]
-  );
-
-  const saveRecipe = async (id: string | number) => {
+  // Сохранить рецепт на сервере
+  const saveRecipeServer = async (id: string | number) => {
     if (!token) return;
     await userRecipesApi.saveRecipe(token, String(id));
-    // После успешного сохранения — обновляем список
-    const data = await userRecipesApi.getSavedRecipes(token);
-    setSavedRecipes(data.recipes || data);
   };
 
-  const unsaveRecipe = async (id: string | number) => {
+  // Удалить рецепт на сервере
+  const unsaveRecipeServer = async (id: string | number) => {
     if (!token) return;
     await userRecipesApi.unsaveRecipe(token, String(id));
-    // После успешного удаления — обновляем список
-    const data = await userRecipesApi.getSavedRecipes(token);
-    setSavedRecipes(data.recipes || data);
   };
 
-  const toggleSaveRecipe = async (id: string | number) => {
-    if (isRecipeSaved(id)) {
-      await unsaveRecipe(id);
+  // Тоггл на сервере
+  const toggleSaveRecipeServer = async (id: string | number) => {
+    if (!token) return;
+    const saved = await isRecipeSavedServer(id);
+    if (saved) {
+      await userRecipesApi.unsaveRecipe(token, String(id));
     } else {
-      await saveRecipe(id);
+      await userRecipesApi.saveRecipe(token, String(id));
     }
   };
 
   return {
-    savedRecipes,
-    isRecipeSaved,
-    saveRecipe,
-    unsaveRecipe,
-    toggleSaveRecipe,
-    loading,
+    isRecipeSavedServer,
+    saveRecipeServer,
+    unsaveRecipeServer,
+    toggleSaveRecipeServer,
   };
 }

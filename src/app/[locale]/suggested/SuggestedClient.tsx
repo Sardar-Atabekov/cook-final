@@ -16,6 +16,7 @@ import type { Recipe } from '@/lib/api';
 import Head from 'next/head';
 import { recipeApi } from '@/lib/api';
 import { SuggestedSection } from '@/components/suggested-section';
+import { useTags } from '@/hooks/useTags';
 
 function toRecipe(recipe: RecipeWithIngredients | null): Recipe | null {
   if (!recipe) return null;
@@ -70,14 +71,9 @@ export function SuggestedClient({
   const [selectedRecipe, setSelectedRecipe] =
     useState<RecipeWithIngredients | null>(null);
   const t = useTranslations('suggested');
+  const { tags } = useTags(locale, initialTags);
 
   // Получаем mealTypes (теги) с initialData
-  const { data: tags = initialTags } = useQuery({
-    queryKey: ['tags', locale],
-    queryFn: () => recipeApi.getAllTags(),
-    staleTime: 7 * 24 * 60 * 60 * 1000,
-    initialData: initialTags,
-  });
   const mealTypes = Array.isArray(tags)
     ? tags.filter((t: any) => t.type === 'meal_type')
     : [];

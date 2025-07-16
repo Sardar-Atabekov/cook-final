@@ -9,7 +9,7 @@ export default async function SuggestedPage({
 }) {
   const locale = params.locale;
   // 1. Получаем mealTypes (теги)
-  const tags = await recipeApi.getAllTags();
+  const tags = await recipeApi.getAllTagsSSR();
   const mealTypes = Array.isArray(tags)
     ? tags.filter((t: any) => t.type === 'meal_type')
     : [];

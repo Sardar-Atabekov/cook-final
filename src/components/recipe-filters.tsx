@@ -20,6 +20,7 @@ import {
 import { Filter } from 'lucide-react';
 import { recipeApi } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
+import { useTags } from '@/hooks/useTags';
 
 export interface FilterState {
   mealType: string;
@@ -39,28 +40,18 @@ interface RecipeFiltersProps {
   filters: FilterState;
   onFiltersChange: (filters: FilterState) => void;
   initialTags?: Tag[]; // Добавляем поддержку начальных тегов
+  locale: string;
 }
 
 export function RecipeFilters({
   filters,
   onFiltersChange,
   initialTags = [],
+  locale,
 }: RecipeFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
-
-  const {
-    data: tags = initialTags,
-    isLoading,
-    error,
-  } = useQuery<Tag[]>({
-    queryKey: ['tags'],
-    queryFn: () => recipeApi.getAllTags(),
-    staleTime: 7 * 24 * 60 * 60 * 1000, // 7 дней
-    gcTime: 7 * 24 * 60 * 60 * 1000, // 7 дней
-    retry: 3,
-    // Используем начальные данные если они есть
-    initialData: initialTags.length > 0 ? initialTags : undefined,
-  });
+  // Получаем текущий язык из html (или прокидывайте явно через пропсы)
+  const { tags, isLoading, error } = useTags(locale, initialTags);
 
   const mealTypes = useMemo(
     () =>

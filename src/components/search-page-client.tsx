@@ -16,6 +16,8 @@ import { useSavedRecipes } from '@/hooks/useSavedRecipes';
 import { RecipeDetail } from './recipe-detail';
 import type { Recipe } from '@/lib/api';
 import { Search as SearchIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { userRecipesApi } from '@/lib/api';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 interface SearchPageClientProps {
   locale: string;
@@ -47,11 +49,7 @@ export function SearchPageClient({
   const t = useTranslations('search');
   const { toast } = useToast();
   const { addMultipleToPantry } = usePantry();
-  const {
-    toggleSaveRecipe,
-    isRecipeSaved,
-    loading: savedLoading,
-  } = useSavedRecipes();
+  const { toggleSaveRecipeServer, isRecipeSavedServer } = useSavedRecipes();
   const { selectedIngredients } = useIngredientStore();
 
   // Состояние поиска
@@ -64,6 +62,7 @@ export function SearchPageClient({
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [savedRecipeIds, setSavedRecipeIds] = useState<number[]>([]);
 
   // Синхронизация с URL
   const updateURL = useCallback(
@@ -261,37 +260,61 @@ export function SearchPageClient({
     filters.dietTags,
   ]);
 
-  // --- Используем accumulatedRecipes для отображения и currentCount ---
-  const displayRecipes = accumulatedRecipes;
-  let displayTotal = 0;
-  if (typeof total === 'string') {
-    displayTotal = parseInt(total, 10) || accumulatedRecipes.length;
-  } else if (typeof total === 'number') {
-    displayTotal = total;
-  } else {
-    displayTotal = accumulatedRecipes.length;
-  }
-  const currentCount = accumulatedRecipes.length;
-
-  // Показываем скелетон при загрузке и отсутствии данных
-  const isInitialLoading = isLoading && displayRecipes.length === 0;
-
-  // Показываем скелетон при изменении параметров поиска
-  const shouldShowSkeleton =
-    isInitialLoading || (isLoading && !hasUsedInitialData);
-
-  // Улучшенные скелетоны
-  const skeletonCount = 20;
+  // Загрузка сохранённых рецептов в фоне
+  useEffect(() => {
+    let ignore = false;
+    async function fetchSaved() {
+      try {
+        const token = useAuthStore.getState().token;
+        if (!token) {
+          setSavedRecipeIds([]);
+          return;
+        }
+        const data = await userRecipesApi.getSavedRecipes(token);
+        const ids = (data.recipes || data).map((r: any) =>
+          typeof r.id === 'string' ? parseInt(r.id, 10) : r.id
+        );
+        if (!ignore) setSavedRecipeIds(ids);
+      } catch {
+        console.error('Error fetching saved recipes');
+      }
+    }
+    fetchSaved();
+    return () => {
+      ignore = true;
+    };
+  }, []); // Можно добавить зависимости, если нужно обновлять при смене пользователя/языка
 
   // Обработчики рецептов
   const handleSaveRecipe = async (recipe: Recipe) => {
-    await toggleSaveRecipe(recipe.id);
+    const id = Number(recipe.id);
+    const isSaved = savedRecipeIds.includes(id);
+    // Оптимистично обновляем локальный список
+    setSavedRecipeIds((prev) => {
+      if (isSaved) {
+        return prev.filter((rid) => rid !== id);
+      } else {
+        return [...prev, id];
+      }
+    });
     toast({
-      title: isRecipeSaved(recipe.id) ? t('recipeRemoved') : t('recipeSaved'),
-      description: isRecipeSaved(recipe.id)
+      title: isSaved ? t('recipeRemoved') : t('recipeSaved'),
+      description: isSaved
         ? t('recipeRemovedDesc', { title: recipe.title })
         : t('recipeSavedDesc', { title: recipe.title }),
     });
+    await toggleSaveRecipeServer(recipe.id);
+    // Фоново обновляем с сервера (на случай ошибок)
+    try {
+      const token = useAuthStore.getState().token;
+      if (token) {
+        const data = await userRecipesApi.getSavedRecipes(token);
+        const ids = (data.recipes || data).map((r: any) => Number(r.id));
+        setSavedRecipeIds(ids);
+      }
+    } catch {
+      console.error('Error fetching saved recipes');
+    }
   };
 
   const handleRecipeClick = (recipe: Recipe) => {
@@ -313,6 +336,28 @@ export function SearchPageClient({
       description: t('cookingDesc', { title: recipe.title }),
     });
   };
+
+  // --- Используем accumulatedRecipes для отображения и currentCount ---
+  const displayRecipes = accumulatedRecipes;
+  let displayTotal = 0;
+  if (typeof total === 'string') {
+    displayTotal = parseInt(total, 10) || accumulatedRecipes.length;
+  } else if (typeof total === 'number') {
+    displayTotal = total;
+  } else {
+    displayTotal = accumulatedRecipes.length;
+  }
+  const currentCount = accumulatedRecipes.length;
+
+  // Показываем скелетон при загрузке и отсутствии данных
+  const isInitialLoading = isLoading && displayRecipes.length === 0;
+
+  // Показываем скелетон при изменении параметров поиска
+  const shouldShowSkeleton =
+    isInitialLoading || (isLoading && !hasUsedInitialData);
+
+  // Улучшенные скелетоны
+  const skeletonCount = 20;
 
   return (
     <div className="flex-1">
@@ -357,6 +402,7 @@ export function SearchPageClient({
           filters={filters}
           onFiltersChange={handleFiltersChange}
           initialTags={initialTags}
+          locale={locale}
         />
       </div>
 
@@ -414,7 +460,7 @@ export function SearchPageClient({
                 recipe={recipe}
                 onClick={() => handleRecipeClick(recipe)}
                 onSave={() => handleSaveRecipe(recipe)}
-                isSaved={isRecipeSaved(recipe.id)}
+                isSaved={savedRecipeIds.includes(Number(recipe.id))}
               />
             ))}
           </div>
@@ -475,11 +521,7 @@ export function SearchPageClient({
           onClose={() => setIsDetailOpen(false)}
           onSave={() => handleSaveRecipe(selectedRecipe)}
           onCookDish={() => handleCookDish(selectedRecipe)}
-          isSaved={isRecipeSaved(
-            typeof selectedRecipe.id === 'string'
-              ? parseInt(selectedRecipe.id, 10)
-              : selectedRecipe.id
-          )}
+          isSaved={savedRecipeIds.includes(Number(selectedRecipe.id))}
         />
       )}
     </div>
