@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { recipeApi } from '@/lib/api';
+import { useTagsStore } from '@/stores/useTagsStore';
 
 const TAGS_CACHE_KEY = 'tags-cache-v1';
 const TAGS_CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 дней
@@ -31,14 +32,18 @@ function setCache(lang: string, tags: any[]) {
       TAGS_CACHE_KEY,
       JSON.stringify({ lang, tags, updatedAt: Date.now() })
     );
-  } catch {
-    console.error('Error setting tags cache');
+  } catch (e) {
+    // ignore
   }
 }
 
 export function useTags(lang: string, initialTags?: any[]) {
+  const tagsStore = useTagsStore();
+  // Если initialTags есть и не пустой — используем их как источник правды
+  // Если initialTags пустой, но store не пустой — используем store
   const [tags, setTags] = useState<any[]>(() => {
     if (initialTags && initialTags.length > 0) return initialTags;
+    if (tagsStore.tags && tagsStore.tags.length > 0) return tagsStore.tags;
     if (typeof window !== 'undefined') {
       const cached = getCache(lang);
       if (cached) return cached;
@@ -64,6 +69,18 @@ export function useTags(lang: string, initialTags?: any[]) {
 
   // При монтировании или смене языка
   useEffect(() => {
+    // Если initialTags есть и не пустой — не делаем запрос
+    if (initialTags && initialTags.length > 0) {
+      setTags(initialTags);
+      setIsLoading(false);
+      return;
+    }
+    // Если store не пустой — используем store
+    if (tagsStore.tags && tagsStore.tags.length > 0) {
+      setTags(tagsStore.tags);
+      setIsLoading(false);
+      return;
+    }
     const cached = getCache(lang);
     if (cached) {
       setTags(cached);
@@ -71,7 +88,7 @@ export function useTags(lang: string, initialTags?: any[]) {
     } else {
       fetchTags();
     }
-  }, [lang, fetchTags]);
+  }, [lang, fetchTags, initialTags, tagsStore.tags]);
 
   // Позволяет вручную обновить теги
   const refreshTags = fetchTags;

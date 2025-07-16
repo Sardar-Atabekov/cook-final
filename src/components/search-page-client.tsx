@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { SearchBar } from './search-bar';
@@ -12,12 +12,17 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { usePantry } from '@/hooks/usePantry';
-import { useSavedRecipes } from '@/hooks/useSavedRecipes';
-import { RecipeDetail } from './recipe-detail';
+import { useSavedRecipesStore } from '@/stores/useSavedRecipesStore';
+import { Suspense, lazy } from 'react';
 import type { Recipe } from '@/lib/api';
 import { Search as SearchIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { userRecipesApi } from '@/lib/api';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useTagsStore } from '@/stores/useTagsStore';
+import { useRecipesStore } from '@/stores/useRecipesStore';
+import { useSavedRecipes } from '@/hooks/useSavedRecipes';
+
+const LazyRecipeDetail = lazy(() => import('./recipe-detail'));
 
 interface SearchPageClientProps {
   locale: string;
@@ -62,7 +67,16 @@ export function SearchPageClient({
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [page, setPage] = useState(1);
-  const [savedRecipeIds, setSavedRecipeIds] = useState<number[]>([]);
+  const savedRecipeIds = useSavedRecipesStore((state) => state.savedRecipeIds);
+  const setSavedRecipeIds = useSavedRecipesStore(
+    (state) => state.setSavedRecipeIds
+  );
+  const addSavedRecipeId = useSavedRecipesStore(
+    (state) => state.addSavedRecipeId
+  );
+  const removeSavedRecipeId = useSavedRecipesStore(
+    (state) => state.removeSavedRecipeId
+  );
 
   // Синхронизация с URL
   const updateURL = useCallback(
@@ -283,20 +297,18 @@ export function SearchPageClient({
     return () => {
       ignore = true;
     };
-  }, []); // Можно добавить зависимости, если нужно обновлять при смене пользователя/языка
+  }, [setSavedRecipeIds]);
 
   // Обработчики рецептов
   const handleSaveRecipe = async (recipe: Recipe) => {
     const id = Number(recipe.id);
     const isSaved = savedRecipeIds.includes(id);
-    // Оптимистично обновляем локальный список
-    setSavedRecipeIds((prev) => {
-      if (isSaved) {
-        return prev.filter((rid) => rid !== id);
-      } else {
-        return [...prev, id];
-      }
-    });
+    // Оптимистично обновляем глобальный список
+    if (isSaved) {
+      removeSavedRecipeId(id);
+    } else {
+      addSavedRecipeId(id);
+    }
     toast({
       title: isSaved ? t('recipeRemoved') : t('recipeSaved'),
       description: isSaved
@@ -338,7 +350,10 @@ export function SearchPageClient({
   };
 
   // --- Используем accumulatedRecipes для отображения и currentCount ---
-  const displayRecipes = accumulatedRecipes;
+  const displayRecipes = useMemo(
+    () => accumulatedRecipes,
+    [accumulatedRecipes]
+  );
   let displayTotal = 0;
   if (typeof total === 'string') {
     displayTotal = parseInt(total, 10) || accumulatedRecipes.length;
@@ -358,6 +373,29 @@ export function SearchPageClient({
 
   // Улучшенные скелетоны
   const skeletonCount = 20;
+
+  // Глобальный кеш initialTags и initialRecipes
+  const tagsStore = useTagsStore();
+  const recipesStore = useRecipesStore();
+  const setTags = useTagsStore((state) => state.setTags);
+  const setRecipes = useRecipesStore((state) => state.setRecipes);
+
+  // Сохраняем initialTags и initialRecipes в store при первом рендере
+  useEffect(() => {
+    if (initialTags && initialTags.length > 0) {
+      setTags(initialTags);
+    }
+    if (initialRecipes && initialRecipes.length > 0) {
+      setRecipes(initialRecipes);
+    }
+    // Не добавлять setTags/setRecipes в зависимости!
+  }, [initialTags, initialRecipes]);
+
+  // Берём initialTags/initialRecipes из store, если они есть
+  const globalInitialTags =
+    tagsStore.tags.length > 0 ? tagsStore.tags : initialTags;
+  const globalInitialRecipes =
+    recipesStore.recipes.length > 0 ? recipesStore.recipes : initialRecipes;
 
   return (
     <div className="flex-1">
@@ -401,7 +439,7 @@ export function SearchPageClient({
         <RecipeFilters
           filters={filters}
           onFiltersChange={handleFiltersChange}
-          initialTags={initialTags}
+          initialTags={globalInitialTags}
           locale={locale}
         />
       </div>
@@ -515,14 +553,16 @@ export function SearchPageClient({
 
       {/* Модальное окно с деталями рецепта */}
       {selectedRecipe && (
-        <RecipeDetail
-          recipe={selectedRecipe}
-          isOpen={isDetailOpen}
-          onClose={() => setIsDetailOpen(false)}
-          onSave={() => handleSaveRecipe(selectedRecipe)}
-          onCookDish={() => handleCookDish(selectedRecipe)}
-          isSaved={savedRecipeIds.includes(Number(selectedRecipe.id))}
-        />
+        <Suspense fallback={<div style={{ minHeight: 300 }}>Loading...</div>}>
+          <LazyRecipeDetail
+            recipe={selectedRecipe}
+            isOpen={isDetailOpen}
+            onClose={() => setIsDetailOpen(false)}
+            onSave={() => handleSaveRecipe(selectedRecipe)}
+            onCookDish={() => handleCookDish(selectedRecipe)}
+            isSaved={savedRecipeIds.includes(Number(selectedRecipe.id))}
+          />
+        </Suspense>
       )}
     </div>
   );

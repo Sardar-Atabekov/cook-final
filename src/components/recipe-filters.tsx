@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -43,14 +43,13 @@ interface RecipeFiltersProps {
   locale: string;
 }
 
-export function RecipeFilters({
+function RecipeFiltersMemo({
   filters,
   onFiltersChange,
   initialTags = [],
   locale,
 }: RecipeFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
-  // Получаем текущий язык из html (или прокидывайте явно через пропсы)
   const { tags, isLoading, error } = useTags(locale, initialTags);
 
   const mealTypes = useMemo(
@@ -58,12 +57,10 @@ export function RecipeFilters({
       Array.isArray(tags) ? tags.filter((t) => t.type === 'meal_type') : [],
     [tags]
   );
-
   const countries = useMemo(
     () => (Array.isArray(tags) ? tags.filter((t) => t.type === 'kitchen') : []),
     [tags]
   );
-
   const diets = useMemo(
     () => (Array.isArray(tags) ? tags.filter((t) => t.type === 'diet') : []),
     [tags]
@@ -141,6 +138,11 @@ export function RecipeFilters({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Meal Types</SelectItem>
+            {mealTypes.length === 0 && (
+              <SelectItem value="" disabled>
+                No meal types available
+              </SelectItem>
+            )}
             {mealTypes.map((type) => (
               <SelectItem key={type.id} value={type.id.toString()}>
                 {type.name}
@@ -160,6 +162,11 @@ export function RecipeFilters({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Countries</SelectItem>
+            {countries.length === 0 && (
+              <SelectItem value="" disabled>
+                No countries available
+              </SelectItem>
+            )}
             {countries.map((country) => (
               <SelectItem key={country.id} value={country.id.toString()}>
                 {country.name}
@@ -182,6 +189,11 @@ export function RecipeFilters({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Diets</SelectItem>
+            {diets.length === 0 && (
+              <SelectItem value="" disabled>
+                No diets available
+              </SelectItem>
+            )}
             {diets.map((diet) => (
               <SelectItem key={diet.id} value={diet.id.toString()}>
                 {diet.name}
@@ -248,6 +260,11 @@ export function RecipeFilters({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Meal Types</SelectItem>
+                    {mealTypes.length === 0 && (
+                      <SelectItem value="" disabled>
+                        No meal types available
+                      </SelectItem>
+                    )}
                     {mealTypes.map((type) => (
                       <SelectItem key={type.id} value={type.id.toString()}>
                         {type.name}
@@ -272,6 +289,11 @@ export function RecipeFilters({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Countries</SelectItem>
+                    {countries.length === 0 && (
+                      <SelectItem value="" disabled>
+                        No countries available
+                      </SelectItem>
+                    )}
                     {countries.map((country) => (
                       <SelectItem
                         key={country.id}
@@ -300,6 +322,11 @@ export function RecipeFilters({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Diets</SelectItem>
+                    {diets.length === 0 && (
+                      <SelectItem value="" disabled>
+                        No diets available
+                      </SelectItem>
+                    )}
                     {diets.map((diet) => (
                       <SelectItem key={diet.id} value={diet.id.toString()}>
                         {diet.name}
@@ -323,3 +350,5 @@ export function RecipeFilters({
     </div>
   );
 }
+
+export const RecipeFilters = React.memo(RecipeFiltersMemo);

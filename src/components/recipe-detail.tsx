@@ -280,3 +280,5 @@ export function RecipeDetail({
     </Dialog>
   );
 }
+
+export default RecipeDetail;

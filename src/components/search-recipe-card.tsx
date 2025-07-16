@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,12 +15,12 @@ interface SearchRecipeCardProps {
   isSaved?: boolean;
 }
 
-export function SearchRecipeCard({
+const SearchRecipeCardComponent = ({
   recipe,
   onClick,
   onSave,
   isSaved = false,
-}: SearchRecipeCardProps) {
+}: SearchRecipeCardProps) => {
   const formatPrepTime = (minutes: number | string) => {
     const mins = typeof minutes === 'string' ? parseInt(minutes) : minutes;
     if (!mins || isNaN(mins)) return '—';
@@ -146,4 +147,6 @@ export function SearchRecipeCard({
       </CardContent>
     </Card>
   );
-}
+};
+
+export const SearchRecipeCard = React.memo(SearchRecipeCardComponent);
