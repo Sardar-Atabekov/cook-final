@@ -169,15 +169,27 @@
     "lowCarb": "Низкоуглеводное",
     "healthy": "Здоровое",
     "match": "{percentage}% совпадение",
-    "missing": "Отсутствует: {ingredients}",
+    "missing": "Не хватает:",
+    "moreMissing": "+{count} ещё",
     "hasAllIngredients": "У вас есть все ингредиенты!",
+    "notAllIngredients": "У вас не все ингредиенты!",
+    "cookingTime": "{time} мин",
+    "cookingTimeHours": "{hours}ч {minutes}м",
+    "cookingTimeOnlyHours": "{hours}ч",
     "previous": "Предыдущая",
     "next": "Следующая",
     "page": "Страница {current} из {total}",
     "allRecipes": "Все рецепты",
     "savedRecipes": "Сохранённые рецепты",
     "loginToSeeSaved": "Войдите, чтобы просматривать сохранённые рецепты",
-    "noSavedRecipes": "У вас нет сохранённых рецептов"
+    "noSavedRecipes": "У вас нет сохранённых рецептов",
+    "servings": "{count} порций",
+    "required": "Обязательно",
+    "missingIngredients": "Недостающие ингредиенты:",
+    "instructions": "Инструкции",
+    "diet": "Диета",
+    "kitchen": "Кухня",
+    "ingredients": "Ингредиенты"
   },
   "favorites": {
     "title": "Избранные рецепты",
@@ -224,7 +236,6 @@
     "morePersonalizedDescription": "Добавьте ингредиенты, которые есть у вас дома, чтобы получить рецепты, подобранные специально для вас",
     "addIngredients": "Добавить ингредиенты"
   },
-
   "common": {
     "loading": "Загрузка...",
     "error": "Ошибка",
@@ -241,7 +252,11 @@
     "minutes": "минут",
     "hours": "часов",
     "back": "Назад",
-    "next": "Далее"
+    "next": "Далее",
+    "cookDish": "Готовить блюдо",
+    "originalRecipe": "Исходный рецепт",
+    "clearAll": "Очистить все",
+    "errorBoundaryDescription": "Произошла ошибка при загрузке содержимого. Пожалуйста, попробуйте ещё раз."
   },
   "Error": {
     "title": "Что-то пошло не так!",
@@ -282,5 +297,15 @@
     "recipeRemovedDesc": "\"{title}\" удален из избранных",
     "cookingTitle": "Готовим блюдо!",
     "cookingDesc": "Ингредиенты для \"{title}\" добавлены в кладовую. Приятного аппетита!"
+  },
+  "footer": {
+    "footer": {
+      "projectName": "RecipeMatch",
+      "description": "Находите вкусные рецепты по ингредиентам, которые уже есть у вас дома. Готовьте умнее, меньше тратьте, ешьте лучше.",
+      "explore": "Исследовать",
+      "popularRecipes": "Популярные рецепты",
+      "suggestedMeals": "Рекомендованные блюда",
+      "quickMeals": "Быстрые блюда"
+    }
   }
 }

@@ -9,6 +9,7 @@ import type { Recipe } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { useRouter, usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 // import { Clock, Star, Bookmark, BookmarkCheck } from "lucide-react";
 interface RecipeCardProps {
   recipe: Recipe;
@@ -26,6 +27,7 @@ export function RecipeCard({
   const router = useRouter();
   const pathname = usePathname();
   const locale = useLocale();
+  const t = useTranslations('recipes');
 
   const getMatchColor = (percentage: number) => {
     if (percentage >= 90) return 'bg-green-500';
@@ -36,12 +38,12 @@ export function RecipeCard({
 
   const formatPrepTime = (minutes: number) => {
     if (!minutes || isNaN(minutes)) return '—';
-    if (minutes < 60) return `${minutes} min`;
+    if (minutes < 60) return t('cookingTime', { time: minutes });
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
     return remainingMinutes > 0
-      ? `${hours}h ${remainingMinutes}m`
-      : `${hours}h`;
+      ? t('cookingTimeHours', { hours, minutes: remainingMinutes })
+      : t('cookingTimeOnlyHours', { hours });
   };
 
   return (
@@ -62,7 +64,7 @@ export function RecipeCard({
                 getMatchColor(Number(recipe.matchPercentage))
               )}
             >
-              {recipe.matchPercentage}% Match
+              {t('match', { percentage: recipe.matchPercentage })}
             </Badge>
           )}
           {onSave && (
@@ -113,7 +115,7 @@ export function RecipeCard({
             {recipe.missingIngredients &&
             recipe.missingIngredients.length > 0 ? (
               <>
-                <div className="text-xs text-gray-600 mb-1">Не хватает:</div>
+                <div className="text-xs text-gray-600 mb-1">{t('missing')}</div>
                 <div className="flex flex-wrap gap-1">
                   {recipe.missingIngredients
                     .slice(0, 3)
@@ -123,7 +125,7 @@ export function RecipeCard({
                         variant="secondary"
                         className="px-2 py-1 bg-orange-100 text-orange-800 text-xs"
                       >
-                        {ingredient.matchedName}
+                        {ingredient.ingredient?.name}
                       </Badge>
                     ))}
                   {recipe.missingIngredients.length > 3 && (
@@ -131,19 +133,17 @@ export function RecipeCard({
                       variant="secondary"
                       className="px-2 py-1 bg-gray-100 text-gray-600 text-xs"
                     >
-                      +{recipe.missingIngredients.length - 3} more
+                      {t('moreMissing', {
+                        count: recipe.missingIngredients.length - 3,
+                      })}
                     </Badge>
                   )}
                 </div>
               </>
             ) : recipe.matchPercentage == '100' ? (
-              <span className="text-green-600">
-                ✓ You have all ingredients!
-              </span>
+              <span className="text-green-600">✓ {t('hasAllIngredients')}</span>
             ) : (
-              <span className="text-red-600">
-                ✗ You don't have all ingredients!
-              </span>
+              <span className="text-red-600">✗ {t('notAllIngredients')}</span>
             )}
           </div>
         </CardContent>

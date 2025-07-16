@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { usePantry } from '@/hooks/usePantry';
 import { useSavedRecipes } from '@/hooks/useSavedRecipes';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useRecipes } from '@/hooks/useRecipes';
 import type { Recipe } from '@/types/recipe';
 import { RecipeFilters, type FilterState } from '@/components/recipe-filters';
@@ -41,6 +41,7 @@ export function RecipeGrid({
   const { addMultipleToPantry } = usePantry();
   const { toggleSaveRecipe, isRecipeSaved } = useSavedRecipes();
   const locale = useLocale();
+  const t = useTranslations('recipes');
 
   const selectedIngredientIDs = selectedIngredients.map((i) => i.id);
 
@@ -93,10 +94,10 @@ export function RecipeGrid({
         <div>
           <h2 className="text-2xl font-bold text-gray-900">
             {searchQuery
-              ? `Результаты поиска: "${searchQuery}"`
+              ? t('searchResults', { query: searchQuery })
               : selectedIngredients.length === 0
-                ? 'Все рецепты'
-                : 'Рецепты для вас'}
+                ? t('allRecipes')
+                : t('personalizedRecipes')}
           </h2>
           <p className="text-gray-600">
             {searchQuery

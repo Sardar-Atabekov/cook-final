@@ -98,7 +98,7 @@ export function SuggestedClient({
   let mealType = 'dinner';
   let mealIcon = Clock;
   let mealColor = 'text-slate-600';
-  if (currentHour < 11) {
+  if (currentHour < 12) {
     mealType = 'breakfast';
     mealIcon = Coffee;
     mealColor = 'text-amber-600';

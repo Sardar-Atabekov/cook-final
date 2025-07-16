@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { ChefHat, Trash2, Clock } from 'lucide-react';
 import { usePantry } from '@/hooks/usePantry';
 import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 interface PantryDrawerProps {
   children: React.ReactNode;
@@ -21,6 +22,7 @@ export function PantryDrawer({ children }: PantryDrawerProps) {
   const { pantryItems, removeFromPantry, clearPantry, isPantryEmpty } =
     usePantry();
   const [isOpen, setIsOpen] = useState(false);
+  const t = useTranslations('common');
 
   const formatTimeAgo = (date: Date) => {
     const now = new Date();
@@ -84,7 +86,7 @@ export function PantryDrawer({ children }: PantryDrawerProps) {
                   className="flex-1"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
-                  Очистить все
+                  {t('clearAll')}
                 </Button>
               </div>
 

@@ -23,6 +23,8 @@ export interface RecipeIngredient {
   amount: string;
   required: boolean;
   ingredient: Ingredient;
+  matchedName?: string;
+  line?: string;
 }
 
 export interface Recipe {

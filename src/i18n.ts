@@ -8,7 +8,35 @@ const getAvailableLocales = () => {
   if (envLocales) {
     return envLocales.split(',').map((locale) => locale.trim());
   }
-  return ['en', 'ru', 'de', 'es', 'zh', 'fr', 'ro', 'sk'];
+  // Updated: include all 25 supported languages
+  return [
+    'en',
+    'ru',
+    'de',
+    'es',
+    'zh',
+    'fr',
+    'ro',
+    'sk',
+    'tr',
+    'sv',
+    'sr',
+    'pt',
+    'pl',
+    'nl',
+    'ja',
+    'it',
+    'id',
+    'hu',
+    'hi',
+    'he',
+    'fi',
+    'el',
+    'da',
+    'cs',
+    'bg',
+    'be',
+  ];
 };
 
 // Get default locale from environment or use 'en'

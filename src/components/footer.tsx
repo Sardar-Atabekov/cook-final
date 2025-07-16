@@ -1,37 +1,39 @@
 'use client';
 
 import Link from 'next/link';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 
 export default function Footer() {
-  const locale = useLocale();
-  const t = useTranslations('navigation');
-
+  const t = useTranslations('footer');
+  console.log(t, t);
   return (
     <footer className="bg-slate-900 text-white py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <span className="text-xl font-bold">RecipeMatch</span>
+              <span className="text-xl font-bold">
+                {t('footer.projectName')}
+              </span>
             </div>
             <p className="text-slate-400 text-sm mb-4">
-              Find delicious recipes based on ingredients you already have at
-              home. Cook smarter, waste less, eat better.
+              {t('footer.description')}
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-semibold text-white mb-4">Explore</h3>
+            <h3 className="font-semibold text-white mb-4">
+              {t('footer.explore')}
+            </h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
                   href="/recipes"
                   className="text-slate-400 hover:text-white"
                 >
-                  Popular Recipes
+                  {t('footer.popularRecipes')}
                 </Link>
               </li>
               <li>
@@ -39,7 +41,7 @@ export default function Footer() {
                   href="/suggested"
                   className="text-slate-400 hover:text-white"
                 >
-                  Suggested Meals
+                  {t('footer.suggestedMeals')}
                 </Link>
               </li>
               <li>
@@ -47,7 +49,7 @@ export default function Footer() {
                   href="/recipes?type=quick"
                   className="text-slate-400 hover:text-white"
                 >
-                  Quick Meals
+                  {t('footer.quickMeals')}
                 </Link>
               </li>
             </ul>

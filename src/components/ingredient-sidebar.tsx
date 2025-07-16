@@ -176,7 +176,7 @@ export function IngredientSidebar({
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             {t('yourIngredients')}
           </h2>
-          <div className="relative">
+          {/* <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
               type="text"
@@ -185,7 +185,7 @@ export function IngredientSidebar({
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
             />
-          </div>
+          </div> */}
         </div>
 
         <div className="text-sm text-gray-600 mb-4">{t('textDescription')}</div>

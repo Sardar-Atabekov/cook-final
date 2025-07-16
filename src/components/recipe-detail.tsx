@@ -40,6 +40,8 @@ export function RecipeDetail({
   isSaved = false,
 }: RecipeDetailProps) {
   const tTags = useTranslations('ux.tags');
+  const t = useTranslations('recipes');
+  const tCommon = useTranslations('common');
   if (!recipe) return null;
 
   const handleCookDish = () => {
@@ -108,11 +110,15 @@ export function RecipeDetail({
           <div className="flex flex-wrap gap-4 items-center">
             <div className="flex items-center text-gray-600">
               <Clock className="w-4 h-4 mr-2" />
-              <span className="text-sm">{recipe.prepTime} мин</span>
+              <span className="text-sm">
+                {t('cookingTime', { time: recipe.prepTime })}
+              </span>
             </div>
             <div className="flex items-center text-gray-600">
               <Users className="w-4 h-4 mr-2" />
-              <span className="text-sm">{recipe.servings} порций</span>
+              <span className="text-sm">
+                {t('servings', { count: recipe.servings })}
+              </span>
             </div>
             <Badge className={getDifficultyColor(recipe.difficulty)}>
               <ChefHat className="w-3 h-3 mr-1" />
@@ -128,7 +134,7 @@ export function RecipeDetail({
             </div>
             {recipe.matchPercentage && (
               <Badge variant="secondary">
-                Совпадение: {recipe.matchPercentage}%
+                {t('match', { percentage: recipe.matchPercentage })}
               </Badge>
             )}
           </div>
@@ -138,7 +144,7 @@ export function RecipeDetail({
             {recipe.dietTags && recipe.dietTags.length > 0 && (
               <>
                 <span className="font-semibold text-gray-700">
-                  {tTags('diet') || 'Диета'}:
+                  {tTags('diet') || t('diet')}:
                 </span>
                 {recipe.dietTags.map((diet, idx) => (
                   <Badge key={diet || idx} variant="outline">
@@ -150,7 +156,7 @@ export function RecipeDetail({
             {recipe.country && (
               <>
                 <span className="font-semibold text-gray-700 ml-4">
-                  {tTags('kitchen') || 'Кухня'}:
+                  {tTags('kitchen') || t('kitchen')}:
                 </span>
                 <Badge variant="outline">
                   {tTags(recipe.country) || recipe.country}
@@ -160,7 +166,7 @@ export function RecipeDetail({
             {recipe.mealType && (
               <>
                 <span className="font-semibold text-gray-700 ml-4">
-                  {tTags('mealType') || 'Тип блюда'}:
+                  {tTags('mealType') || t('mealType')}:
                 </span>
                 <Badge variant="outline">
                   {tTags(recipe.mealType) || recipe.mealType}
@@ -174,7 +180,9 @@ export function RecipeDetail({
 
         {/* Ingredients */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">Ингредиенты</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            {t('ingredients')}
+          </h3>
           <div className="grid gap-2">
             {recipe.recipeIngredients?.map((recipeIngredient, index) => (
               <div
@@ -187,8 +195,7 @@ export function RecipeDetail({
                 )}
               >
                 <span className="font-medium text-gray-900">
-                  {recipeIngredient.ingredient?.line ||
-                    `${recipeIngredient.line}`}
+                  {recipeIngredient.line}
                 </span>
                 <div className="flex items-center gap-2">
                   <span className="text-gray-600">
@@ -196,7 +203,7 @@ export function RecipeDetail({
                   </span>
                   {recipeIngredient.required && (
                     <Badge variant="outline" className="text-xs">
-                      Обязательно
+                      {t('required')}
                     </Badge>
                   )}
                 </div>
@@ -208,7 +215,7 @@ export function RecipeDetail({
             recipe.missingIngredients.length > 0 && (
               <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <h4 className="font-medium text-yellow-800 mb-2">
-                  Недостающие ингредиенты:
+                  {t('missingIngredients')}
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {recipe.missingIngredients.map((ingredient, index) => (
@@ -217,8 +224,7 @@ export function RecipeDetail({
                       variant="outline"
                       className="text-yellow-700 border-yellow-300"
                     >
-                      {' '}
-                      {ingredient.matchedName}
+                      {ingredient?.matchedName}
                     </Badge>
                   ))}
                 </div>
@@ -230,7 +236,9 @@ export function RecipeDetail({
 
         {/* Instructions */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">Инструкции</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            {t('instructions')}
+          </h3>
           <div className="space-y-3">
             {recipe.instructions?.map((instruction, index) => (
               <div key={index} className="flex gap-4">
@@ -254,7 +262,7 @@ export function RecipeDetail({
             className="flex-1 bg-green-600 hover:bg-green-700 text-white"
           >
             <ChefHat className="w-4 h-4 mr-2" />
-            Готовить это блюдо
+            {tCommon('cookDish')}
           </Button>
 
           {recipe.sourceUrl && (
@@ -264,7 +272,7 @@ export function RecipeDetail({
               className="flex-1"
             >
               <ExternalLink className="w-4 h-4 mr-2" />
-              Оригинальный рецепт
+              {tCommon('originalRecipe')}
             </Button>
           )}
         </div>

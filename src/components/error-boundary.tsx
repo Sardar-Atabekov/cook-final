@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -56,16 +57,13 @@ export class ErrorBoundary extends React.Component<
               <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <AlertTriangle className="h-6 w-6 text-destructive" />
               </div>
-              <CardTitle>Something went wrong</CardTitle>
-              <CardDescription>
-                We encountered an error while loading this content. Please try
-                again.
-              </CardDescription>
+              <CardTitle>{t('error')}</CardTitle>
+              <CardDescription>{t('errorBoundaryDescription')}</CardDescription>
             </CardHeader>
             <CardContent className="text-center">
               <Button onClick={this.retry} className="w-full">
                 <RefreshCw className="h-4 w-4 mr-2" />
-                Try Again
+                {t('tryAgain')}
               </Button>
             </CardContent>
           </Card>

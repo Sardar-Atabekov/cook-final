@@ -136,15 +136,25 @@
     "lowCarb": "Low Carb",
     "healthy": "Healthy",
     "match": "{percentage}% match",
-    "missing": "Missing: {ingredients}",
-    "hasAllIngredients": "You have all the ingredients!",
+    "missing": "Missing:",
+    "moreMissing": "+{count} more",
+    "hasAllIngredients": "You have all ingredients!",
+    "notAllIngredients": "You don't have all ingredients!",
     "previous": "Previous",
     "next": "Next",
     "page": "Page {current} of {total}",
     "allRecipes": "All Recipes",
     "savedRecipes": "Saved Recipes",
     "loginToSeeSaved": "Log in to view your saved recipes",
-    "noSavedRecipes": "You have no saved recipes"
+    "noSavedRecipes": "You have no saved recipes",
+    "servings": "{count} servings",
+    "required": "Required",
+    "missingIngredients": "Missing ingredients:",
+    "instructions": "Instructions",
+    "diet": "Diet",
+    "kitchen": "Kitchen",
+    "mealType": "Meal type",
+    "ingredients": "Ingredients"
   },
   "favorites": {
     "title": "Favorite Recipes",
@@ -206,7 +216,9 @@
     "minutes": "minutes",
     "hours": "hours",
     "back": "Back",
-    "next": "Next"
+    "next": "Next",
+    "clearAll": "Clear all",
+    "errorBoundaryDescription": "We encountered an error while loading this content. Please try again."
   },
   "Error": {
     "title": "Something went wrong!",
@@ -247,5 +259,25 @@
     "recipeRemovedDesc": "\"{title}\" has been removed from your favorites",
     "cookingTitle": "Let's Cook!",
     "cookingDesc": "Ingredients for \"{title}\" added to your pantry. Enjoy your meal!"
+  },
+  "footer": {
+    "footer": {
+      "projectName": "RecipeMatch",
+      "description": "Find delicious recipes based on ingredients you already have at home. Cook smarter, waste less, eat better.",
+      "explore": "Explore",
+      "popularRecipes": "Popular Recipes",
+      "suggestedMeals": "Suggested Meals",
+      "quickMeals": "Quick Meals"
+    }
+  },
+  "ingredientCategories": {
+    "Pantry Essentials": "Pantry Essentials",
+    "Vegetables & Greens": "Vegetables & Greens",
+    "Fruits": "Fruits",
+    "Meats": "Meats",
+    "Dairy & Eggs": "Dairy & Eggs",
+    "Herbs & Spices": "Herbs & Spices",
+    "Grains & Cereals": "Grains & Cereals",
+    "Seafood": "Seafood"
   }
 }
