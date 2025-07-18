@@ -5,20 +5,33 @@ import { SearchRecipeCard } from './search-recipe-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Search as SearchIcon } from 'lucide-react';
 import type { Recipe } from '@/lib/api';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 
-const RecipeSkeleton = () => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-    {Array.from({ length: 20 }).map((_, idx) => (
-      <div key={idx} className="space-y-3">
-        <Skeleton className="h-52 w-full rounded-lg bg-gray-300 animate-pulse" />
-        <Skeleton className="h-5 w-3/4 bg-gray-300 animate-pulse" />
-        <Skeleton className="h-5 w-1/2 bg-gray-300 animate-pulse" />
-        <Skeleton className="h-4 w-full bg-gray-300 animate-pulse" />
-        <Skeleton className="h-4 w-2/3 bg-gray-300 animate-pulse" />
+const RecipeSkeleton = () => {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    setVisible(true);
+    return () => setVisible(false);
+  }, []);
+  return (
+    <div
+      className={`transition-opacity duration-500 ${visible ? 'opacity-100' : 'opacity-0'}`}
+    >
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+        {Array.from({ length: 20 }).map((_, idx) => (
+          <div key={idx} className="space-y-3">
+            <Skeleton className="h-52 w-full rounded-lg bg-gray-300 animate-pulse" />
+            <Skeleton className="h-5 w-3/4 bg-gray-300 animate-pulse" />
+            <Skeleton className="h-5 w-1/2 bg-gray-300 animate-pulse" />
+            <Skeleton className="h-4 w-full bg-gray-300 animate-pulse" />
+            <Skeleton className="h-4 w-2/3 bg-gray-300 animate-pulse" />
+          </div>
+        ))}
       </div>
-    ))}
-  </div>
-);
+    </div>
+  );
+};
 
 interface SearchPageClientProps {
   initialRecipes: Recipe[];

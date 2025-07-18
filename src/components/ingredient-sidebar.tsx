@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { X, Search } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
@@ -130,19 +130,22 @@ export function IngredientSidebar({
     return [];
   }, [initialGroupedCategories, groupedCategories, locale]);
 
-  // Новый toggleIngredient: меняет только store
-  const toggleIngredient = (ingredient: any) => {
-    if (selectedIds.includes(ingredient.id)) {
-      setSelectedIds(selectedIds.filter((x) => x !== ingredient.id));
-    } else {
-      setSelectedIds([...selectedIds, ingredient.id]);
-    }
-  };
+  // Новый toggleIngredient: useCallback для оптимизации
+  const toggleIngredient = useCallback(
+    (ingredient: any) => {
+      if (selectedIds.includes(ingredient.id)) {
+        setSelectedIds(selectedIds.filter((x) => x !== ingredient.id));
+      } else {
+        setSelectedIds([...selectedIds, ingredient.id]);
+      }
+    },
+    [selectedIds, setSelectedIds]
+  );
 
-  // Очистить все ингредиенты
-  const clearAllIngredients = () => {
+  // Очистить все ингредиенты: useCallback для оптимизации
+  const clearAllIngredients = useCallback(() => {
     setSelectedIds([]);
-  };
+  }, [setSelectedIds]);
 
   // Поиск ингредиентов (оставим как есть, если есть useIngredientsSearch)
   const { data: searchResults = [] } = useIngredientsSearch?.(searchQuery) || {

@@ -72,28 +72,20 @@ export default function ClientRecipePageLayout({
     <div className="min-h-screen bg-gray-50">
       <div className="flex">
         <IngredientSidebar
-          className="block sticky top-0 h-screen"
+          className="hidden md:block sticky top-0 h-screen"
           initialGroupedCategories={initialGroupedCategories}
         />
         <main className="flex-1 h-full overflow-y-auto p-6 mb-10">
-          {/* Поиск по центру, 80% ширины, фильтры снизу, современный UX */}
-          <div className="flex flex-col items-center gap-6 mb-8">
-            <div className="w-full flex justify-center">
-              <div className="w-full max-w-4xl flex justify-center">
-                <div className="w-[90%] min-w-[250px] rounded-2xl p-1 flex items-center">
-                  <SearchBar
-                    placeholder="Поиск рецептов..."
-                    className="w-full text-lg focus:ring-2 focus:ring-blue-400 transition-all duration-200"
-                  />
-                </div>
-              </div>
+          {/* Адаптивный поиск и фильтры */}
+          <div className="w-full max-w-4xl mx-auto flex flex-col md:flex-row md:items-center gap-4 md:gap-6 mb-8">
+            <div className="flex-1 w-full">
+              <SearchBar
+                placeholder="Поиск рецептов..."
+                className="w-full text-lg focus:ring-2 focus:ring-blue-400 transition-all duration-200"
+              />
             </div>
-            <div className="w-full flex justify-center">
-              <div className="w-full max-w-4xl flex justify-center">
-                <div className="w-[90%] min-w-[250px] rounded-xl p-4 flex flex-col items-center gap-4">
-                  <RecipeFilters initialTags={initialTags} locale={locale} />
-                </div>
-              </div>
+            <div className="flex-1 w-full">
+              <RecipeFilters initialTags={initialTags} locale={locale} />
             </div>
           </div>
           <SearchPageClient

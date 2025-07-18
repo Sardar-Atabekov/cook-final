@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 interface SearchBarProps {
   placeholder?: string;
@@ -38,17 +38,17 @@ export function SearchBar({
     setValue(urlValue);
   }, [urlValue]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value);
-  };
+  }, []);
 
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
     setValue('');
     const params = new URLSearchParams(searchParams.toString());
     params.delete('q');
     params.delete('page');
     router.replace(`?${params.toString()}`, { scroll: false });
-  };
+  }, [searchParams, router]);
 
   return (
     <div className={cn('relative flex items-center', className)}>

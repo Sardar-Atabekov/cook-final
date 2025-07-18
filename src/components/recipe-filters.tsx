@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -47,48 +47,57 @@ export function RecipeFilters({
     [tags]
   );
 
-  const sortingOptions = [
-    { label: t('allSorting'), value: 'all' },
-    { label: t('popular'), value: 'popular' },
-    { label: t('random'), value: 'random' },
-    { label: t('raitings'), value: 'raitings' },
-    { label: t('ingCount'), value: 'ingCount' },
-    { label: t('byTime'), value: 'byTime' },
-  ];
+  const sortingOptions = useMemo(
+    () => [
+      { label: t('allSorting'), value: 'all' },
+      { label: t('popular'), value: 'popular' },
+      { label: t('random'), value: 'random' },
+      { label: t('raitings'), value: 'raitings' },
+      { label: t('ingCount'), value: 'ingCount' },
+      { label: t('byTime'), value: 'byTime' },
+    ],
+    [t]
+  );
 
-  const byTimeOptions = [
-    { label: t('byTime'), value: 'all' },
-    { label: t('byMinutes', { count: 15 }), value: '15' },
-    { label: t('byMinutes', { count: 30 }), value: '30' },
-    { label: t('byMinutes', { count: 45 }), value: '45' },
-    { label: t('byHours', { count: 1 }), value: '60' },
-    { label: t('byHours', { count: 2 }), value: '120' },
-    { label: t('byHours', { count: 3 }), value: '180' },
-  ];
+  const byTimeOptions = useMemo(
+    () => [
+      { label: t('byTime'), value: 'all' },
+      { label: t('byMinutes', { count: 15 }), value: '15' },
+      { label: t('byMinutes', { count: 30 }), value: '30' },
+      { label: t('byMinutes', { count: 45 }), value: '45' },
+      { label: t('byHours', { count: 1 }), value: '60' },
+      { label: t('byHours', { count: 2 }), value: '120' },
+      { label: t('byHours', { count: 3 }), value: '180' },
+    ],
+    [t]
+  );
 
-  const handleChange = (newFilters: {
-    mealType?: string;
-    country?: string;
-    dietTags?: string;
-    sorting?: string;
-    byTime?: string;
-  }) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (newFilters.mealType !== undefined)
-      params.set('mealType', newFilters.mealType);
-    if (newFilters.country !== undefined)
-      params.set('country', newFilters.country);
-    if (newFilters.dietTags !== undefined)
-      params.set('dietTags', newFilters.dietTags);
-    if (newFilters.sorting !== undefined)
-      params.set('sorting', newFilters.sorting);
-    if (newFilters.byTime !== undefined)
-      params.set('byTime', newFilters.byTime);
-    params.delete('page');
-    router.replace(`?${params.toString()}`, { scroll: false });
-  };
+  const handleChange = useCallback(
+    (newFilters: {
+      mealType?: string;
+      country?: string;
+      dietTags?: string;
+      sorting?: string;
+      byTime?: string;
+    }) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (newFilters.mealType !== undefined)
+        params.set('mealType', newFilters.mealType);
+      if (newFilters.country !== undefined)
+        params.set('country', newFilters.country);
+      if (newFilters.dietTags !== undefined)
+        params.set('dietTags', newFilters.dietTags);
+      if (newFilters.sorting !== undefined)
+        params.set('sorting', newFilters.sorting);
+      if (newFilters.byTime !== undefined)
+        params.set('byTime', newFilters.byTime);
+      params.delete('page');
+      router.replace(`?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, router]
+  );
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('mealType', 'all');
     params.set('country', 'all');
@@ -97,7 +106,7 @@ export function RecipeFilters({
     params.set('byTime', 'all');
     params.delete('page');
     router.replace(`?${params.toString()}`, { scroll: false });
-  };
+  }, [searchParams, router]);
 
   if (isLoading && tags.length === 0) {
     return (

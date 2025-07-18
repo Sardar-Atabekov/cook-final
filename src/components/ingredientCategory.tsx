@@ -60,6 +60,7 @@ import {
 } from 'lucide-react';
 import type { IngredientCategory, Ingredient } from '@/types/recipe';
 import { useTranslations } from 'next-intl';
+import React from 'react';
 
 interface IngredientCategoryProps {
   category: IngredientCategory;
@@ -182,7 +183,7 @@ const categoryColors: Record<string, string> = {
   'frozen veggies.png': 'text-cyan-500',
 };
 
-export function IngredientCategory({
+export const IngredientCategory = React.memo(function IngredientCategory({
   category,
   ingredients,
   selectedIngredientIds,
@@ -286,4 +287,4 @@ export function IngredientCategory({
       </CollapsibleContent>
     </Collapsible>
   );
-}
+});
