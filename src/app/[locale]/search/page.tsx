@@ -6,23 +6,18 @@ import { SearchPageClient } from '@/components/search-page-client';
 import { getTranslations } from 'next-intl/server';
 
 // Кэшируем страницу на 7 дней для ускорения загрузки
-export const revalidate = 7 * 24 * 60 * 60;
-
-// Убедитесь, что экспорт выглядит так:
-export const config = {
-  revalidate: 3600, // 1 час
-};
+export const revalidate = 604800;
 
 interface SearchPageProps {
-  params: Promise<{ locale: string }>;
-  searchParams: Promise<{
+  params: { locale: string };
+  searchParams: {
     q?: string;
     ingredients?: string;
     mealType?: string;
     country?: string;
     dietTags?: string;
     page?: string;
-  }>;
+  };
 }
 
 export async function generateMetadata({

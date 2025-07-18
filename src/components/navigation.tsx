@@ -16,8 +16,8 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { LanguageToggle } from '@/components/language-toggle';
 
 export function Navigation() {
-  const pathname = usePathname();
   const locale = useLocale();
+  const pathname = usePathname();
   const t = useTranslations('navigation');
   const { user, logout } = useAuthStore();
 
@@ -79,13 +79,10 @@ export function Navigation() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem>
-                    {/* <LogOut className="h-4 w-4 mr-2" /> */}
-                    {/* {t('logout')} */}
-                    <Link href={`/${locale}/favorites`}>Избранные</Link>
+                    <Link href={`/${locale}/favorites`}>{t('favorites')}</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    {/* <LogOut className="h-4 w-4 mr-2" /> */}
-                    {/* {t('logout')} */}Мои готовки
+                    <Link href={`/${locale}/cook`}>{t('cook')}</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={logout}>
                     <LogOut className="h-4 w-4 mr-2" />

@@ -17,16 +17,26 @@ import {
   ArrowLeft,
   Check,
   X,
+  ExternalLink,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useIngredientStore } from '@/stores/useIngredientStore';
+import { useLocalSavedRecipes } from '@/hooks/useLocalSavedRecipes';
+import { useToast } from '@/hooks/use-toast';
 export default function RecipePage() {
   const params = useParams();
   const { selectedIngredients: userIngredients } = useIngredientStore();
   const recipeId = params.id as string;
   const locale = useLocale();
   const t = useTranslations('recipe');
+  const tCommon = useTranslations('common');
+  const { toast } = useToast();
+  const {
+    isRecipeSaved,
+    toggleSaveRecipe,
+    loading: saving,
+  } = useLocalSavedRecipes();
   const {
     data: recipe,
     isLoading,
@@ -73,17 +83,42 @@ export default function RecipePage() {
     );
   }
 
-  // const hasIngredient = (ingredient: string) => {
-  //   return userIngredients.some(
-  //     (userIngredient) =>
-  //       ingredient.toLowerCase().includes(userIngredient.toLowerCase()) ||
-  //       userIngredient.toLowerCase().includes(ingredient.toLowerCase())
-  //   );
-  // };
+  // Исправленная проверка наличия ингредиента у пользователя
+  const hasIngredient = (ingredientId: number) =>
+    userIngredients.some((userIng) => userIng.id === ingredientId);
 
-  // const ownedIngredients = recipe.recipeIngredients.filter((ingredient) =>
-  //   hasIngredient(ingredient.ingredient)
-  // );
+  // Разделение ингредиентов
+  const ownedIngredients = recipe.recipeIngredients.filter((ri: any) =>
+    hasIngredient(ri.ingredientId)
+  );
+  const missingIngredients = recipe.recipeIngredients.filter(
+    (ri: any) => !hasIngredient(ri.ingredientId)
+  );
+
+  // Обработчик сохранения рецепта
+  const handleSaveRecipe = async () => {
+    await toggleSaveRecipe(recipe.id);
+    toast({
+      title: isRecipeSaved(recipe.id)
+        ? tCommon('recipeSaved') || 'Рецепт сохранён'
+        : tCommon('recipeRemoved') || 'Рецепт удалён',
+      description: isRecipeSaved(recipe.id)
+        ? tCommon('recipeSavedDescription') ||
+          `"${recipe.title}" добавлен в избранные`
+        : tCommon('recipeRemovedDescription') ||
+          `"${recipe.title}" удалён из избранных`,
+    });
+  };
+
+  // Обработчик копирования ссылки
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast({ title: tCommon('linkCopied') || 'Ссылка скопирована!' });
+    } catch {
+      toast({ title: tCommon('copyError') || 'Ошибка копирования' });
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -165,21 +200,19 @@ export default function RecipePage() {
           </CardHeader>
           <CardContent>
             <ul className="space-y-3">
-              {recipe.recipeIngredients.map((ingredient, index) => (
+              {ownedIngredients.map((ingredient: any, index: number) => (
                 <li key={index} className="flex items-center space-x-3">
-                  {userIngredients.includes(ingredient) ? (
-                    <Check className="h-5 w-5 text-green-600 flex-shrink-0" />
-                  ) : (
-                    <X className="h-5 w-5 text-red-500 flex-shrink-0" />
-                  )}
-                  <span
-                    className={`${
-                      userIngredients.includes(ingredient)
-                        ? 'text-green-800'
-                        : 'text-gray-900'
-                    }`}
-                  >
-                    {ingredient.line}
+                  <Check className="h-5 w-5 text-green-600 flex-shrink-0" />
+                  <span className="text-green-800">
+                    {ingredient.line || ingredient.ingredient?.name}
+                  </span>
+                </li>
+              ))}
+              {missingIngredients.map((ingredient: any, index: number) => (
+                <li key={index} className="flex items-center space-x-3">
+                  <X className="h-5 w-5 text-red-500 flex-shrink-0" />
+                  <span className="text-gray-900">
+                    {ingredient.line || ingredient.ingredient?.name}
                   </span>
                 </li>
               ))}
@@ -187,37 +220,57 @@ export default function RecipePage() {
           </CardContent>
         </Card>
 
-        {/* Instructions */}
-        {/* <Card>
-          <CardHeader>
-            <CardTitle>Instructions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {/* <ol className="space-y-4"> */}
-        {/* {recipe.steps.map((step, index) => (
-                <li key={index} className="flex space-x-3">
-                  <span className="flex-shrink-0 w-6 h-6 text-brand-blue text-white rounded-full flex items-center justify-center text-sm font-medium">
-                    {index + 1}
-                  </span>
-                  <span className="text-gray-700">{step}</span>
-                </li>
-              ))}
-            </ol> */}
-        {/* </CardContent>
-        </Card> */}
+        {/* Инструкции */}
+        {recipe.instructions && recipe.instructions.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('instructions') || 'Instructions'}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ol className="space-y-4 list-decimal list-inside">
+                {recipe.instructions.map((step: string, index: number) => (
+                  <li key={index} className="flex space-x-3">
+                    <span className="font-bold text-brand-blue">
+                      {index + 1}.
+                    </span>
+                    <span className="text-gray-700">{step}</span>
+                  </li>
+                ))}
+              </ol>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Action Buttons */}
       <div className="mt-8 flex flex-col sm:flex-row gap-4">
-        <Button size="lg" className="text-brand-blue hover:text-brand-blue">
-          Start Cooking
+        <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white">
+          <ChefHat className="w-4 h-4 mr-2" />
+          {tCommon('cookDish')}
         </Button>
-        <Button variant="outline" size="lg">
-          Save Recipe
+        <Button
+          variant={isRecipeSaved(recipe.id) ? 'default' : 'outline'}
+          size="lg"
+          onClick={handleSaveRecipe}
+          disabled={saving}
+        >
+          {isRecipeSaved(recipe.id)
+            ? tCommon('saved') || 'Сохранено'
+            : tCommon('saveRecipe') || 'Сохранить рецепт'}
         </Button>
-        <Button variant="outline" size="lg">
-          Share Recipe
+        <Button variant="outline" size="lg" onClick={handleShare}>
+          {tCommon('shareRecipe') || 'Поделиться'}
         </Button>
+        {recipe.sourceUrl && (
+          <Button
+            variant="outline"
+            onClick={() => window.open(recipe.sourceUrl, '_blank')}
+            className="flex-1"
+          >
+            <ExternalLink className="w-4 h-4 mr-2" />
+            {tCommon('originalRecipe')}
+          </Button>
+        )}
       </div>
     </div>
   );

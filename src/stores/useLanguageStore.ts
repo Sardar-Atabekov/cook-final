@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface LanguageStore {
   language: string | undefined;
@@ -22,7 +22,7 @@ export const useLanguageStore = create<LanguageStore>()(
     }),
     {
       name: 'language-store',
-      getStorage: () => localStorage,
+      storage: createJSONStorage(() => localStorage),
     }
   )
 );

@@ -1,23 +1,18 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useSearchParams, useParams } from 'next/navigation';
-import { useLocale, useTranslations } from 'next-intl';
 import { RecipeCard } from '@/components/recipe-card';
-import { RecipeFilters, type FilterState } from '@/components/recipe-filters';
+import { FilterState, RecipeFilters } from '@/components/recipe-filters';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { recipeApi } from '@/lib/api';
-import { userRecipesApi } from '@/lib/api';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useIngredientStore } from '@/stores/useIngredientStore';
-import type { Recipe } from '@/lib/api';
+import { recipeApi, userRecipesApi } from '@/lib/api';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useIngredientStore } from '@/stores/useIngredientStore';
+import { Recipe } from '@/types/recipe';
+import { useQuery } from '@tanstack/react-query';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
+import { useSearchParams, useParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
-export const config = {
-  revalidate: 3600, // 1 час
-};
+export const revalidate = 3600;
 
 export default function RecipesPage() {
   const searchParams = useSearchParams();
@@ -155,7 +150,11 @@ export default function RecipesPage() {
       {/* Filters */}
       {!showSaved && (
         <div className="mb-8">
-          <RecipeFilters filters={filters} onFiltersChange={setFilters} />
+          <RecipeFilters
+            filters={filters}
+            onFiltersChange={setFilters}
+            locale={locale}
+          />
         </div>
       )}
 

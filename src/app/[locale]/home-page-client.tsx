@@ -73,6 +73,7 @@ export function HomePageClient() {
       quick: `/${locale}/recipes?sort=quick`,
       popular: `/${locale}/recipes?sort=popular`,
       random: `/${locale}/recipes?sort=random`,
+      suggested: `/${locale}/recipes?sort=suggested`,
     };
     router.push(paths[action]);
   };

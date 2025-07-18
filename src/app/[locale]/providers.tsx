@@ -2,11 +2,19 @@
 
 import type React from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import dynamic from 'next/dynamic';
 import { queryClient } from '@/lib/queryClient';
 import { useLocale } from 'next-intl';
 import { useLanguageStore } from '@/stores/useLanguageStore';
 import { useEffect } from 'react';
+
+const ReactQueryDevtools = dynamic(
+  () =>
+    import('@tanstack/react-query-devtools').then(
+      (mod) => mod.ReactQueryDevtools
+    ),
+  { ssr: false, loading: () => null }
+);
 
 function SyncLocaleWithStore() {
   const locale = useLocale();
@@ -24,7 +32,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <SyncLocaleWithStore />
       {children}
-      <ReactQueryDevtools initialIsOpen={false} />
+      {process.env.NODE_ENV === 'development' && (
+        <ReactQueryDevtools initialIsOpen={false} />
+      )}
     </QueryClientProvider>
   );
 }

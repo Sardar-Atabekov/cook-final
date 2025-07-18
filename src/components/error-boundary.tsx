@@ -57,13 +57,13 @@ export class ErrorBoundary extends React.Component<
               <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <AlertTriangle className="h-6 w-6 text-destructive" />
               </div>
-              <CardTitle>{t('error')}</CardTitle>
-              <CardDescription>{t('errorBoundaryDescription')}</CardDescription>
+              <CardTitle>Error</CardTitle>
+              <CardDescription>An unexpected error occurred.</CardDescription>
             </CardHeader>
             <CardContent className="text-center">
               <Button onClick={this.retry} className="w-full">
                 <RefreshCw className="h-4 w-4 mr-2" />
-                {t('tryAgain')}
+                Try Again
               </Button>
             </CardContent>
           </Card>
@@ -86,4 +86,33 @@ export function withErrorBoundary<P extends object>(
       </ErrorBoundary>
     );
   };
+}
+
+// Добавляю функциональный компонент-обёртку для передачи t
+export function ErrorBoundaryWithI18n(props: ErrorBoundaryProps) {
+  const t = useTranslations('error');
+  return (
+    <ErrorBoundary
+      {...props}
+      fallback={({ error, retry }) => (
+        <div className="min-h-[400px] flex items-center justify-center p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+              <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="h-6 w-6 text-destructive" />
+              </div>
+              <CardTitle>{t('error')}</CardTitle>
+              <CardDescription>{t('errorBoundaryDescription')}</CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Button onClick={retry} className="w-full">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                {t('tryAgain')}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    />
+  );
 }
