@@ -4,14 +4,7 @@ const locales = ['en', 'ru', 'de', 'es', 'zh', 'ar', 'fr'];
 const baseUrl = 'https://recipefinder.com';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const routes = [
-    '',
-    '/recipes',
-    '/search',
-    '/suggested',
-    '/auth/login',
-    '/auth/signup',
-  ];
+  const routes = ['', '/recipes', '/suggested', '/auth/login', '/auth/signup'];
 
   const sitemapEntries: MetadataRoute.Sitemap = [];
 

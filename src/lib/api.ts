@@ -187,4 +187,29 @@ export const userRecipesApi = {
     });
     return response.data;
   },
+
+  getCookedRecipes: async (token: string) => {
+    const response = await api.get('/user/cooked-recipes', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  },
+
+  saveCookedRecipe: async (token: string, recipeId: string) => {
+    const response = await api.post(
+      '/user/save-cooked-recipe',
+      { recipeId },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return response.data;
+  },
+
+  unsaveCookedRecipe: async (token: string, recipeId: string) => {
+    const response = await api.delete(`/user/save-cooked-recipe/${recipeId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  },
 };

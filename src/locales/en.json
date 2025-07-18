@@ -6,7 +6,17 @@
     "suggested": "Suggestions",
     "login": "Log In",
     "signup": "Sign Up",
-    "logout": "Log Out"
+    "logout": "Log Out",
+    "cook": "My Cookbook",
+    "favorites": "Favorites"
+  },
+  "cook": {
+    "title": "My Cookbook",
+    "description": "Your personalized cookbook of recipes you've cooked",
+    "noCookedRecipes": "You haven't cooked any recipes yet",
+    "noCookedRecipesDescription": "Start cooking to add recipes to your cookbook",
+    "backToRecipes": "Back to recipes",
+    "loginToSeeCookings": "Login to see your cooked recipes"
   },
   "home": {
     "title": "Find recipes based on your ingredients",
@@ -34,6 +44,7 @@
     "recommended": "Recommended Recipes",
     "recommendedDescription": "Handpicked recipes just for you"
   },
+
   "ux": {
     "input": {
       "placeholder": "Enter ingredients (e.g., chicken, rice, tomatoes)...",

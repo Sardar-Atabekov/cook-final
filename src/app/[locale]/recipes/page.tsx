@@ -1,242 +1,159 @@
-import { RecipeCard } from '@/components/recipe-card';
-import { FilterState, RecipeFilters } from '@/components/recipe-filters';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { recipeApi, userRecipesApi } from '@/lib/api';
-import { useAuthStore } from '@/stores/useAuthStore';
-import { useIngredientStore } from '@/stores/useIngredientStore';
-import { Recipe } from '@/types/recipe';
-import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useLocale, useTranslations } from 'next-intl';
-import { useSearchParams, useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { ingredientsApi, recipeApi } from '@/lib/api';
+import { IngredientSidebar } from '@/components/ingredient-sidebar';
+import { SearchPageClient } from '@/components/search-page-client';
+import { getTranslations } from 'next-intl/server';
 
-export const revalidate = 3600;
+// Кэшируем страницу на 7 дней для ускорения загрузки
+export const revalidate = 604800;
 
-export default function RecipesPage() {
-  const searchParams = useSearchParams();
-  const params = useParams();
-  const locale = useLocale();
-  const { selectedIngredients } = useIngredientStore();
-  const { token } = useAuthStore();
-  const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState<FilterState>({
-    mealType: 'all',
-    country: 'all',
-    dietTags: 'all', // dietTags — строка, а не массив
-  });
-  const [showSaved, setShowSaved] = useState(false); // true — показываем только сохранённые
-  const [savedRecipes, setSavedRecipes] = useState<Recipe[] | null>(null);
-  const [savedLoading, setSavedLoading] = useState(false);
-  const [savedError, setSavedError] = useState<string | null>(null);
-  const [savingIds, setSavingIds] = useState<string[]>([]); // id рецептов, которые сейчас сохраняются/удаляются
-  const t = useTranslations('recipes');
+interface SearchPageProps {
+  params: { locale: string };
+  searchParams: {
+    q?: string;
+    ingredients?: string;
+    mealType?: string;
+    country?: string;
+    dietTags?: string;
+    page?: string;
+  };
+}
 
-  // Get ingredients from URL params or store
-  const urlIngredients = searchParams.get('ingredients')?.split(',') || [];
-  const searchIngredients: string[] =
-    urlIngredients.length > 0
-      ? urlIngredients
-      : selectedIngredients.map((ingredient: any) =>
-          typeof ingredient === 'string'
-            ? ingredient
-            : (ingredient.id ?? ingredient.name)
-        );
+export async function generateMetadata({
+  params,
+  searchParams,
+}: SearchPageProps): Promise<Metadata> {
+  const { locale } = await params;
+  const paramsResolved = await searchParams;
+  const t = await getTranslations({ locale, namespace: 'search' });
 
-  const pageSize = 12; // Количество рецептов на странице
-  const offset = (page - 1) * pageSize;
+  const searchQuery = paramsResolved.q;
+  const ingredients = paramsResolved.ingredients;
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['recipes', searchIngredients, filters, page],
-    queryFn: () =>
-      recipeApi.getRecipes(
-        searchIngredients.map((ingredient) => parseInt(ingredient)),
-        {
-          ...filters,
-          offset,
-          limit: pageSize,
-        },
-        locale // Передаём локаль
-      ),
-    enabled: searchIngredients.length > 0,
-  });
+  let title = t('defaultTitle');
+  let description = t('defaultDescription');
 
-  // Получаем сохранённые рецепты с сервера
-  useEffect(() => {
-    if (!showSaved || !token) return;
-    setSavedLoading(true);
-    setSavedError(null);
-    userRecipesApi
-      .getSavedRecipes(token)
-      .then((data) => setSavedRecipes(data.recipes || data))
-      .catch((e) => setSavedError(e?.message || 'Ошибка'))
-      .finally(() => setSavedLoading(false));
-  }, [showSaved, token]);
-
-  useEffect(() => {
-    setPage(1); // Reset page when filters change
-  }, [filters]);
-
-  if (searchIngredients.length === 0) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            {t('noIngredients')}
-          </h1>
-          <p className="text-gray-600 mb-8">{t('noIngredientsDescription')}</p>
-          <Button onClick={() => window.history.back()}>{t('goBack')}</Button>
-        </div>
-      </div>
-    );
+  if (searchQuery) {
+    title = t('searchTitle', { query: searchQuery });
+    description = t('searchDescription', { query: searchQuery });
+  } else if (ingredients) {
+    title = t('ingredientsTitle');
+    description = t('ingredientsDescription');
   }
 
-  // Функции для сохранения/удаления рецепта
-  const handleSave = async (recipeId: string) => {
-    if (!token) return;
-    setSavingIds((ids) => [...ids, recipeId]);
-    try {
-      await userRecipesApi.saveRecipe(token, recipeId);
-      // Обновляем сохранённые рецепты
-      setSavedRecipes((prev) =>
-        prev
-          ? [...prev, data.recipes.find((r: Recipe) => r.id === recipeId)!]
-          : prev
-      );
-    } finally {
-      setSavingIds((ids) => ids.filter((id) => id !== recipeId));
-    }
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
   };
-  const handleUnsave = async (recipeId: string) => {
-    if (!token) return;
-    setSavingIds((ids) => [...ids, recipeId]);
+}
+
+export default async function SearchPage({
+  params,
+  searchParams,
+}: SearchPageProps) {
+  const { locale } = await params;
+  const resolvedParams = await searchParams;
+
+  // Валидация параметров
+  const page = parseInt(resolvedParams.page || '1');
+  if (page < 1 || page > 100) {
+    notFound();
+  }
+
+  // Получаем категории ингредиентов на сервере (SSR/SSG)
+  let initialGroupedCategories = [];
+  try {
+    initialGroupedCategories =
+      await ingredientsApi.getGroupedIngredients(locale);
+  } catch (e) {
+    console.error('Failed to load ingredient categories:', e);
+    initialGroupedCategories = [];
+  }
+
+  // Получаем теги фильтров на сервере (SSR/SSG)
+  let initialTags = [];
+  try {
+    initialTags = await recipeApi.getAllTagsSSR();
+  } catch (e) {
+    console.error('Failed to load filter tags:', e);
+    initialTags = [];
+  }
+
+  // Парсим параметры поиска
+  const searchQuery = resolvedParams.q?.trim() || '';
+  const ingredientIds = resolvedParams.ingredients
+    ? resolvedParams.ingredients
+        .split(',')
+        .map((id) => parseInt(id))
+        .filter((id) => !isNaN(id))
+    : [];
+  const mealType = resolvedParams.mealType || 'all';
+  const country = resolvedParams.country || 'all';
+  const dietTags = resolvedParams.dietTags || 'all';
+
+  // Получаем начальные рецепты для SSR (только для первой страницы)
+  let initialRecipes = [];
+  let totalRecipes = 0;
+
+  if (page === 1 && (searchQuery || ingredientIds.length > 0)) {
     try {
-      await userRecipesApi.unsaveRecipe(token, recipeId);
-      setSavedRecipes((prev) =>
-        prev ? prev.filter((r) => r.id !== recipeId) : prev
+      const filters = {
+        offset: 0,
+        limit: 20,
+        mealType: mealType === 'all' ? '' : mealType,
+        country: country === 'all' ? '' : country,
+        dietTags: dietTags === 'all' ? '' : dietTags,
+        search: searchQuery || undefined,
+      };
+
+      const result = await recipeApi.getRecipes(
+        searchQuery ? [] : ingredientIds,
+        filters,
+        locale
       );
-    } finally {
-      setSavingIds((ids) => ids.filter((id) => id !== recipeId));
+
+      initialRecipes = result.recipes || [];
+      totalRecipes = result.total || 0;
+    } catch (e) {
+      console.error('Failed to load initial recipes:', e);
+      initialRecipes = [];
+      totalRecipes = 0;
     }
-  };
+  }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Переключатель между всеми и сохранёнными */}
-      <div className="flex gap-4 mb-8">
-        <Button
-          variant={!showSaved ? 'default' : 'outline'}
-          onClick={() => setShowSaved(false)}
-        >
-          {t('allRecipes')}
-        </Button>
-        <Button
-          variant={showSaved ? 'default' : 'outline'}
-          onClick={() => setShowSaved(true)}
-        >
-          {t('savedRecipes')}
-        </Button>
-      </div>
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('title')}</h1>
-        {/* <p className="text-gray-600">
-          {t('foundWith', { ingredients: searchIngredients.join(', ') })}
-        </p> */}
-        {/* <p className="text-gray-600">{t('foundWith')}</p> */}
-      </div>
-
-      {/* Filters */}
-      {!showSaved && (
-        <div className="mb-8">
-          <RecipeFilters
-            filters={filters}
-            onFiltersChange={setFilters}
+    <div className="min-h-screen bg-gray-50">
+      <div className="flex">
+        <IngredientSidebar
+          className="block sticky top-0 h-screen"
+          initialGroupedCategories={initialGroupedCategories}
+        />
+        <main className="flex-1 h-full overflow-y-auto p-6 mb-10">
+          <SearchPageClient
             locale={locale}
+            initialSearchQuery={searchQuery}
+            initialIngredientIds={ingredientIds}
+            initialMealType={mealType}
+            initialCountry={country}
+            initialDietTags={dietTags}
+            initialPage={page}
+            initialRecipes={initialRecipes}
+            initialTotal={totalRecipes}
+            initialTags={initialTags}
           />
-        </div>
-      )}
-
-      {/* Список рецептов */}
-      {showSaved ? (
-        savedLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="space-y-3">
-                <Skeleton className="h-48 w-full rounded-lg" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </div>
-            ))}
-          </div>
-        ) : savedError ? (
-          <div className="text-center py-12 text-red-600">{savedError}</div>
-        ) : !token ? (
-          <div className="text-center py-12">{t('loginToSeeSaved')}</div>
-        ) : !savedRecipes || savedRecipes.length === 0 ? (
-          <div className="text-center py-12">{t('noSavedRecipes')}</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-            {savedRecipes.map((recipe) => (
-              <RecipeCard
-                key={recipe.id}
-                recipe={recipe}
-                isSaved={true}
-                onSave={() => handleUnsave(recipe.id)}
-              />
-            ))}
-          </div>
-        )
-      ) : (
-        <>
-          {/* Recipe Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-            {data?.recipes.map((recipe: Recipe) => {
-              const isSaved = !!(
-                savedRecipes && savedRecipes.find((r) => r.id === recipe.id)
-              );
-              return (
-                <RecipeCard
-                  key={recipe.id}
-                  recipe={recipe}
-                  isSaved={isSaved}
-                  onSave={() =>
-                    isSaved ? handleUnsave(recipe.id) : handleSave(recipe.id)
-                  }
-                />
-              );
-            })}
-          </div>
-
-          {/* Pagination */}
-          {data && data.totalPages > 1 && (
-            <div className="flex justify-center items-center space-x-4">
-              <Button
-                variant="outline"
-                onClick={() => setPage(page - 1)}
-                disabled={page === 1}
-              >
-                <ChevronLeft className="h-4 w-4 mr-2" />
-                {t('previous')}
-              </Button>
-
-              <span className="text-sm text-gray-600">
-                {t('page', { current: page, total: data.totalPages })}
-              </span>
-
-              <Button
-                variant="outline"
-                onClick={() => setPage(page + 1)}
-                disabled={page === data.totalPages}
-              >
-                {t('next')}
-                <ChevronRight className="h-4 w-4 ml-2" />
-              </Button>
-            </div>
-          )}
-        </>
-      )}
+        </main>
+      </div>
     </div>
   );
 }
