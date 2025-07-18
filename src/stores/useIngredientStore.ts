@@ -4,6 +4,7 @@ import type { Ingredient, IngredientCategory } from '@/types/recipe';
 
 interface IngredientStore {
   selectedIngredients: Ingredient[];
+  selectedIds: number[];
   groupedCategories: IngredientCategory[];
   lastUpdated: number | null;
   language: string | null; // Добавляем язык
@@ -11,6 +12,8 @@ interface IngredientStore {
   removeIngredient: (id: number) => void;
   clearIngredients: () => void;
   hasIngredient: (id: number) => boolean;
+  setSelectedIds: (ids: number[]) => void;
+  getSelectedIds: () => number[];
   setGroupedCategories: (
     categories: IngredientCategory[],
     lang: string
@@ -22,6 +25,7 @@ export const useIngredientStore = create<IngredientStore>()(
   persist(
     (set, get) => ({
       selectedIngredients: [],
+      selectedIds: [],
       groupedCategories: [],
       lastUpdated: null,
       language: null,
@@ -30,15 +34,24 @@ export const useIngredientStore = create<IngredientStore>()(
         if (!current.find((i) => i.id === ingredient.id)) {
           set({ selectedIngredients: [...current, ingredient] });
         }
+        // Также добавляем id в selectedIds
+        const ids = get().selectedIds;
+        if (!ids.includes(ingredient.id)) {
+          set({ selectedIds: [...ids, ingredient.id] });
+        }
       },
-      removeIngredient: (id) =>
+      removeIngredient: (id) => {
         set({
           selectedIngredients: get().selectedIngredients.filter(
             (i) => i.id !== id
           ),
-        }),
-      clearIngredients: () => set({ selectedIngredients: [] }),
+          selectedIds: get().selectedIds.filter((x) => x !== id),
+        });
+      },
+      clearIngredients: () => set({ selectedIngredients: [], selectedIds: [] }),
       hasIngredient: (id) => get().selectedIngredients.some((i) => i.id === id),
+      setSelectedIds: (ids) => set({ selectedIds: ids }),
+      getSelectedIds: () => get().selectedIds,
       setGroupedCategories: (categories, lang) =>
         set({
           groupedCategories: categories,
@@ -57,6 +70,7 @@ export const useIngredientStore = create<IngredientStore>()(
       name: 'ingredient-store',
       partialize: (state) => ({
         selectedIngredients: state.selectedIngredients,
+        selectedIds: state.selectedIds,
         groupedCategories: state.groupedCategories,
         lastUpdated: state.lastUpdated,
         language: state.language,

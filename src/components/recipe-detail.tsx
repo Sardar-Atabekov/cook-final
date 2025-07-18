@@ -39,7 +39,7 @@ export function RecipeDetail({
   onCookDish,
   isSaved = false,
 }: RecipeDetailProps) {
-  const tTags = useTranslations('ux.tags');
+  const tTags = useTranslations('ux.filters');
   const t = useTranslations('recipes');
   const tCommon = useTranslations('common');
   if (!recipe) return null;

@@ -27,13 +27,13 @@ const quickActions: {
     descriptionKey: 'recommendedDescription',
     action: 'suggested',
   },
-  {
-    icon: Clock,
-    color: 'text-brand-green',
-    titleKey: 'quickMeals',
-    descriptionKey: 'quickMealsDescription',
-    action: 'quick',
-  },
+  // {
+  //   icon: Clock,
+  //   color: 'text-brand-green',
+  //   titleKey: 'quickMeals',
+  //   descriptionKey: 'quickMealsDescription',
+  //   action: 'quick',
+  // },
   {
     icon: Star,
     color: 'text-amber-500',
@@ -73,7 +73,7 @@ export function HomePageClient() {
       quick: `/${locale}/recipes?sort=quick`,
       popular: `/${locale}/recipes?sort=popular`,
       random: `/${locale}/recipes?sort=random`,
-      suggested: `/${locale}/recipes?sort=suggested`,
+      suggested: `/${locale}/suggested`,
     };
     router.push(paths[action]);
   };

@@ -1,54 +1,67 @@
-import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import React, { useState, useEffect } from 'react';
 
 interface SearchBarProps {
   placeholder?: string;
-  onSearch: (query: string) => void;
   className?: string;
-  initialValue?: string;
 }
 
 export function SearchBar({
   placeholder = 'Поиск рецептов...',
-  onSearch,
   className,
-  initialValue = '',
 }: SearchBarProps) {
-  const [query, setQuery] = useState(initialValue);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const urlValue = searchParams.get('q') || '';
+  const [value, setValue] = useState(urlValue);
 
-  // Синхронизация с initialValue
+  // Debounce обновления URL
   useEffect(() => {
-    setQuery(initialValue);
-  }, [initialValue]);
+    const handler = setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (value) params.set('q', value);
+      else params.delete('q');
+      params.delete('page');
+      if (value !== urlValue) {
+        router.replace(`?${params.toString()}`, { scroll: false });
+      }
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [value]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSearch(query.trim());
+  // Синхронизация value с urlValue при смене фильтров/URL
+  useEffect(() => {
+    setValue(urlValue);
+  }, [urlValue]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(e.target.value);
   };
 
   const handleClear = () => {
-    setQuery('');
-    onSearch('');
+    setValue('');
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('q');
+    params.delete('page');
+    router.replace(`?${params.toString()}`, { scroll: false });
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className={cn('relative flex items-center', className)}
-    >
+    <div className={cn('relative flex items-center', className)}>
       <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
         <Input
           type="text"
           placeholder={placeholder}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          value={value}
+          onChange={handleChange}
           className="pl-10 pr-10"
         />
-        {query && (
+        {value && (
           <Button
             type="button"
             variant="ghost"
@@ -60,6 +73,6 @@ export function SearchBar({
           </Button>
         )}
       </div>
-    </form>
+    </div>
   );
 }

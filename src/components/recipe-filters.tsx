@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import React, { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -9,48 +10,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import { Filter } from 'lucide-react';
-import { recipeApi } from '@/lib/api';
-import { useQuery } from '@tanstack/react-query';
 import { useTags } from '@/hooks/useTags';
-
-export interface FilterState {
-  mealType: string;
-  country: string;
-  dietTags: string; // dietTags — строка, а не массив
-}
-
-interface Tag {
-  id: number;
-  name: string;
-  tag: string;
-  slug: string;
-  type: 'meal_type' | 'kitchen' | 'diet';
-}
+import { useTranslations } from 'next-intl';
 
 interface RecipeFiltersProps {
-  filters: FilterState;
-  onFiltersChange: (filters: FilterState) => void;
-  initialTags?: Tag[]; // Добавляем поддержку начальных тегов
+  initialTags?: any[];
   locale: string;
 }
 
-function RecipeFiltersMemo({
-  filters,
-  onFiltersChange,
+export function RecipeFilters({
   initialTags = [],
   locale,
 }: RecipeFiltersProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const t = useTranslations('ux.filters');
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const { tags, isLoading, error } = useTags(locale, initialTags);
+
+  const mealType = searchParams.get('mealType') || 'all';
+  const country = searchParams.get('country') || 'all';
+  const dietTags = searchParams.get('dietTags') || 'all';
+  const sorting = searchParams.get('sorting') || 'all';
+  const byTime = searchParams.get('byTime') || 'all';
 
   const mealTypes = useMemo(
     () =>
@@ -66,21 +47,59 @@ function RecipeFiltersMemo({
     [tags]
   );
 
-  const clearFilters = () => {
-    onFiltersChange({
-      mealType: 'all',
-      country: 'all',
-      dietTags: 'all',
-    });
+  const sortingOptions = [
+    { label: t('allSorting'), value: 'all' },
+    { label: t('popular'), value: 'popular' },
+    { label: t('random'), value: 'random' },
+    { label: t('raitings'), value: 'raitings' },
+    { label: t('ingCount'), value: 'ingCount' },
+    { label: t('byTime'), value: 'byTime' },
+  ];
+
+  const byTimeOptions = [
+    { label: t('byTime'), value: 'all' },
+    { label: t('byMinutes', { count: 15 }), value: '15' },
+    { label: t('byMinutes', { count: 30 }), value: '30' },
+    { label: t('byMinutes', { count: 45 }), value: '45' },
+    { label: t('byHours', { count: 1 }), value: '60' },
+    { label: t('byHours', { count: 2 }), value: '120' },
+    { label: t('byHours', { count: 3 }), value: '180' },
+  ];
+
+  const handleChange = (newFilters: {
+    mealType?: string;
+    country?: string;
+    dietTags?: string;
+    sorting?: string;
+    byTime?: string;
+  }) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (newFilters.mealType !== undefined)
+      params.set('mealType', newFilters.mealType);
+    if (newFilters.country !== undefined)
+      params.set('country', newFilters.country);
+    if (newFilters.dietTags !== undefined)
+      params.set('dietTags', newFilters.dietTags);
+    if (newFilters.sorting !== undefined)
+      params.set('sorting', newFilters.sorting);
+    if (newFilters.byTime !== undefined)
+      params.set('byTime', newFilters.byTime);
+    params.delete('page');
+    router.replace(`?${params.toString()}`, { scroll: false });
   };
 
-  const activeFiltersCount =
-    (filters.mealType && filters.mealType !== 'all' ? 1 : 0) +
-    (filters.country && filters.country !== 'all' ? 1 : 0) +
-    (filters.dietTags && filters.dietTags !== 'all' ? 1 : 0);
+  const clearFilters = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('mealType', 'all');
+    params.set('country', 'all');
+    params.set('dietTags', 'all');
+    params.set('sorting', 'all');
+    params.set('byTime', 'all');
+    params.delete('page');
+    router.replace(`?${params.toString()}`, { scroll: false });
+  };
 
-  // Показываем состояние загрузки только если нет начальных данных
-  if (isLoading && initialTags.length === 0) {
+  if (isLoading && tags.length === 0) {
     return (
       <div className="flex items-center space-x-4">
         <div className="animate-pulse">
@@ -96,7 +115,6 @@ function RecipeFiltersMemo({
     );
   }
 
-  // Показываем ошибку
   if (error) {
     return (
       <div className="text-red-500 text-sm">
@@ -105,250 +123,104 @@ function RecipeFiltersMemo({
     );
   }
 
-  const actions = [
-    {
-      label: 'Quick',
-      value: 'quick',
-    },
-    {
-      label: 'Popular',
-      value: 'popular',
-    },
-    {
-      label: 'Random',
-      value: 'random',
-    },
-    {
-      label: 'Suggested',
-      value: 'suggested',
-    },
-  ];
   return (
     <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-      {/* Desktop Filters */}
-      <div className="hidden md:flex items-center space-x-4">
-        <Select
-          value={filters.mealType || 'all'}
-          onValueChange={(value) =>
-            onFiltersChange({ ...filters, mealType: value })
-          }
-        >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Meal Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Meal Types</SelectItem>
-            {mealTypes.length === 0 && (
-              <SelectItem value="" disabled>
-                No meal types available
-              </SelectItem>
-            )}
-            {mealTypes.map((type) => (
-              <SelectItem key={type.id} value={type.id.toString()}>
-                {type.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select
-          value={filters.country || 'all'}
-          onValueChange={(value) =>
-            onFiltersChange({ ...filters, country: value })
-          }
-        >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Country" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Countries</SelectItem>
-            {countries.length === 0 && (
-              <SelectItem value="" disabled>
-                No countries available
-              </SelectItem>
-            )}
-            {countries.map((country) => (
-              <SelectItem key={country.id} value={country.id.toString()}>
-                {country.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select
-          value={filters.dietTags || 'all'}
-          onValueChange={(value) =>
-            onFiltersChange({
-              ...filters,
-              dietTags: value,
-            })
-          }
-        >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Diet" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Diets</SelectItem>
-            {diets.length === 0 && (
-              <SelectItem value="" disabled>
-                No diets available
-              </SelectItem>
-            )}
-            {diets.map((diet) => (
-              <SelectItem key={diet.id} value={diet.id.toString()}>
-                {diet.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          value={filters.country || 'all'}
-          onValueChange={(value) =>
-            onFiltersChange({ ...filters, country: value })
-          }
-        >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Country" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Actions</SelectItem>
-            {actions.map((action) => (
-              <SelectItem key={action.value} value={action.value}>
-                {action.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {activeFiltersCount > 0 && (
-          <Button variant="outline" size="sm" onClick={clearFilters}>
-            Clear Filters ({activeFiltersCount})
-          </Button>
-        )}
-      </div>
-
-      {/* Mobile Filter Sheet */}
-      <div className="md:hidden">
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4 mr-2" />
-              Filters {activeFiltersCount > 0 && `(${activeFiltersCount})`}
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Filter Recipes</SheetTitle>
-              <SheetDescription>
-                Narrow down your recipe search with these filters.
-              </SheetDescription>
-            </SheetHeader>
-
-            <div className="space-y-6 mt-6">
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Meal Type
-                </label>
-                <Select
-                  value={filters.mealType || 'all'}
-                  onValueChange={(value) =>
-                    onFiltersChange({ ...filters, mealType: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select meal type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Meal Types</SelectItem>
-                    {mealTypes.length === 0 && (
-                      <SelectItem value="" disabled>
-                        No meal types available
-                      </SelectItem>
-                    )}
-                    {mealTypes.map((type) => (
-                      <SelectItem key={type.id} value={type.id.toString()}>
-                        {type.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Country
-                </label>
-                <Select
-                  value={filters.country || 'all'}
-                  onValueChange={(value) =>
-                    onFiltersChange({ ...filters, country: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select country" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Countries</SelectItem>
-                    {countries.length === 0 && (
-                      <SelectItem value="" disabled>
-                        No countries available
-                      </SelectItem>
-                    )}
-                    {countries.map((country) => (
-                      <SelectItem
-                        key={country.id}
-                        value={country.id.toString()}
-                      >
-                        {country.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium mb-2 block">Diet</label>
-                <Select
-                  value={filters.dietTags || 'all'}
-                  onValueChange={(value) =>
-                    onFiltersChange({
-                      ...filters,
-                      dietTags: value,
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select diet" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Diets</SelectItem>
-                    {diets.length === 0 && (
-                      <SelectItem value="" disabled>
-                        No diets available
-                      </SelectItem>
-                    )}
-                    {diets.map((diet) => (
-                      <SelectItem key={diet.id} value={diet.id.toString()}>
-                        {diet.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <Button
-                onClick={clearFilters}
-                variant="outline"
-                className="w-full bg-transparent"
-              >
-                Clear All Filters
-              </Button>
-            </div>
-          </SheetContent>
-        </Sheet>
-      </div>
+      <Select
+        value={mealType}
+        onValueChange={(value) => handleChange({ mealType: value })}
+      >
+        <SelectTrigger className="w-40">
+          <SelectValue placeholder="Meal Type" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">{t('allMealTypes')}</SelectItem>
+          {mealTypes.length === 0 && (
+            <SelectItem value="" disabled>
+              {t('noMealTypesAvailable')}
+            </SelectItem>
+          )}
+          {mealTypes.map((type) => (
+            <SelectItem key={type.id} value={type.id.toString()}>
+              {t(type.slug)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select
+        value={country}
+        onValueChange={(value) => handleChange({ country: value })}
+      >
+        <SelectTrigger className="w-40">
+          <SelectValue placeholder="Country" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">{t('allCountries')}</SelectItem>
+          {countries.length === 0 && (
+            <SelectItem value="" disabled>
+              {t('noCountriesAvailable')}
+            </SelectItem>
+          )}
+          {countries.map((type) => (
+            <SelectItem key={type.id} value={type.id.toString()}>
+              {t(type.slug)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select
+        value={dietTags}
+        onValueChange={(value) => handleChange({ dietTags: value })}
+      >
+        <SelectTrigger className="w-40">
+          <SelectValue placeholder="Diet" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">{t('allDiets')}</SelectItem>
+          {diets.length === 0 && (
+            <SelectItem value="" disabled>
+              {t('noDietsAvailable')}
+            </SelectItem>
+          )}
+          {diets.map((type) => (
+            <SelectItem key={type.id} value={type.id.toString()}>
+              {t(type.slug)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select
+        value={sorting}
+        onValueChange={(value) => handleChange({ sorting: value })}
+      >
+        <SelectTrigger className="w-40">
+          <SelectValue placeholder="Sorting" />
+        </SelectTrigger>
+        <SelectContent>
+          {sortingOptions.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select
+        value={byTime}
+        onValueChange={(value) => handleChange({ byTime: value })}
+      >
+        <SelectTrigger className="w-40">
+          <SelectValue placeholder="By Time" />
+        </SelectTrigger>
+        <SelectContent>
+          {byTimeOptions.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Button variant="outline" size="sm" onClick={clearFilters}>
+        {t('clearFilters')}
+      </Button>
     </div>
   );
 }
-
-export const RecipeFilters = React.memo(RecipeFiltersMemo);

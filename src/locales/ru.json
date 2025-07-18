@@ -29,12 +29,12 @@
     "addFirstIngredient": "Добавьте первый ингредиент",
     "quickMeals": "Быстрые блюда",
     "quickMealsDescription": "Идеи для быстрых блюд, которые можно приготовить за 30 минут или меньше",
-    "popularToday": "Популярные рецепты сегодня",
-    "trendingRecipes": "Самые популярные рецепты, которые ищут сегодня",
+    "popularToday": "Популярные рецепты",
+    "trendingRecipes": "Самые популярные рецепты",
     "surpriseMe": "Случайный рецепт",
     "randomRecipe": "Не знаете, что приготовить? Попробуйте наш случайный рецепт",
-    "recommended": "Рекомендованные рецепты",
-    "recommendedDescription": "Рекомендованные рецепты для вас"
+    "recommended": "Не знаете, что приготовить?",
+    "recommendedDescription": "Попробуйте наш рекомендованный рецепт"
   },
   "ux": {
     "input": {
@@ -56,18 +56,22 @@
       "showLess": "Показать меньше",
       "showMore": "Показать больше"
     },
-    "tags": {
+    "filters": {
       "appetizer": "Закуски",
       "breakfast": "Завтрак",
       "lunch": "Обед",
-      "bakedGoods": "Выпечка",
+      "baked-goods": "Выпечка",
       "desserts": "Десерты",
       "salads": "Салаты",
-      "mainDish": "Основное блюдо",
-      "sideDish": "Второе блюдо",
+      "main": "Основное блюдо",
+      "side": "Второе блюдо",
       "soups": "Супы и бульоны",
       "special": "Специальные случаи",
       "all": "Все",
+      "allMealTypes": "Все типы блюд",
+      "allCountries": "Все кухни",
+      "allDiets": "Все диеты",
+      "allSorting": "Все сортировки",
       "african": "Африканская",
       "american": "Американская",
       "asian": "Азиатская",
@@ -92,7 +96,19 @@
       "vegan": "Веганское",
       "vegetarian": "Вегетарианское",
       "lactose-free": "Без лактозы",
-      "gluten-free": "Без глютена"
+      "gluten-free": "Без глютена",
+      "noMealTypesAvailable": "Нет доступных типов блюд",
+      "noCountriesAvailable": "Нет доступных стран",
+      "noDietsAvailable": "Нет доступных диет",
+      "popular": "Популярные",
+      "random": "Случайные",
+      "raitings": "По рейтингу",
+      "ingCount": "По количеству ингредиентов",
+      "clearAllFilters": "Очистить все фильтры",
+      "byTime": "По времени приготовления",
+      "byMinutes": "{count} минут",
+      "byHours": "{count} часов",
+      "clearFilters": "Очистить фильтры"
     }
   },
   "recipeDetail": {
@@ -291,7 +307,7 @@
     "searchDescription": "Найдите лучшие рецепты, соответствующие \"{query}\". Откройте новые блюда и вдохновение для готовки.",
     "ingredientsTitle": "Рецепты по ингредиентам - Поиск рецептов",
     "ingredientsDescription": "Найдите рецепты на основе ингредиентов, которые есть у вас дома. Больше не нужно думать, что приготовить!",
-    "searchResultsTitle": "Результаты поиска: \"{query}\"",
+    "searchResultsTitle": "Результаты поиска",
     "allRecipesTitle": "Все рецепты",
     "personalizedRecipesTitle": "Рецепты для вас",
     "searchResultsCount": "Найдено {count} рецептов",

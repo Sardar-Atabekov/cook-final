@@ -1,9 +1,9 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ingredientsApi, recipeApi } from '@/lib/api';
-import { IngredientSidebar } from '@/components/ingredient-sidebar';
-import { SearchPageClient } from '@/components/search-page-client';
 import { getTranslations } from 'next-intl/server';
+import ClientRecipePageLayout from './ClientRecipePageLayout';
+// Не импортирую клиентские компоненты и хуки здесь
 
 // Кэшируем страницу на 7 дней для ускорения загрузки
 export const revalidate = 604800;
@@ -102,58 +102,47 @@ export default async function SearchPage({
   const country = resolvedParams.country || 'all';
   const dietTags = resolvedParams.dietTags || 'all';
 
-  // Получаем начальные рецепты для SSR (только для первой страницы)
-  let initialRecipes = [];
-  let totalRecipes = 0;
-
-  if (page === 1 && (searchQuery || ingredientIds.length > 0)) {
-    try {
-      const filters = {
-        offset: 0,
-        limit: 20,
-        mealType: mealType === 'all' ? '' : mealType,
-        country: country === 'all' ? '' : country,
-        dietTags: dietTags === 'all' ? '' : dietTags,
-        search: searchQuery || undefined,
-      };
-
-      const result = await recipeApi.getRecipes(
-        searchQuery ? [] : ingredientIds,
-        filters,
-        locale
-      );
-
-      initialRecipes = result.recipes || [];
-      totalRecipes = result.total || 0;
-    } catch (e) {
-      console.error('Failed to load initial recipes:', e);
-      initialRecipes = [];
-      totalRecipes = 0;
-    }
+  // Получаем рецепты для SSR (поиск и фильтрация на сервере)
+  let recipes = [];
+  let total = 0;
+  const isLoading = false;
+  let error = null;
+  try {
+    const filters = {
+      offset: (page - 1) * 20,
+      limit: 20,
+      mealType: mealType === 'all' ? '' : mealType,
+      country: country === 'all' ? '' : country,
+      dietTags: dietTags === 'all' ? '' : dietTags,
+      search: searchQuery || undefined,
+    };
+    const result = await recipeApi.getRecipes(
+      searchQuery ? [] : ingredientIds,
+      filters,
+      locale
+    );
+    recipes = result.recipes || [];
+    total = result.total || 0;
+  } catch (e) {
+    error = e instanceof Error ? e : new Error('Failed to load recipes');
+    recipes = [];
+    total = 0;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex">
-        <IngredientSidebar
-          className="block sticky top-0 h-screen"
-          initialGroupedCategories={initialGroupedCategories}
-        />
-        <main className="flex-1 h-full overflow-y-auto p-6 mb-10">
-          <SearchPageClient
-            locale={locale}
-            initialSearchQuery={searchQuery}
-            initialIngredientIds={ingredientIds}
-            initialMealType={mealType}
-            initialCountry={country}
-            initialDietTags={dietTags}
-            initialPage={page}
-            initialRecipes={initialRecipes}
-            initialTotal={totalRecipes}
-            initialTags={initialTags}
-          />
-        </main>
-      </div>
-    </div>
+    <ClientRecipePageLayout
+      searchQuery={searchQuery}
+      mealType={mealType}
+      country={country}
+      dietTags={dietTags}
+      recipes={recipes}
+      total={total}
+      isLoading={isLoading}
+      error={error}
+      initialGroupedCategories={initialGroupedCategories}
+      initialTags={initialTags}
+      locale={locale}
+      page={page}
+    />
   );
 }

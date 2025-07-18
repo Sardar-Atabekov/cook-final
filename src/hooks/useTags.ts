@@ -38,57 +38,84 @@ function setCache(lang: string, tags: any[]) {
 }
 
 export function useTags(lang: string, initialTags?: any[]) {
-  const tagsStore = useTagsStore();
-  // Если initialTags есть и не пустой — используем их как источник правды
-  // Если initialTags пустой, но store не пустой — используем store
+  const {
+    getTags,
+    setTags: setTagsStore,
+    isCacheStale,
+    setCurrentLocale,
+  } = useTagsStore();
+
+  // Мгновенно берём из initialTags или store
+  const storeTags = getTags(lang);
   const [tags, setTags] = useState<any[]>(() => {
     if (initialTags && initialTags.length > 0) return initialTags;
-    if (tagsStore.tags && tagsStore.tags.length > 0) return tagsStore.tags;
+    if (storeTags && storeTags.length > 0) return storeTags;
     if (typeof window !== 'undefined') {
       const cached = getCache(lang);
       if (cached) return cached;
     }
     return [];
   });
-  const [isLoading, setIsLoading] = useState(tags.length === 0);
+  // isLoading только если нет initialTags и store пуст
+  const [isLoading, setIsLoading] = useState(
+    !(initialTags && initialTags.length > 0) &&
+      (!storeTags || storeTags.length === 0)
+  );
   const [error, setError] = useState<null | Error>(null);
 
   const fetchTags = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const freshTags = await recipeApi.getAllTags();
+      const freshTags = await recipeApi.getAllTags(lang);
       setTags(freshTags);
+      setTagsStore(freshTags, lang);
       setCache(lang, freshTags);
     } catch (e: any) {
       setError(e);
     } finally {
       setIsLoading(false);
     }
-  }, [lang]);
+  }, [lang, setTagsStore]);
 
-  // При монтировании или смене языка
   useEffect(() => {
+    setCurrentLocale(lang);
     // Если initialTags есть и не пустой — не делаем запрос
     if (initialTags && initialTags.length > 0) {
       setTags(initialTags);
+      setTagsStore(initialTags, lang);
       setIsLoading(false);
       return;
     }
     // Если store не пустой — используем store
-    if (tagsStore.tags && tagsStore.tags.length > 0) {
-      setTags(tagsStore.tags);
+    if (storeTags && storeTags.length > 0) {
+      setTags(storeTags);
       setIsLoading(false);
+      // Проверяем, не устарел ли кэш
+      if (isCacheStale(lang)) {
+        fetchTags();
+      }
       return;
     }
+    // Если есть кэш в localStorage
     const cached = getCache(lang);
     if (cached) {
       setTags(cached);
+      setTagsStore(cached, lang);
       setIsLoading(false);
+      fetchTags(); // всё равно обновим на свежие
     } else {
       fetchTags();
     }
-  }, [lang, fetchTags, initialTags, tagsStore.tags]);
+  }, [
+    lang,
+    fetchTags,
+    initialTags,
+    storeTags,
+    setTagsStore,
+    isCacheStale,
+    setCurrentLocale,
+  ]);
 
   // Позволяет вручную обновить теги
   const refreshTags = fetchTags;
