@@ -3,7 +3,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useEffect, useState } from 'react';
 import { RecipeCard } from '@/components/recipe-card';
 import type { Recipe } from '@/lib/api';
-
+import { baseUrl } from '@/lib/api';
 export default function CookClientPart() {
   const { token, hydrated } = useAuthStore();
   const [recipes, setRecipes] = useState<Recipe[] | null>(null);
@@ -14,7 +14,7 @@ export default function CookClientPart() {
     if (!hydrated || !token) return;
     setLoading(true);
     setError(null);
-    fetch('http://localhost:5005/api/user/cooked-recipes', {
+    fetch(`${baseUrl}user/cooked-recipes`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {

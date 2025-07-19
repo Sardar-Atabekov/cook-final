@@ -1,8 +1,13 @@
 import { Ingredient, RecipeIngredient } from '@/types/recipe';
 import axios from 'axios';
 
+export const baseUrl =
+  process.env.NODE_ENV === 'production'
+    ? process.env.NEXT_PUBLIC_SERVER
+    : 'http://localhost:5000/api/';
+
 const api = axios.create({
-  baseURL: 'http://localhost:5005/api/',
+  baseURL: baseUrl,
 });
 
 export interface Recipe {
@@ -64,12 +69,13 @@ export const ingredientsApi = {
 
   getGroupedIngredients: async (lang: string) => {
     // Используем fetch с кэшированием для ускорения загрузки
-    const response = await fetch(
-      `http://localhost:5005/api/ingredients/grouped?lang=${lang}`,
-      {
-        next: { revalidate: 7 * 24 * 60 * 60 }, // Кэшируем на 7 дней
-      }
-    );
+    const baseUrl =
+      process.env.NODE_ENV === 'production'
+        ? process.env.NEXT_PUBLIC_SERVER
+        : 'http://localhost:5000/api/';
+    const response = await fetch(`${baseUrl}ingredients/grouped?lang=${lang}`, {
+      next: { revalidate: 7 * 24 * 60 * 60 }, // Кэшируем на 7 дней
+    });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -146,7 +152,11 @@ export const recipeApi = {
   // SSR версия с кешированием
   getAllTagsSSR: async () => {
     try {
-      const response = await fetch('http://localhost:5005/api/recipes/tags', {
+      const baseUrl =
+        process.env.NODE_ENV === 'production'
+          ? process.env.NEXT_PUBLIC_SERVER
+          : 'http://localhost:5000/api/';
+      const response = await fetch(`${baseUrl}recipes/tags`, {
         next: { revalidate: 7 * 24 * 60 * 60 }, // Кэшируем на 7 дней
       });
 
@@ -212,3 +222,5 @@ export const userRecipesApi = {
     return response.data;
   },
 };
+
+export default api;

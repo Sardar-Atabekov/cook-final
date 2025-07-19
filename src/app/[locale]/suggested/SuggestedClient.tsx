@@ -16,7 +16,6 @@ import type { Recipe } from '@/lib/api';
 import Head from 'next/head';
 import { recipeApi } from '@/lib/api';
 import { SuggestedSection } from '@/components/suggested-section';
-import { useTags } from '@/hooks/useTags';
 import { useTagsStore } from '@/stores/useTagsStore';
 
 function toRecipe(recipe: RecipeWithIngredients | null): Recipe | null {
@@ -73,8 +72,10 @@ export function SuggestedClient({
   const [selectedRecipe, setSelectedRecipe] =
     useState<RecipeWithIngredients | null>(null);
   const t = useTranslations('suggested');
-  const { tags } = useTags(locale, initialTags);
-  const setTags = useTagsStore((state) => state.setTags);
+  const { tags, setTags } = useTagsStore((state) => ({
+    tags: state.getTags(locale),
+    setTags: state.setTags,
+  }));
 
   // Сохраняем initialTags в глобальный store при первом рендере
   useEffect(() => {
@@ -84,20 +85,30 @@ export function SuggestedClient({
   }, [initialTags, locale]);
 
   // Получаем mealTypes (теги) с initialData
-  const mealTypes = Array.isArray(tags)
-    ? tags.filter((t: any) => t.type === 'meal_type')
+  const availableTags = tags.length > 0 ? tags : initialTags;
+  const mealTypes = Array.isArray(availableTags)
+    ? availableTags.filter((t: any) => t.type === 'meal_type')
     : [];
+
+  // Отладочная информация
+  console.log('Tags from store:', tags);
+  console.log('Available tags:', availableTags);
+  console.log('Meal types:', mealTypes);
+  console.log('Initial tags:', initialTags);
 
   function getMealTypeId(type: string): string | undefined {
     const found = mealTypes.find(
       (t: any) => t.slug === type || t.name.toLowerCase() === type
     );
+    console.log(`Looking for ${type}, found:`, found);
     return found ? found.id.toString() : undefined;
   }
 
   const breakfastId = getMealTypeId('breakfast');
   const lunchId = getMealTypeId('lunch');
   const dinnerId = getMealTypeId('main');
+
+  console.log('Meal type IDs:', { breakfastId, lunchId, dinnerId });
 
   // Получаем рецепты для каждого типа с initialData
   const {
