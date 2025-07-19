@@ -1,5 +1,8 @@
 import { create } from 'zustand';
 
+// Стабильная ссылка на пустой массив
+const EMPTY_ARRAY: any[] = [];
+
 interface TagsState {
   tagsByLocale: { [locale: string]: any[] };
   lastUpdatedByLocale: { [locale: string]: number };
@@ -24,7 +27,10 @@ export const useTagsStore = create<TagsState>((set, get) => ({
       },
       currentLocale: locale,
     })),
-  getTags: (locale) => get().tagsByLocale[locale] || [],
+  getTags: (locale) => {
+    const tags = get().tagsByLocale[locale];
+    return tags || EMPTY_ARRAY;
+  },
   isCacheStale: (locale) => {
     const last = get().lastUpdatedByLocale[locale];
     if (!last) return true;

@@ -1,7 +1,8 @@
 'use client';
+
 import { useQuery } from '@tanstack/react-query';
 import { useIngredientStore } from '@/stores/useIngredientStore';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Clock, Coffee, Sun, Moon, RefreshCw } from 'lucide-react';
 import { RecipeCard } from '@/components/recipe-card';
 import { RecipeDetail } from '@/components/recipe-detail';
@@ -11,15 +12,46 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
-import type { RecipeWithIngredients } from '@/types/recipe';
-import type { Recipe } from '@/lib/api';
 import Head from 'next/head';
 import { recipeApi } from '@/lib/api';
 import { SuggestedSection } from '@/components/suggested-section';
-import { useTagsStore } from '@/stores/useTagsStore';
+import type { RecipeWithIngredients } from '@/types/recipe';
+import type { Recipe } from '@/lib/api';
 
+// Constants
+const MEAL_TIME_CONFIG = {
+  breakfast: {
+    startHour: 6,
+    endHour: 12,
+    icon: Coffee,
+    color: 'text-amber-600',
+    slug: 'breakfast',
+    id: '2',
+  },
+  lunch: {
+    startHour: 12,
+    endHour: 16,
+    icon: Sun,
+    color: 'text-yellow-600',
+    slug: 'lunch',
+    id: '3',
+  },
+  dinner: {
+    startHour: 16,
+    endHour: 24,
+    icon: Moon,
+    color: 'text-blue-600',
+    slug: 'main',
+    id: '7',
+  },
+} as const;
+
+type MealType = keyof typeof MEAL_TIME_CONFIG;
+
+// Helper function to convert RecipeWithIngredients to Recipe
 function toRecipe(recipe: RecipeWithIngredients | null): Recipe | null {
   if (!recipe) return null;
+
   return {
     description: recipe.description || '',
     cookTime: (recipe as any).cookTime || 0,
@@ -50,9 +82,68 @@ function toRecipe(recipe: RecipeWithIngredients | null): Recipe | null {
   };
 }
 
+// Hook for determining current meal type based on time
+function useCurrentMealType(): MealType {
+  const [currentMealType, setCurrentMealType] = useState<MealType>('dinner');
+
+  useEffect(() => {
+    const updateMealType = () => {
+      const hour = new Date().getHours();
+
+      for (const [mealType, config] of Object.entries(MEAL_TIME_CONFIG)) {
+        if (hour >= config.startHour && hour < config.endHour) {
+          setCurrentMealType(mealType as MealType);
+          return;
+        }
+      }
+
+      // Default to dinner if no match (shouldn't happen with current ranges)
+      setCurrentMealType('dinner');
+    };
+
+    updateMealType();
+
+    // Update meal type every minute
+    const interval = setInterval(updateMealType, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return currentMealType;
+}
+
+// Custom hook for meal type queries
+function useMealTypeQuery(
+  mealTypeId: string | undefined,
+  ingredientIds: number[],
+  locale: string,
+  initialData: RecipeWithIngredients[]
+) {
+  return useQuery({
+    queryKey: ['suggested', ingredientIds, mealTypeId, locale],
+    enabled: !!mealTypeId,
+    queryFn: async () => {
+      if (!mealTypeId) return [];
+
+      const filters = {
+        offset: 0,
+        limit: 20,
+        mealType: mealTypeId,
+        country: '',
+        dietTags: '',
+      };
+
+      const result = await recipeApi.getRecipes(ingredientIds, filters, locale);
+      return result.recipes || [];
+    },
+    initialData,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+}
+
 interface SuggestedClientProps {
   locale: string;
-  initialTags: any[];
   initialBreakfast: RecipeWithIngredients[];
   initialLunch: RecipeWithIngredients[];
   initialDinner: RecipeWithIngredients[];
@@ -61,175 +152,97 @@ interface SuggestedClientProps {
 
 export function SuggestedClient({
   locale,
-  initialTags,
   initialBreakfast,
   initialLunch,
   initialDinner,
   initialRandom,
 }: SuggestedClientProps) {
   const { selectedIngredients } = useIngredientStore();
-  const ingredientIds = selectedIngredients.map((i) => i.id);
+  const ingredientIds = useMemo(
+    () => selectedIngredients.map((i) => i.id),
+    [selectedIngredients]
+  );
+
   const [selectedRecipe, setSelectedRecipe] =
     useState<RecipeWithIngredients | null>(null);
   const t = useTranslations('suggested');
-  const { tags, setTags } = useTagsStore((state) => ({
-    tags: state.getTags(locale),
-    setTags: state.setTags,
-  }));
+  const currentMealType = useCurrentMealType();
+  const [activeTab, setActiveTab] = useState<MealType>(currentMealType);
 
-  // Сохраняем initialTags в глобальный store при первом рендере
+  // Update active tab when current meal type changes
   useEffect(() => {
-    if (initialTags && initialTags.length > 0) {
-      setTags(initialTags, locale);
+    setActiveTab(currentMealType);
+  }, [currentMealType]);
+
+  // Get meal type IDs directly from config
+  const mealTypeIds = useMemo(
+    () => ({
+      breakfast: MEAL_TIME_CONFIG.breakfast.id,
+      lunch: MEAL_TIME_CONFIG.lunch.id,
+      dinner: MEAL_TIME_CONFIG.dinner.id,
+    }),
+    []
+  );
+
+  // Queries for each meal type
+  const breakfastQuery = useMealTypeQuery(
+    mealTypeIds.breakfast,
+    ingredientIds,
+    locale,
+    initialBreakfast
+  );
+  const lunchQuery = useMealTypeQuery(
+    mealTypeIds.lunch,
+    ingredientIds,
+    locale,
+    initialLunch
+  );
+  const dinnerQuery = useMealTypeQuery(
+    mealTypeIds.dinner,
+    ingredientIds,
+    locale,
+    initialDinner
+  );
+
+  // Loading and error states
+  const isLoading =
+    breakfastQuery.isLoading || lunchQuery.isLoading || dinnerQuery.isLoading;
+  const error = breakfastQuery.error || lunchQuery.error || dinnerQuery.error;
+
+  // Refresh function
+  const handleRefresh = useCallback(() => {
+    breakfastQuery.refetch();
+    lunchQuery.refetch();
+    dinnerQuery.refetch();
+  }, [breakfastQuery, lunchQuery, dinnerQuery]);
+
+  // Get current meal configuration
+  const currentMealConfig = MEAL_TIME_CONFIG[activeTab];
+  const MealIcon = currentMealConfig.icon;
+
+  // Get current recipes based on active tab
+  const currentRecipes = useMemo(() => {
+    switch (activeTab) {
+      case 'breakfast':
+        return breakfastQuery.data || [];
+      case 'lunch':
+        return lunchQuery.data || [];
+      case 'dinner':
+        return dinnerQuery.data || [];
+      default:
+        return [];
     }
-  }, [initialTags, locale]);
+  }, [activeTab, breakfastQuery.data, lunchQuery.data, dinnerQuery.data]);
 
-  // Получаем mealTypes (теги) с initialData
-  const availableTags = tags.length > 0 ? tags : initialTags;
-  const mealTypes = Array.isArray(availableTags)
-    ? availableTags.filter((t: any) => t.type === 'meal_type')
-    : [];
-
-  // Отладочная информация
-  console.log('Tags from store:', tags);
-  console.log('Available tags:', availableTags);
-  console.log('Meal types:', mealTypes);
-  console.log('Initial tags:', initialTags);
-
-  function getMealTypeId(type: string): string | undefined {
-    const found = mealTypes.find(
-      (t: any) => t.slug === type || t.name.toLowerCase() === type
-    );
-    console.log(`Looking for ${type}, found:`, found);
-    return found ? found.id.toString() : undefined;
-  }
-
-  const breakfastId = getMealTypeId('breakfast');
-  const lunchId = getMealTypeId('lunch');
-  const dinnerId = getMealTypeId('main');
-
-  console.log('Meal type IDs:', { breakfastId, lunchId, dinnerId });
-
-  // Получаем рецепты для каждого типа с initialData
-  const {
-    data: breakfastRecipes = [],
-    isLoading: isBreakfastLoading,
-    error: breakfastError,
-    refetch: refetchBreakfast,
-  } = useQuery({
-    queryKey: ['suggested', ingredientIds, breakfastId, locale],
-    enabled: !!breakfastId,
-    queryFn: async () => {
-      const filters = {
-        offset: 0,
-        limit: 20,
-        mealType: breakfastId!,
-        country: '',
-        dietTags: '',
-      };
-      const result = await recipeApi.getRecipes(ingredientIds, filters, locale);
-      return result.recipes || [];
-    },
-    initialData: initialBreakfast,
-  });
-  const {
-    data: lunchRecipes = [],
-    isLoading: isLunchLoading,
-    error: lunchError,
-    refetch: refetchLunch,
-  } = useQuery({
-    queryKey: ['suggested', ingredientIds, lunchId, locale],
-    enabled: !!lunchId,
-    queryFn: async () => {
-      const filters = {
-        offset: 0,
-        limit: 20,
-        mealType: lunchId!,
-        country: '',
-        dietTags: '',
-      };
-      const result = await recipeApi.getRecipes(ingredientIds, filters, locale);
-      return result.recipes || [];
-    },
-    initialData: initialLunch,
-  });
-  const {
-    data: dinnerRecipes = [],
-    isLoading: isDinnerLoading,
-    error: dinnerError,
-    refetch: refetchDinner,
-  } = useQuery({
-    queryKey: ['suggested', ingredientIds, dinnerId, locale],
-    enabled: !!dinnerId,
-    queryFn: async () => {
-      const filters = {
-        offset: 0,
-        limit: 20,
-        mealType: dinnerId!,
-        country: '',
-        dietTags: '',
-      };
-      const result = await recipeApi.getRecipes(ingredientIds, filters, locale);
-      return result.recipes || [];
-    },
-    initialData: initialDinner,
-  });
-
-  const isLoading = isBreakfastLoading || isLunchLoading || isDinnerLoading;
-  const error = breakfastError || lunchError || dinnerError;
-  const handleRefresh = () => {
-    refetchBreakfast();
-    refetchLunch();
-    refetchDinner();
-  };
-
-  // --- Определяем mealType по локальному времени пользователя ---
-  const [localMealType, setLocalMealType] = useState<
-    'breakfast' | 'lunch' | 'dinner'
-  >('dinner');
-  const [mealIcon, setMealIcon] = useState<'coffee' | 'sun' | 'moon'>('moon');
-  const [mealColor, setMealColor] = useState('text-slate-600');
-  useEffect(() => {
-    const hour = new Date().getHours();
-    if (hour > 6 && hour < 12) {
-      setLocalMealType('breakfast');
-      setMealIcon('coffee');
-      setMealColor('text-amber-600');
-    } else if (hour > 12 && hour < 16) {
-      setLocalMealType('lunch');
-      setMealIcon('sun');
-      setMealColor('text-yellow-600');
-    } else {
-      setLocalMealType('dinner');
-      setMealIcon('moon');
-      setMealColor('text-blue-600');
-    }
+  // Callback for recipe clicks
+  const handleRecipeClick = useCallback((recipe: RecipeWithIngredients) => {
+    setSelectedRecipe(recipe);
   }, []);
-  const MealIcon =
-    mealIcon === 'coffee' ? Coffee : mealIcon === 'sun' ? Sun : Moon;
 
-  // --- Мемоизация списков рецептов ---
-  const memoBreakfastRecipes = useMemo(
-    () => breakfastRecipes,
-    [breakfastRecipes]
-  );
-  const memoLunchRecipes = useMemo(() => lunchRecipes, [lunchRecipes]);
-  const memoDinnerRecipes = useMemo(() => dinnerRecipes, [dinnerRecipes]);
-  const memoRandomRecipes = useMemo(() => initialRandom, [initialRandom]);
-
-  // --- Табы для выбора времени суток ---
-  const [activeTab, setActiveTab] = useState<'breakfast' | 'lunch' | 'dinner'>(
-    localMealType
-  );
-  useEffect(() => {
-    setActiveTab(localMealType);
-  }, [localMealType]);
-
-  // --- Главный блок ---
-  let currentRecipes: RecipeWithIngredients[] = [];
-  if (activeTab === 'breakfast') currentRecipes = memoBreakfastRecipes;
-  else if (activeTab === 'lunch') currentRecipes = memoLunchRecipes;
-  else if (activeTab === 'dinner') currentRecipes = memoDinnerRecipes;
+  // Close recipe detail
+  const handleCloseRecipeDetail = useCallback(() => {
+    setSelectedRecipe(null);
+  }, []);
 
   return (
     <>
@@ -252,7 +265,9 @@ export function SuggestedClient({
           {/* Header Section */}
           <div className="text-center mb-12">
             <div className="flex items-center justify-center mb-4">
-              <MealIcon className={`h-12 w-12 ${mealColor} mr-3`} />
+              <MealIcon
+                className={`h-12 w-12 ${currentMealConfig.color} mr-3`}
+              />
               <h1 className="text-3xl font-bold text-slate-900">
                 {t('suggestedFor', { mealType: t(activeTab, {}) })}
               </h1>
@@ -263,44 +278,41 @@ export function SuggestedClient({
                 ' ' +
                   t('withIngredients', { count: selectedIngredients.length })}
             </p>
-            {/* Табы для выбора времени суток */}
+
+            {/* Meal type tabs */}
             <div className="flex justify-center gap-4 mt-6">
-              <Button
-                variant={activeTab === 'breakfast' ? 'default' : 'outline'}
-                onClick={() => setActiveTab('breakfast')}
-                className="flex items-center"
-              >
-                <Coffee className="h-4 w-4 mr-2 text-amber-600" />
-                {t('breakfast', {})}
-              </Button>
-              <Button
-                variant={activeTab === 'lunch' ? 'default' : 'outline'}
-                onClick={() => setActiveTab('lunch')}
-                className="flex items-center"
-              >
-                <Sun className="h-4 w-4 mr-2 text-yellow-600" />
-                {t('lunch', {})}
-              </Button>
-              <Button
-                variant={activeTab === 'dinner' ? 'default' : 'outline'}
-                onClick={() => setActiveTab('dinner')}
-                className="flex items-center"
-              >
-                <Moon className="h-4 w-4 mr-2 text-blue-600" />
-                {t('dinner', {})}
-              </Button>
+              {(
+                Object.entries(MEAL_TIME_CONFIG) as [
+                  MealType,
+                  (typeof MEAL_TIME_CONFIG)[MealType],
+                ][]
+              ).map(([type, config]) => {
+                const Icon = config.icon;
+                return (
+                  <Button
+                    key={type}
+                    variant={activeTab === type ? 'default' : 'outline'}
+                    onClick={() => setActiveTab(type)}
+                    className="flex items-center"
+                  >
+                    <Icon className={`h-4 w-4 mr-2 ${config.color}`} />
+                    {t(type, {})}
+                  </Button>
+                );
+              })}
             </div>
           </div>
 
           {/* Error Handling */}
           {error && (
             <Card className="mb-8 text-center">
-              <CardContent>
+              <CardContent className="pt-6">
                 <h3 className="text-lg font-medium text-red-600 mb-2">
                   {t('failedToLoad', {})}
                 </h3>
                 <p className="text-slate-600 mb-4">{t('tryRefresh', {})}</p>
                 <Button onClick={handleRefresh} variant="outline">
+                  <RefreshCw className="h-4 w-4 mr-2" />
                   {t('retry', {})}
                 </Button>
               </CardContent>
@@ -311,11 +323,13 @@ export function SuggestedClient({
           <section className="mb-12">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-slate-900 flex items-center">
-                <MealIcon className={`h-6 w-6 ${mealColor} mr-2`} />
+                <MealIcon
+                  className={`h-6 w-6 ${currentMealConfig.color} mr-2`}
+                />
                 {t('perfectFor', { mealType: t(activeTab, {}) })}
               </h2>
               {selectedIngredients.length > 0 && (
-                <Link href={`/${locale}/recipes`} legacyBehavior>
+                <Link href={`/${locale}/recipes`}>
                   <Button size="sm" className="bg-brand-blue hover:bg-blue-700">
                     {t('searchWithIngredients')}
                   </Button>
@@ -324,44 +338,26 @@ export function SuggestedClient({
             </div>
 
             {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="bg-white rounded-xl shadow-sm border border-slate-200 animate-pulse"
-                  >
-                    <div className="w-full h-48 bg-slate-200 rounded-t-xl"></div>
-                    <div className="p-4">
-                      <div className="h-4 bg-slate-200 rounded mb-2"></div>
-                      <div className="h-3 bg-slate-200 rounded mb-4"></div>
-                      <div className="flex justify-between">
-                        <div className="h-3 bg-slate-200 rounded w-16"></div>
-                        <div className="h-3 bg-slate-200 rounded w-12"></div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <RecipesGridSkeleton />
             ) : (
               <>
-                {currentRecipes.length > 0 && (
+                {currentRecipes.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {currentRecipes.map((recipe: RecipeWithIngredients) => (
                       <div
                         key={recipe.id}
-                        onClick={() => setSelectedRecipe(recipe)}
+                        onClick={() => handleRecipeClick(recipe)}
+                        className="cursor-pointer"
                       >
                         <RecipeCard recipe={toRecipe(recipe)!} />
                       </div>
                     ))}
                   </div>
-                )}
-
-                {currentRecipes.length === 0 && (
+                ) : (
                   <Card className="text-center py-12">
                     <CardContent>
                       <MealIcon
-                        className={`h-16 w-16 ${mealColor} mx-auto mb-4`}
+                        className={`h-16 w-16 ${currentMealConfig.color} mx-auto mb-4`}
                       />
                       <h3 className="text-lg font-medium text-slate-900 mb-2">
                         {t('noRecipes', { mealType: t(activeTab, {}) })}
@@ -383,56 +379,54 @@ export function SuggestedClient({
             </h2>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Breakfast */}
               <SuggestedSection
                 title={t('breakfast', {})}
                 noRecipesText={t('noRecipesAvailable', {})}
                 icon={<Coffee className="h-5 w-5 text-amber-600" />}
                 colorClass="text-amber-600"
-                recipes={memoBreakfastRecipes}
-                isLoading={isBreakfastLoading}
-                onRecipeClick={setSelectedRecipe}
+                recipes={breakfastQuery.data || []}
+                isLoading={breakfastQuery.isLoading}
+                onRecipeClick={handleRecipeClick}
               />
-              {/* Lunch */}
               <SuggestedSection
                 title={t('lunch', {})}
                 noRecipesText={t('noRecipesAvailable', {})}
                 icon={<Sun className="h-5 w-5 text-yellow-600" />}
                 colorClass="text-yellow-600"
-                recipes={memoLunchRecipes}
-                isLoading={isLunchLoading}
-                onRecipeClick={setSelectedRecipe}
+                recipes={lunchQuery.data || []}
+                isLoading={lunchQuery.isLoading}
+                onRecipeClick={handleRecipeClick}
               />
-              {/* Dinner */}
               <SuggestedSection
                 title={t('dinner', {})}
                 noRecipesText={t('noRecipesAvailable', {})}
                 icon={<Moon className="h-5 w-5 text-blue-600" />}
                 colorClass="text-blue-600"
-                recipes={memoDinnerRecipes}
-                isLoading={isDinnerLoading}
-                onRecipeClick={setSelectedRecipe}
+                recipes={dinnerQuery.data || []}
+                isLoading={dinnerQuery.isLoading}
+                onRecipeClick={handleRecipeClick}
               />
             </div>
           </section>
 
           {/* More Inspiration */}
-          {memoRandomRecipes.length > 0 && (
+          {initialRandom.length > 0 && (
             <section>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-slate-900">
                   {t('moreInspiration', {})}
                 </h2>
-                <Link href={`/${locale}/recipes`} legacyBehavior>
+                <Link href={`/${locale}/recipes`}>
                   <Button variant="outline">{t('browseAll', {})}</Button>
                 </Link>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {memoRandomRecipes.map((recipe: RecipeWithIngredients) => (
+                {initialRandom.map((recipe: RecipeWithIngredients) => (
                   <div
                     key={recipe.id}
-                    onClick={() => setSelectedRecipe(recipe)}
+                    onClick={() => handleRecipeClick(recipe)}
+                    className="cursor-pointer"
                   >
                     <RecipeCard recipe={toRecipe(recipe)!} />
                   </div>
@@ -453,7 +447,7 @@ export function SuggestedClient({
                 <p className="text-slate-600 mb-4">
                   {t('addIngredientsCta', {})}
                 </p>
-                <Link href={`/${locale}/recipes`} legacyBehavior>
+                <Link href={`/${locale}/recipes`}>
                   <Button className="bg-brand-blue hover:bg-blue-700">
                     {t('addIngredients', {})}
                   </Button>
@@ -467,12 +461,36 @@ export function SuggestedClient({
         <RecipeDetail
           recipe={toRecipe(selectedRecipe)}
           isOpen={!!selectedRecipe}
-          onClose={() => setSelectedRecipe(null)}
+          onClose={handleCloseRecipeDetail}
           onCookDish={() => {}}
         />
 
         <Footer />
       </div>
     </>
+  );
+}
+
+// Skeleton component for loading state
+function RecipesGridSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div
+          key={i}
+          className="bg-white rounded-xl shadow-sm border border-slate-200 animate-pulse"
+        >
+          <div className="w-full h-48 bg-slate-200 rounded-t-xl" />
+          <div className="p-4">
+            <div className="h-4 bg-slate-200 rounded mb-2" />
+            <div className="h-3 bg-slate-200 rounded mb-4" />
+            <div className="flex justify-between">
+              <div className="h-3 bg-slate-200 rounded w-16" />
+              <div className="h-3 bg-slate-200 rounded w-12" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
