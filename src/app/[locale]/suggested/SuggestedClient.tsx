@@ -109,7 +109,6 @@ export function SuggestedClient({
     queryKey: ['suggested', ingredientIds, breakfastId, locale],
     enabled: !!breakfastId,
     queryFn: async () => {
-      console.log('QUERY breakfast', { ingredientIds, breakfastId, locale });
       const filters = {
         offset: 0,
         limit: 20,
@@ -131,7 +130,6 @@ export function SuggestedClient({
     queryKey: ['suggested', ingredientIds, lunchId, locale],
     enabled: !!lunchId,
     queryFn: async () => {
-      console.log('QUERY lunch', { ingredientIds, lunchId, locale });
       const filters = {
         offset: 0,
         limit: 20,
@@ -153,7 +151,6 @@ export function SuggestedClient({
     queryKey: ['suggested', ingredientIds, dinnerId, locale],
     enabled: !!dinnerId,
     queryFn: async () => {
-      console.log('QUERY dinner', { ingredientIds, dinnerId, locale });
       const filters = {
         offset: 0,
         limit: 20,
@@ -257,22 +254,22 @@ export function SuggestedClient({
             </p>
             {/* Табы для выбора времени суток */}
             <div className="flex justify-center gap-4 mt-6">
-              {/* <Button
+              <Button
                 variant={activeTab === 'breakfast' ? 'default' : 'outline'}
                 onClick={() => setActiveTab('breakfast')}
                 className="flex items-center"
               >
                 <Coffee className="h-4 w-4 mr-2 text-amber-600" />
                 {t('breakfast', {})}
-              </Button> */}
-              {/* <Button
+              </Button>
+              <Button
                 variant={activeTab === 'lunch' ? 'default' : 'outline'}
                 onClick={() => setActiveTab('lunch')}
                 className="flex items-center"
               >
                 <Sun className="h-4 w-4 mr-2 text-yellow-600" />
                 {t('lunch', {})}
-              </Button> */}
+              </Button>
               <Button
                 variant={activeTab === 'dinner' ? 'default' : 'outline'}
                 onClick={() => setActiveTab('dinner')}

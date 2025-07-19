@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 
 export default function Footer() {
   const t = useTranslations('footer');
-  console.log(t, t);
   return (
     <footer className="bg-slate-900 text-white py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

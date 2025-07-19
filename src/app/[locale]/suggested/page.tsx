@@ -13,7 +13,6 @@ export default async function SuggestedPage({
   const mealTypes = Array.isArray(tags)
     ? tags.filter((t: any) => t.type === 'meal_type')
     : [];
-  console.log('mealTypes', mealTypes);
   function getMealTypeId(type: string): string | undefined {
     const found = mealTypes.find(
       (t: any) => t.slug === type || t.name.toLowerCase() === type
@@ -23,9 +22,7 @@ export default async function SuggestedPage({
   const breakfastId = getMealTypeId('breakfast');
   const lunchId = getMealTypeId('lunch');
   const dinnerId = getMealTypeId('main');
-  console.log('breakfastId', breakfastId);
-  console.log('lunchId', lunchId);
-  console.log('dinnerId', dinnerId);
+
   // 2. Получаем рецепты для каждого типа (без ингредиентов, т.к. на первой загрузке их нет)
   const breakfastRecipes = breakfastId
     ? (await recipeApi.getRecipes(

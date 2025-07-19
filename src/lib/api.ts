@@ -136,7 +136,6 @@ export const recipeApi = {
   getAllTags: async () => {
     try {
       const response = await api.get(`/recipes/tags`);
-      console.log('API Tags response:', response.data);
       return response.data.tags || response.data;
     } catch (error) {
       console.error('Error fetching tags:', error);
