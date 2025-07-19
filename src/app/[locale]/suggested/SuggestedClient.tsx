@@ -79,9 +79,9 @@ export function SuggestedClient({
   // Сохраняем initialTags в глобальный store при первом рендере
   useEffect(() => {
     if (initialTags && initialTags.length > 0) {
-      setTags(initialTags);
+      setTags(initialTags, locale);
     }
-  }, [initialTags]);
+  }, [initialTags, locale]);
 
   // Получаем mealTypes (теги) с initialData
   const mealTypes = Array.isArray(tags)
@@ -109,9 +109,10 @@ export function SuggestedClient({
     queryKey: ['suggested', ingredientIds, breakfastId, locale],
     enabled: !!breakfastId,
     queryFn: async () => {
+      console.log('QUERY breakfast', { ingredientIds, breakfastId, locale });
       const filters = {
         offset: 0,
-        limit: 6,
+        limit: 20,
         mealType: breakfastId!,
         country: '',
         dietTags: '',
@@ -130,9 +131,10 @@ export function SuggestedClient({
     queryKey: ['suggested', ingredientIds, lunchId, locale],
     enabled: !!lunchId,
     queryFn: async () => {
+      console.log('QUERY lunch', { ingredientIds, lunchId, locale });
       const filters = {
         offset: 0,
-        limit: 6,
+        limit: 20,
         mealType: lunchId!,
         country: '',
         dietTags: '',
@@ -151,9 +153,10 @@ export function SuggestedClient({
     queryKey: ['suggested', ingredientIds, dinnerId, locale],
     enabled: !!dinnerId,
     queryFn: async () => {
+      console.log('QUERY dinner', { ingredientIds, dinnerId, locale });
       const filters = {
         offset: 0,
-        limit: 6,
+        limit: 20,
         mealType: dinnerId!,
         country: '',
         dietTags: '',
@@ -180,11 +183,11 @@ export function SuggestedClient({
   const [mealColor, setMealColor] = useState('text-slate-600');
   useEffect(() => {
     const hour = new Date().getHours();
-    if (hour < 12) {
+    if (hour > 6 && hour < 12) {
       setLocalMealType('breakfast');
       setMealIcon('coffee');
       setMealColor('text-amber-600');
-    } else if (hour < 16) {
+    } else if (hour > 12 && hour < 16) {
       setLocalMealType('lunch');
       setMealIcon('sun');
       setMealColor('text-yellow-600');
@@ -223,16 +226,17 @@ export function SuggestedClient({
   return (
     <>
       <Head>
-        <title>Suggested Meals | RecipeMatch</title>
+        <title>
+          {t('suggestedFor', { mealType: t(activeTab, {}) })} | RecipeMatch
+        </title>
+        <meta name="description" content={t('basedOnTime', {})} />
         <meta
-          name="description"
-          content={`Discover personalized meal suggestions for ${activeTab}. Find recipes based on the time of day and your available ingredients.`}
+          property="og:title"
+          content={
+            t('suggestedFor', { mealType: t(activeTab, {}) }) + ' | RecipeMatch'
+          }
         />
-        <meta property="og:title" content="Suggested Meals | RecipeMatch" />
-        <meta
-          property="og:description"
-          content="Get personalized meal suggestions based on time of day"
-        />
+        <meta property="og:description" content={t('basedOnTime', {})} />
       </Head>
 
       <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -242,41 +246,40 @@ export function SuggestedClient({
             <div className="flex items-center justify-center mb-4">
               <MealIcon className={`h-12 w-12 ${mealColor} mr-3`} />
               <h1 className="text-3xl font-bold text-slate-900">
-                Suggested for{' '}
-                {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+                {t('suggestedFor', { mealType: t(activeTab, {}) })}
               </h1>
             </div>
             <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Based on your local time, here are some perfect meal suggestions
-              for you.
+              {t('basedOnTime', {})}
               {selectedIngredients.length > 0 &&
-                ` We've considered your ${selectedIngredients.length} selected ingredients.`}
+                ' ' +
+                  t('withIngredients', { count: selectedIngredients.length })}
             </p>
             {/* Табы для выбора времени суток */}
             <div className="flex justify-center gap-4 mt-6">
-              <Button
+              {/* <Button
                 variant={activeTab === 'breakfast' ? 'default' : 'outline'}
                 onClick={() => setActiveTab('breakfast')}
                 className="flex items-center"
               >
                 <Coffee className="h-4 w-4 mr-2 text-amber-600" />
-                Breakfast
-              </Button>
-              <Button
+                {t('breakfast', {})}
+              </Button> */}
+              {/* <Button
                 variant={activeTab === 'lunch' ? 'default' : 'outline'}
                 onClick={() => setActiveTab('lunch')}
                 className="flex items-center"
               >
                 <Sun className="h-4 w-4 mr-2 text-yellow-600" />
-                Lunch
-              </Button>
+                {t('lunch', {})}
+              </Button> */}
               <Button
                 variant={activeTab === 'dinner' ? 'default' : 'outline'}
                 onClick={() => setActiveTab('dinner')}
                 className="flex items-center"
               >
                 <Moon className="h-4 w-4 mr-2 text-blue-600" />
-                Dinner
+                {t('dinner', {})}
               </Button>
             </div>
           </div>
@@ -286,13 +289,11 @@ export function SuggestedClient({
             <Card className="mb-8 text-center">
               <CardContent>
                 <h3 className="text-lg font-medium text-red-600 mb-2">
-                  Failed to load suggestions
+                  {t('failedToLoad', {})}
                 </h3>
-                <p className="text-slate-600 mb-4">
-                  Please try refreshing the page or check your connection.
-                </p>
+                <p className="text-slate-600 mb-4">{t('tryRefresh', {})}</p>
                 <Button onClick={handleRefresh} variant="outline">
-                  Retry
+                  {t('retry', {})}
                 </Button>
               </CardContent>
             </Card>
@@ -303,13 +304,12 @@ export function SuggestedClient({
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-slate-900 flex items-center">
                 <MealIcon className={`h-6 w-6 ${mealColor} mr-2`} />
-                Perfect for{' '}
-                {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+                {t('perfectFor', { mealType: t(activeTab, {}) })}
               </h2>
               {selectedIngredients.length > 0 && (
                 <Link href={`/${locale}/recipes`} legacyBehavior>
                   <Button size="sm" className="bg-brand-blue hover:bg-blue-700">
-                    Search with Your Ingredients
+                    {t('searchWithIngredients')}
                   </Button>
                 </Link>
               )}
@@ -356,11 +356,10 @@ export function SuggestedClient({
                         className={`h-16 w-16 ${mealColor} mx-auto mb-4`}
                       />
                       <h3 className="text-lg font-medium text-slate-900 mb-2">
-                        No {activeTab} recipes available
+                        {t('noRecipes', { mealType: t(activeTab, {}) })}
                       </h3>
                       <p className="text-slate-600 mb-4">
-                        We don't have specific {activeTab} recipes at the
-                        moment, but check out our other suggestions below!
+                        {t('noRecipesDesc', {})}
                       </p>
                     </CardContent>
                   </Card>
@@ -372,13 +371,14 @@ export function SuggestedClient({
           {/* All Day Meal Options */}
           <section className="mb-12">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">
-              Meal Options by Time
+              {t('mealOptionsByTime', {})}
             </h2>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Breakfast */}
               <SuggestedSection
-                title="Breakfast"
+                title={t('breakfast', {})}
+                noRecipesText={t('noRecipesAvailable', {})}
                 icon={<Coffee className="h-5 w-5 text-amber-600" />}
                 colorClass="text-amber-600"
                 recipes={memoBreakfastRecipes}
@@ -387,7 +387,8 @@ export function SuggestedClient({
               />
               {/* Lunch */}
               <SuggestedSection
-                title="Lunch"
+                title={t('lunch', {})}
+                noRecipesText={t('noRecipesAvailable', {})}
                 icon={<Sun className="h-5 w-5 text-yellow-600" />}
                 colorClass="text-yellow-600"
                 recipes={memoLunchRecipes}
@@ -396,7 +397,8 @@ export function SuggestedClient({
               />
               {/* Dinner */}
               <SuggestedSection
-                title="Dinner"
+                title={t('dinner', {})}
+                noRecipesText={t('noRecipesAvailable', {})}
                 icon={<Moon className="h-5 w-5 text-blue-600" />}
                 colorClass="text-blue-600"
                 recipes={memoDinnerRecipes}
@@ -411,10 +413,10 @@ export function SuggestedClient({
             <section>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-slate-900">
-                  More Inspiration
+                  {t('moreInspiration', {})}
                 </h2>
                 <Link href={`/${locale}/recipes`} legacyBehavior>
-                  <Button variant="outline">Browse All Recipes</Button>
+                  <Button variant="outline">{t('browseAll', {})}</Button>
                 </Link>
               </div>
 
@@ -436,17 +438,16 @@ export function SuggestedClient({
             <Card className="mt-12 bg-blue-50 border-blue-200">
               <CardHeader>
                 <CardTitle className="text-center text-slate-900">
-                  Get Personalized Suggestions
+                  {t('getPersonalized', {})}
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-center">
                 <p className="text-slate-600 mb-4">
-                  Add your available ingredients to get recipes that perfectly
-                  match what you have at home.
+                  {t('addIngredientsCta', {})}
                 </p>
                 <Link href={`/${locale}/recipes`} legacyBehavior>
                   <Button className="bg-brand-blue hover:bg-blue-700">
-                    Add Your Ingredients
+                    {t('addIngredients', {})}
                   </Button>
                 </Link>
               </CardContent>

@@ -11,6 +11,7 @@ interface SuggestedSectionProps {
   recipes: RecipeWithIngredients[];
   isLoading?: boolean;
   onRecipeClick?: (recipe: RecipeWithIngredients) => void;
+  noRecipesText?: string;
 }
 
 export function SuggestedSection({
@@ -20,6 +21,7 @@ export function SuggestedSection({
   recipes,
   isLoading = false,
   onRecipeClick,
+  noRecipesText,
 }: SuggestedSectionProps) {
   return (
     <section className="mb-8">
@@ -52,7 +54,9 @@ export function SuggestedSection({
           ))}
         </div>
       ) : (
-        <p className="text-slate-500 text-sm">No recipes available</p>
+        <p className="text-slate-500 text-sm">
+          {noRecipesText || 'No recipes available'}
+        </p>
       )}
     </section>
   );
