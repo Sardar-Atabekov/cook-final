@@ -21,6 +21,13 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
+  // Настройка порта для продакшена
+  serverRuntimeConfig: {
+    port: process.env.PORT || 3000,
+  },
+  publicRuntimeConfig: {
+    port: process.env.PORT || 3000,
+  },
 };
 
 export default withNextIntl(nextConfig);
