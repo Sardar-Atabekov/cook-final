@@ -1,4 +1,3 @@
-import { Suspense } from 'react';
 import { recipeApi } from '@/lib/api';
 import { SuggestedClient } from './SuggestedClient';
 import { AlertCircle, RefreshCw } from 'lucide-react';
@@ -132,15 +131,13 @@ export default async function SuggestedPage({ params }: SuggestedPageProps) {
     }
 
     return (
-      <Suspense fallback={<SuggestedPageSkeleton />}>
-        <SuggestedClient
-          locale={locale}
-          initialBreakfast={breakfastRecipes}
-          initialLunch={lunchRecipes}
-          initialDinner={dinnerRecipes}
-          initialRandom={randomRecipesList}
-        />
-      </Suspense>
+      <SuggestedClient
+        locale={locale}
+        initialBreakfast={breakfastRecipes}
+        initialLunch={lunchRecipes}
+        initialDinner={dinnerRecipes}
+        initialRandom={randomRecipesList}
+      />
     );
   } catch (error) {
     console.error('Error loading suggested recipes:', error);

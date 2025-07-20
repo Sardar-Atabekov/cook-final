@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useLocale, useTranslations } from 'next-intl';
 import { QuickActionCard } from '@/components/quick-action-card';
-import { useIngredientStore } from '@/stores/useIngredientStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChefHat,
@@ -15,7 +14,6 @@ import {
   Users,
   Star,
   Dice6,
-  ArrowRight,
   Sparkles,
 } from 'lucide-react';
 
@@ -82,24 +80,11 @@ export function HomePageClient() {
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations('home');
-  const { selectedIngredients: ingredients } = useIngredientStore();
-  const inputRef = useRef<HTMLInputElement>(null);
   const [isVisible, setIsVisible] = useState(false);
-
-  const joinedIngredients = useMemo(() => ingredients.join(','), [ingredients]);
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
-
-  const handleFindRecipes = () => {
-    if (joinedIngredients) {
-      const searchParams = new URLSearchParams({
-        ingredients: joinedIngredients,
-      });
-      router.push(`/${locale}/recipes?${searchParams.toString()}`);
-    }
-  };
 
   const handleQuickAction = (action: QuickAction) => {
     const paths: Record<QuickAction, string> = {
@@ -151,25 +136,6 @@ export function HomePageClient() {
             >
               {t('subtitle')}
             </motion.p>
-
-            {ingredients.length > 0 && (
-              <motion.div
-                className="mb-8"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5 }}
-              >
-                <Button
-                  onClick={handleFindRecipes}
-                  size="lg"
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                >
-                  <Search className="w-5 h-5 mr-2" />
-                  {t('findRecipes')}
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </motion.div>
-            )}
           </motion.div>
 
           <motion.div
@@ -300,7 +266,7 @@ export function HomePageClient() {
             viewport={{ once: true }}
           >
             <Button
-              onClick={() => inputRef.current?.focus()}
+              onClick={() => router.push(`/${locale}/recipes`)}
               size="lg"
               variant="secondary"
               className="bg-white text-blue-600 hover:bg-gray-100 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"

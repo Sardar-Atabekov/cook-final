@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRecipeQuery } from '@/hooks/useRecipeQuery';
 import { useRecipesQuery } from '@/hooks/useRecipesQuery';
+import { calculateIngredientMatch } from '@/shared/utils/calcMatch';
 import {
   ArrowLeft,
   Clock,
@@ -37,73 +38,6 @@ interface RecipePageClientProps {
   isLoading?: boolean;
 }
 
-// Скелетон для страницы рецепта
-function RecipePageSkeleton() {
-  return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 bg-white py-8">
-      {/* Back Button Skeleton */}
-      <Skeleton className="h-10 w-48 mb-6 bg-gradient-to-r from-gray-200 via-gray-200 to-gray-300 shadow-lg" />
-
-      {/* Recipe Header Skeleton */}
-      <div className="mb-8">
-        <Skeleton className="h-64 md:h-80 rounded-xl mb-6 bg-gradient-to-r from-gray-200 via-gray-200 to-gray-300 shadow-lg" />
-
-        {/* Recipe Info Skeleton */}
-        <div className="flex flex-wrap gap-4 mb-6">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton
-              key={i}
-              className="h-12 w-32 bg-gradient-to-r from-gray-200 via-gray-200 to-gray-300 shadow-lg"
-            />
-          ))}
-        </div>
-
-        {/* Match Status Skeleton */}
-        <Skeleton className="h-24 rounded-xl mb-6 bg-gradient-to-r from-gray-200 via-gray-200 to-gray-300 shadow-lg" />
-      </div>
-
-      {/* Ingredients Skeleton */}
-      <Card className="shadow-lg border-0 mb-8">
-        <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-200">
-          <Skeleton className="h-6 w-32 bg-gradient-to-r from-gray-200 via-gray-200 to-gray-300 shadow-lg" />
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="space-y-3">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Skeleton
-                key={i}
-                className="h-12 w-full bg-gradient-to-r from-gray-200 via-gray-200 to-gray-300 shadow-lg"
-              />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Action Buttons Skeleton */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-8">
-        <Skeleton className="h-12 flex-1 bg-gradient-to-r from-gray-200 via-gray-200 to-gray-300 shadow-lg" />
-        <Skeleton className="h-12 flex-1 bg-gradient-to-r from-gray-200 via-gray-200 to-gray-300 shadow-lg" />
-      </div>
-
-      {/* Similar Recipes Skeleton */}
-      <div className="mt-12">
-        <Skeleton className="h-8 w-48 mb-6 bg-gradient-to-r from-gray-200 via-gray-200 to-gray-300 shadow-lg" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="shadow-lg border-0">
-              <Skeleton className="h-48 rounded-t-lg bg-gradient-to-r from-gray-200 via-gray-200 to-gray-300 shadow-lg" />
-              <CardContent className="p-4">
-                <Skeleton className="h-4 w-full mb-2 bg-gradient-to-r from-gray-200 via-gray-200 to-gray-300 shadow-lg" />
-                <Skeleton className="h-4 w-3/4 bg-gradient-to-r from-gray-200 via-gray-200 to-gray-300 shadow-lg" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function RecipePageClient({
   initialRecipe,
   initialSimilarRecipes,
@@ -123,14 +57,11 @@ export function RecipePageClient({
 
   // Получаем id рецепта
   const recipeId = initialRecipe?.id;
-  // Используем React Query для client-side кэша рецепта
-  const {
-    data: recipe,
-    isLoading: recipeLoading,
-    isFetching,
-  } = useRecipeQuery(
+
+  // Получаем данные рецепта (без передачи ингредиентов)
+  const { data: recipe } = useRecipeQuery(
     recipeId,
-    userIngredients.map((i) => i.id),
+    [], // пустой массив ингредиентов, считаем на фронте
     initialRecipe
   );
 
@@ -152,10 +83,14 @@ export function RecipePageClient({
     initialSimilarRecipes
   );
 
-  const isRecipeReady = recipe && recipe.id === recipeId;
-  if (recipeLoading || isFetching || !isRecipeReady) {
-    return <RecipePageSkeleton />;
+  // Если данных нет — ничего не рендерим (loader покажет loading.tsx)
+  if (!recipe || !recipe.id) {
+    return null;
   }
+
+  const hasInitialData = !!initialRecipe;
+  const isRecipeReady = recipe && recipe.id === recipeId;
+  const shouldShowSkeleton = (!hasInitialData && !recipe) || !isRecipeReady;
 
   const handleSaveRecipe = async () => {
     if (!recipe) return;
@@ -187,19 +122,19 @@ export function RecipePageClient({
     }
   };
 
-  // Исправленная проверка наличия ингредиента у пользователя
-  const hasIngredient = (ingredientId: number) =>
-    userIngredients.some((userIng) => userIng.id === ingredientId);
+  // Расчёт совпадений ингредиентов на фронте
+  const matchResult = calculateIngredientMatch(
+    recipe.recipeIngredients || [],
+    userIngredients
+  );
 
-  // Разделение ингредиентов
-  const ownedIngredients =
-    recipe.recipeIngredients?.filter((ri: any) =>
-      hasIngredient(ri.ingredientId)
-    ) || [];
-  const missingIngredients =
-    recipe.recipeIngredients?.filter(
-      (ri: any) => !hasIngredient(ri.ingredientId)
-    ) || [];
+  const {
+    ownedIngredients,
+    missingIngredients,
+    matchPercentage,
+    totalIngredients,
+    ownedCount,
+  } = matchResult;
 
   // Проверки на существование массивов
   const hasKitchens = recipe.kitchens && recipe.kitchens.length > 0;
@@ -324,22 +259,20 @@ export function RecipePageClient({
             </h3>
             <Badge
               className={`${
-                (recipe.matchPercentage || 0) >= 80
+                matchPercentage >= 80
                   ? 'bg-green-100 text-green-800 border-green-200'
-                  : (recipe.matchPercentage || 0) >= 60
+                  : matchPercentage >= 60
                     ? 'bg-yellow-100 text-yellow-800 border-yellow-200'
                     : 'bg-red-100 text-red-800 border-red-200'
               } text-sm font-medium px-3 py-1`}
             >
-              {recipe.matchPercentage || 0}% совпадение
+              {matchPercentage}% совпадение
             </Badge>
           </div>
           <div className="text-sm text-gray-600">
             У вас есть{' '}
-            <span className="font-semibold text-green-600">
-              {ownedIngredients.length}
-            </span>{' '}
-            из {recipe.recipeIngredients?.length || 0} ингредиентов
+            <span className="font-semibold text-green-600">{ownedCount}</span>{' '}
+            из {totalIngredients} ингредиентов
           </div>
         </div>
       </div>
@@ -362,7 +295,7 @@ export function RecipePageClient({
                 >
                   <Check className="h-5 w-5 text-green-600 flex-shrink-0" />
                   <span className="text-green-800 font-medium">
-                    {ingredient.line || ingredient.ingredient?.name}
+                    {ingredient.line || ingredient.matched_name}
                   </span>
                 </li>
               ))}
@@ -373,7 +306,7 @@ export function RecipePageClient({
                 >
                   <X className="h-5 w-5 text-red-500 flex-shrink-0" />
                   <span className="text-gray-900 font-medium">
-                    {ingredient.line || ingredient.ingredient?.name}
+                    {ingredient.line || ingredient.matched_name}
                   </span>
                 </li>
               ))}
@@ -401,10 +334,10 @@ export function RecipePageClient({
       </div>
 
       {/* Similar Recipes */}
-      {/* {similarLoading ||
-      similarFetching ||
-      !similarRecipes ||
-      similarRecipes.length === 0 ? (
+      {(!initialSimilarRecipes &&
+        (!similarRecipes || similarRecipes.length === 0)) ||
+      similarLoading ||
+      similarFetching ? (
         <div className="mt-12">
           <Skeleton className="h-8 w-48 mb-6 bg-gradient-to-r from-gray-200 via-gray-200 to-gray-300 shadow-lg" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -477,7 +410,7 @@ export function RecipePageClient({
             </div>
           </div>
         )
-      )} */}
+      )}
     </div>
   );
 }
