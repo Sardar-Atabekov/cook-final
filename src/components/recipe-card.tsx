@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Heart, Star, ChefHat, MapPin } from 'lucide-react';
+import { Clock, Heart, Star, ChefHat, MapPin, Users, Zap } from 'lucide-react';
 import type { Recipe } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { useRouter, usePathname } from 'next/navigation';
@@ -36,10 +36,11 @@ export function RecipeCard({
   const [imageError, setImageError] = useState(false);
 
   const getMatchColor = (percentage: number) => {
-    if (percentage >= 90) return 'bg-green-500';
-    if (percentage >= 80) return 'bg-green-400';
-    if (percentage >= 70) return 'bg-yellow-500';
-    return 'bg-orange-500';
+    if (percentage >= 90) return 'bg-gradient-to-r from-green-500 to-green-600';
+    if (percentage >= 80) return 'bg-gradient-to-r from-green-400 to-green-500';
+    if (percentage >= 70)
+      return 'bg-gradient-to-r from-yellow-500 to-yellow-600';
+    return 'bg-gradient-to-r from-orange-500 to-orange-600';
   };
 
   const formatPrepTime = (minutes: number) => {
@@ -65,21 +66,22 @@ export function RecipeCard({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      whileHover={{ y: -5 }}
+      transition={{ duration: 0.4 }}
+      whileHover={{ y: -8, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
+      className="group"
     >
       <Link href={`/${locale}/recipes/${recipe.id}`}>
-        <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col border-0 bg-white shadow-sm hover:shadow-2xl">
+        <Card className="overflow-hidden cursor-pointer h-full flex flex-col border-0 bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-500 rounded-2xl">
           {/* Image wrapper */}
-          <div className="relative w-full h-48 overflow-hidden bg-gray-100">
+          <div className="relative w-full h-52 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
             {!imageError ? (
               <Image
                 src={recipe.imageUrl || '/images/placeholder.svg'}
                 alt={recipe.title}
                 fill
                 className={cn(
-                  'object-cover transition-all duration-300 group-hover:scale-105',
+                  'object-cover transition-all duration-500 group-hover:scale-110',
                   imageLoaded ? 'opacity-100' : 'opacity-0'
                 )}
                 onLoad={handleImageLoad}
@@ -89,7 +91,12 @@ export function RecipeCard({
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
-                <ChefHat className="h-12 w-12 text-gray-400" />
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                >
+                  <ChefHat className="h-12 w-12 text-gray-400" />
+                </motion.div>
               </div>
             )}
 
@@ -104,13 +111,15 @@ export function RecipeCard({
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.2 }}
+                className="absolute top-3 left-3 z-10"
               >
                 <Badge
                   className={cn(
-                    'text-white text-xs font-medium absolute rounded-full top-3 left-3 shadow-lg',
+                    'text-white text-xs font-bold rounded-full shadow-lg px-3 py-1',
                     getMatchColor(Number(recipe.matchPercentage))
                   )}
                 >
+                  <Zap className="w-3 h-3 mr-1" />
                   {t('match', { percentage: recipe.matchPercentage })}
                 </Badge>
               </motion.div>
@@ -120,17 +129,17 @@ export function RecipeCard({
             {onSave && (
               <motion.button
                 className={cn(
-                  'absolute top-3 right-3 p-2 rounded-full transition-all duration-300 shadow-lg',
+                  'absolute top-3 right-3 p-2 rounded-full transition-all duration-300 shadow-lg z-10',
                   isSaved
-                    ? 'bg-red-500 text-white hover:bg-red-600'
-                    : 'bg-white/90 text-gray-600 hover:bg-white hover:scale-110'
+                    ? 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700'
+                    : 'bg-white/90 text-gray-600 hover:bg-white hover:scale-110 backdrop-blur-sm'
                 )}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   onSave();
                 }}
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.1, rotate: 5 }}
                 whileTap={{ scale: 0.9 }}
               >
                 <Heart className={cn('w-4 h-4', isSaved && 'fill-current')} />
@@ -138,15 +147,15 @@ export function RecipeCard({
             )}
 
             {/* Recipe info overlay */}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3">
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4">
               <div className="flex items-center justify-between text-white text-sm">
-                <div className="flex items-center">
+                <div className="flex items-center bg-black/30 px-2 py-1 rounded-full">
                   <Clock className="w-4 h-4 mr-1" />
                   {formatPrepTime(Number(recipe.prepTime))}
                 </div>
-                <div className="flex items-center">
+                <div className="flex items-center bg-black/30 px-2 py-1 rounded-full">
                   <Star className="mr-1 h-3 w-3 text-yellow-400 fill-current" />
-                  <span>
+                  <span className="font-medium">
                     {typeof recipe.rating === 'number' && !isNaN(recipe.rating)
                       ? recipe.rating.toFixed(1)
                       : '0.0'}
@@ -154,31 +163,44 @@ export function RecipeCard({
                 </div>
               </div>
             </div>
+
+            {/* Hover overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-blue-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </div>
 
           {/* Content */}
-          <CardContent className="p-4 flex flex-col flex-1">
-            <h3 className="font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2 text-lg">
+          <CardContent className="p-5 flex flex-col flex-1">
+            <motion.h3
+              className="font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors line-clamp-2 text-lg leading-tight"
+              whileHover={{ x: 5 }}
+              transition={{ type: 'spring', stiffness: 300 }}
+            >
               {recipe.title}
-            </h3>
+            </motion.h3>
 
-            <p className="text-sm text-gray-600 mb-3 line-clamp-2 leading-relaxed">
+            <p className="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">
               {recipe.description}
             </p>
 
             {/* Recipe metadata */}
-            <div className="flex items-center text-xs text-gray-500 mb-3 space-x-4">
+            <div className="flex items-center text-xs text-gray-500 mb-4 space-x-4">
               {recipe.country && (
-                <div className="flex items-center">
+                <motion.div
+                  className="flex items-center bg-gray-100 px-2 py-1 rounded-full"
+                  whileHover={{ scale: 1.05 }}
+                >
                   <MapPin className="w-3 h-3 mr-1" />
                   {recipe.country}
-                </div>
+                </motion.div>
               )}
               {recipe.mealType && (
-                <div className="flex items-center">
+                <motion.div
+                  className="flex items-center bg-gray-100 px-2 py-1 rounded-full"
+                  whileHover={{ scale: 1.05 }}
+                >
                   <ChefHat className="w-3 h-3 mr-1" />
                   {recipe.mealType}
-                </div>
+                </motion.div>
               )}
             </div>
 
@@ -187,43 +209,58 @@ export function RecipeCard({
               {recipe.missingIngredients &&
               recipe.missingIngredients.length > 0 ? (
                 <>
-                  <div className="text-xs text-gray-600 mb-2 font-medium">
+                  <div className="text-xs text-gray-600 mb-2 font-medium flex items-center">
+                    <span className="w-2 h-2 bg-orange-500 rounded-full mr-2" />
                     {t('missing')}
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {recipe.missingIngredients
                       .slice(0, 3)
                       .map((ingredient, index) => (
-                        <Badge
+                        <motion.div
                           key={index}
-                          variant="secondary"
-                          className="px-2 py-1 bg-orange-100 text-orange-800 text-xs border-0"
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: index * 0.1 }}
                         >
-                          {ingredient.ingredient?.name}
-                        </Badge>
+                          <Badge
+                            variant="secondary"
+                            className="px-2 py-1 bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 text-xs border-0 font-medium"
+                          >
+                            {ingredient.ingredient?.name}
+                          </Badge>
+                        </motion.div>
                       ))}
                     {recipe.missingIngredients.length > 3 && (
                       <Badge
                         variant="secondary"
-                        className="px-2 py-1 bg-gray-100 text-gray-600 text-xs border-0"
+                        className="px-2 py-1 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-600 text-xs border-0 font-medium"
                       >
-                        {t('moreMissing', {
-                          count: recipe.missingIngredients.length - 3,
-                        })}
+                        +{recipe.missingIngredients.length - 3} {t('more')}
                       </Badge>
                     )}
                   </div>
                 </>
               ) : recipe.matchPercentage === '100' ? (
-                <span className="text-green-600 font-medium flex items-center">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2" />
+                <motion.span
+                  className="text-green-600 font-medium flex items-center bg-green-50 px-3 py-2 rounded-lg"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse" />
                   {t('hasAllIngredients')}
-                </span>
+                </motion.span>
               ) : (
-                <span className="text-red-600 font-medium flex items-center">
+                <motion.span
+                  className="text-red-600 font-medium flex items-center bg-red-50 px-3 py-2 rounded-lg"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
                   <span className="w-2 h-2 bg-red-500 rounded-full mr-2" />
                   {t('notAllIngredients')}
-                </span>
+                </motion.span>
               )}
             </div>
           </CardContent>

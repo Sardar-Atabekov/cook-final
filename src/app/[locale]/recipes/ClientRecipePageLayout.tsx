@@ -7,7 +7,9 @@ import { RecipeFilters } from '@/components/recipe-filters';
 import { SearchPageClient } from '@/components/search-page-client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Loader2, ChevronDown } from 'lucide-react';
+import { Loader2, ChevronDown, Search, Filter } from 'lucide-react';
+import { useRecipes } from '@/hooks/useRecipes';
+import { useIngredientStore } from '@/stores/useIngredientStore';
 
 export default function ClientRecipePageLayout({
   searchQuery,
@@ -28,40 +30,76 @@ export default function ClientRecipePageLayout({
   const [accumulatedRecipes, setAccumulatedRecipes] = useState(recipes);
   const [currentPage, setCurrentPage] = useState(page);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
+  const { selectedIngredients } = useIngredientStore();
+
+  // Получаем текущие параметры из URL
+  const currentSearchQuery = searchParams.get('q') || '';
+  const currentMealType = searchParams.get('mealType') || 'all';
+  const currentCountry = searchParams.get('country') || 'all';
+  const currentDietTags = searchParams.get('dietTags') || 'all';
+  const currentSorting = searchParams.get('sorting') || 'all';
+  const currentByTime = searchParams.get('byTime') || 'all';
+
+  // Используем хук для получения рецептов
+  const {
+    recipes: fetchedRecipes,
+    total: fetchedTotal,
+    isLoading: isFetching,
+    error: fetchError,
+  } = useRecipes({
+    ingredientIds: selectedIngredients.map((i) => i.id),
+    searchText: currentSearchQuery,
+    lang: locale,
+    limit: 20,
+    mealType: currentMealType === 'all' ? 'all' : currentMealType,
+    country: currentCountry === 'all' ? 'all' : currentCountry,
+    dietTags: currentDietTags === 'all' ? 'all' : currentDietTags,
+    page: currentPage,
+  });
+
+  // Используем данные из хука или начальные данные
+  const displayRecipes = fetchedRecipes.length > 0 ? fetchedRecipes : recipes;
+  const displayTotal = fetchedTotal || total;
+  const displayIsLoading = isFetching || isLoading;
+  const displayError = fetchError || error;
 
   // Аккумулируем рецепты при увеличении страницы
   useEffect(() => {
-    if (page > 1) {
+    if (currentPage > 1) {
       setAccumulatedRecipes((prev: any[]) => {
-        // Не дублируем рецепты
         const ids = new Set(prev.map((r) => r.id));
-        const newOnes = recipes.filter((r: any) => !ids.has(r.id));
+        const newOnes = displayRecipes.filter((r: any) => !ids.has(r.id));
         return [...prev, ...newOnes];
       });
     } else {
-      setAccumulatedRecipes(recipes);
+      setAccumulatedRecipes(displayRecipes);
     }
-    setCurrentPage(page);
-  }, [recipes, page]);
+  }, [displayRecipes, currentPage]);
 
   // Обработка поиска
   const handleSearch = (query: string) => {
     const newParams = new URLSearchParams(searchParams.toString());
     if (query) newParams.set('q', query);
     else newParams.delete('q');
-    newParams.delete('page'); // сбрасываем страницу при новом поиске
+    newParams.delete('page');
     router.replace(`?${newParams.toString()}`, { scroll: false });
   };
 
   // Обработка фильтров
   const handleFiltersChange = (newFilters: any) => {
     const newParams = new URLSearchParams(searchParams.toString());
-    newParams.set('mealType', newFilters.mealType);
-    newParams.set('country', newFilters.country);
-    newParams.set('dietTags', newFilters.dietTags);
-    newParams.set('sorting', newFilters.sorting);
-    newParams.set('byTime', newFilters.byTime);
-    newParams.delete('page'); // сбрасываем страницу при новых фильтрах
+    if (newFilters.mealType !== undefined)
+      newParams.set('mealType', newFilters.mealType);
+    if (newFilters.country !== undefined)
+      newParams.set('country', newFilters.country);
+    if (newFilters.dietTags !== undefined)
+      newParams.set('dietTags', newFilters.dietTags);
+    if (newFilters.sorting !== undefined)
+      newParams.set('sorting', newFilters.sorting);
+    if (newFilters.byTime !== undefined)
+      newParams.set('byTime', newFilters.byTime);
+    newParams.delete('page');
     router.replace(`?${newParams.toString()}`, { scroll: false });
   };
 
@@ -72,7 +110,6 @@ export default function ClientRecipePageLayout({
     newParams.set('page', String(currentPage + 1));
     router.replace(`?${newParams.toString()}`, { scroll: false });
 
-    // Имитация загрузки для лучшего UX
     setTimeout(() => {
       setIsLoadingMore(false);
     }, 500);
@@ -109,110 +146,184 @@ export default function ClientRecipePageLayout({
           initialGroupedCategories={initialGroupedCategories}
         />
         <main className="flex-1 h-full overflow-y-auto p-6 mb-10">
+          {/* Header Section */}
           <motion.div
-            className="flex flex-col items-center gap-6 mb-8"
+            className="mb-8"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
           >
-            {/* Поиск по центру, 80% ширины, фильтры снизу, современный UX */}
-            <motion.div
-              className="w-full flex justify-center"
-              variants={itemVariants}
-            >
-              <div className="w-full max-w-4xl flex justify-center">
-                <div className="w-[90%] min-w-[250px] rounded-2xl p-1 flex items-center bg-white shadow-lg border border-gray-200">
-                  <SearchBar
-                    placeholder="Поиск рецептов..."
-                    className="w-full text-lg focus:ring-2 focus:ring-blue-400 transition-all duration-200 border-0 shadow-none"
-                  />
-                </div>
-              </div>
+            <motion.div className="text-center mb-8" variants={itemVariants}>
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                Поиск рецептов
+              </h1>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Найдите идеальный рецепт по ингредиентам, типу блюда или кухне
+              </p>
             </motion.div>
 
+            {/* Search Bar */}
             <motion.div
-              className="w-full flex justify-center"
+              className="w-full max-w-4xl mx-auto mb-6"
               variants={itemVariants}
             >
-              <div className="w-full max-w-4xl flex justify-center">
-                <div className="w-[90%] min-w-[250px] rounded-xl p-4 flex flex-col items-center gap-4 bg-white shadow-lg border border-gray-200">
-                  <RecipeFilters initialTags={initialTags} locale={locale} />
+              <SearchBar
+                placeholder="Поиск рецептов..."
+                className="w-full"
+                onSearch={handleSearch}
+              />
+            </motion.div>
+
+            {/* Filters Toggle */}
+            <motion.div
+              className="w-full max-w-4xl mx-auto"
+              variants={itemVariants}
+            >
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                {/* Filter Header */}
+                <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Filter className="h-5 w-5 text-blue-600" />
+                      <h3 className="font-semibold text-gray-900">Фильтры</h3>
+                      {(currentMealType !== 'all' ||
+                        currentCountry !== 'all' ||
+                        currentDietTags !== 'all' ||
+                        currentSorting !== 'all' ||
+                        currentByTime !== 'all') && (
+                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                          Активны
+                        </span>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
+                      className="flex items-center space-x-2"
+                    >
+                      <span>{isFiltersExpanded ? 'Скрыть' : 'Показать'}</span>
+                      <ChevronDown
+                        className={`h-4 w-4 transition-transform duration-200 ${isFiltersExpanded ? 'rotate-180' : ''}`}
+                      />
+                    </Button>
+                  </div>
                 </div>
+
+                {/* Filter Content */}
+                <AnimatePresence>
+                  {isFiltersExpanded && (
+                    <motion.div
+                      className="p-6"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <RecipeFilters
+                        initialTags={initialTags}
+                        locale={locale}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </motion.div>
           </motion.div>
 
+          {/* Results Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <SearchPageClient
-              initialRecipes={recipes}
-              initialTotal={total}
-              locale={locale}
-            />
-          </motion.div>
-
-          {/* Кнопка "Показать ещё" */}
-          <AnimatePresence>
-            {accumulatedRecipes.length < total && (
-              <motion.div
-                className="text-center mt-8"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Button
-                  onClick={handleShowMore}
-                  disabled={isLoading || isLoadingMore}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                  size="lg"
-                >
-                  {isLoadingMore ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Загрузка...
-                    </>
-                  ) : (
-                    <>
-                      Показать ещё
-                      <ChevronDown className="w-4 h-4 ml-2" />
-                    </>
-                  )}
-                </Button>
-                <motion.p
-                  className="text-sm text-gray-500 mt-3"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  Показано {accumulatedRecipes.length} из {total} рецептов
-                </motion.p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Прогресс-бар загрузки */}
-          <AnimatePresence>
-            {isLoadingMore && (
-              <motion.div
-                className="w-full max-w-4xl mx-auto mt-4"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 4 }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="w-full bg-gray-200 rounded-full h-1 overflow-hidden">
-                  <div
-                    className="bg-blue-600 h-1 rounded-full animate-pulse"
-                    style={{ width: '100%' }}
-                  />
+            {displayError ? (
+              <div className="text-center py-16">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+                  <h3 className="text-lg font-semibold text-red-800 mb-2">
+                    Ошибка загрузки
+                  </h3>
+                  <p className="text-red-600">
+                    Не удалось загрузить рецепты. Попробуйте обновить страницу.
+                  </p>
                 </div>
-              </motion.div>
+              </div>
+            ) : displayIsLoading && accumulatedRecipes.length === 0 ? (
+              <div className="text-center py-16">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
+                <p className="text-gray-600">Загрузка рецептов...</p>
+              </div>
+            ) : (
+              <>
+                <SearchPageClient
+                  initialRecipes={accumulatedRecipes}
+                  initialTotal={displayTotal}
+                  locale={locale}
+                />
+
+                {/* Load More Button */}
+                <AnimatePresence>
+                  {accumulatedRecipes.length < displayTotal && (
+                    <motion.div
+                      className="text-center mt-8"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Button
+                        onClick={handleShowMore}
+                        disabled={displayIsLoading || isLoadingMore}
+                        className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                        size="lg"
+                      >
+                        {isLoadingMore ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Загрузка...
+                          </>
+                        ) : (
+                          <>
+                            Показать ещё
+                            <ChevronDown className="w-4 h-4 ml-2" />
+                          </>
+                        )}
+                      </Button>
+                      <motion.p
+                        className="text-sm text-gray-500 mt-3"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.2 }}
+                      >
+                        Показано {accumulatedRecipes.length} из {displayTotal}{' '}
+                        рецептов
+                      </motion.p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Loading Progress Bar */}
+                <AnimatePresence>
+                  {isLoadingMore && (
+                    <motion.div
+                      className="w-full max-w-4xl mx-auto mt-4"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 4 }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="w-full bg-gray-200 rounded-full h-1 overflow-hidden">
+                        <div
+                          className="bg-blue-600 h-1 rounded-full animate-pulse"
+                          style={{ width: '100%' }}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </>
             )}
-          </AnimatePresence>
+          </motion.div>
         </main>
       </div>
     </div>

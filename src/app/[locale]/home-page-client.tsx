@@ -5,7 +5,6 @@ import Footer from '@/components/footer';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useLocale, useTranslations } from 'next-intl';
-import { IngredientInput } from '@/components/ingredient-input';
 import { QuickActionCard } from '@/components/quick-action-card';
 import { useIngredientStore } from '@/stores/useIngredientStore';
 import { motion, AnimatePresence } from 'framer-motion';

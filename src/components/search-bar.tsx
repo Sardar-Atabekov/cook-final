@@ -1,7 +1,7 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, X, Sparkles } from 'lucide-react';
+import { Search, X, Sparkles, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import React, { useState, useEffect, useCallback, forwardRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -87,28 +87,37 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
       [value, onSearch]
     );
 
+    const popularSearches = [
+      { text: 'Паста', icon: '🍝' },
+      { text: 'Салат', icon: '🥗' },
+      { text: 'Супы', icon: '🍲' },
+      { text: 'Десерты', icon: '🍰' },
+      { text: 'Завтрак', icon: '🥞' },
+      { text: 'Ужин', icon: '🍽️' },
+    ];
+
     return (
       <motion.div
         className={cn('relative', className)}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.4 }}
       >
         <form onSubmit={handleSubmit}>
           <div className="relative flex items-center">
             <motion.div
               className="relative flex-1"
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ scale: 1.01 }}
               transition={{ type: 'spring', stiffness: 300 }}
             >
               {/* Search Icon */}
               <motion.div
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 z-10"
                 animate={{
-                  scale: isFocused ? 1.1 : 1,
+                  scale: isFocused ? 1.2 : 1,
                   color: isFocused ? '#3b82f6' : '#9ca3af',
                 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: 0.3, type: 'spring', stiffness: 300 }}
               >
                 <Search className="w-5 h-5" />
               </motion.div>
@@ -123,11 +132,11 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
                 onFocus={handleFocus}
                 onBlur={handleBlur}
                 className={cn(
-                  'pl-12 pr-12 h-12 text-lg border-2 transition-all duration-200',
+                  'pl-12 pr-12 h-14 text-lg border-2 transition-all duration-300 rounded-2xl bg-white/80 backdrop-blur-sm',
                   isFocused
-                    ? 'border-blue-500 shadow-lg shadow-blue-500/20'
-                    : 'border-gray-200 hover:border-gray-300',
-                  'focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+                    ? 'border-blue-500 shadow-xl shadow-blue-500/20 ring-4 ring-blue-500/10'
+                    : 'border-gray-200 hover:border-gray-300 hover:shadow-lg',
+                  'focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:shadow-xl focus:shadow-blue-500/20'
                 )}
               />
 
@@ -135,19 +144,23 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
               <AnimatePresence>
                 {showClear && (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                    initial={{ opacity: 0, scale: 0, rotate: -90 }}
+                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                    exit={{ opacity: 0, scale: 0, rotate: 90 }}
+                    transition={{
+                      duration: 0.3,
+                      type: 'spring',
+                      stiffness: 300,
+                    }}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2"
                   >
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
                       onClick={handleClear}
-                      className="h-8 w-8 p-0 hover:bg-gray-100 rounded-full"
-                      whileHover={{ scale: 1.1 }}
+                      className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600 rounded-full transition-all duration-300"
+                      whileHover={{ scale: 1.1, rotate: 90 }}
                       whileTap={{ scale: 0.9 }}
                     >
                       <X className="w-4 h-4" />
@@ -156,15 +169,15 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
                 )}
               </AnimatePresence>
 
-              {/* Focus indicator */}
+              {/* Animated focus ring */}
               <AnimatePresence>
                 {isFocused && (
                   <motion.div
-                    className="absolute inset-0 rounded-lg border-2 border-blue-500 pointer-events-none"
+                    className="absolute inset-0 rounded-2xl border-2 border-blue-500 pointer-events-none"
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.2 }}
+                    transition={{ duration: 0.3 }}
                   />
                 )}
               </AnimatePresence>
@@ -172,48 +185,56 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
 
             {/* Search Button */}
             <motion.div
-              className="ml-2"
+              className="ml-3"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <Button
                 type="submit"
-                className="h-12 px-6 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                className="h-14 px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl font-medium"
               >
-                <Sparkles className="w-4 h-4 mr-2" />
+                <Sparkles className="w-5 h-5 mr-2" />
                 Найти
               </Button>
             </motion.div>
           </div>
         </form>
 
-        {/* Suggestions (placeholder for future implementation) */}
+        {/* Enhanced Suggestions */}
         <AnimatePresence>
-          {showSuggestions && isFocused && value && (
+          {showSuggestions && isFocused && (
             <motion.div
-              className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
+              className="absolute top-full left-0 right-0 mt-3 bg-white/95 backdrop-blur-md border border-gray-200/50 rounded-2xl shadow-2xl z-50 overflow-hidden"
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              transition={{ duration: 0.3, type: 'spring', stiffness: 300 }}
             >
-              <div className="p-4">
-                <p className="text-sm text-gray-500">Популярные запросы:</p>
-                <div className="mt-2 space-y-1">
-                  {['Паста', 'Салат', 'Супы', 'Десерты'].map(
-                    (suggestion, index) => (
-                      <motion.button
-                        key={suggestion}
-                        className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-md transition-colors"
-                        onClick={() => setValue(suggestion)}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                      >
-                        {suggestion}
-                      </motion.button>
-                    )
-                  )}
+              <div className="p-6">
+                <div className="flex items-center mb-4">
+                  <TrendingUp className="w-4 h-4 text-blue-500 mr-2" />
+                  <p className="text-sm font-medium text-gray-700">
+                    Популярные запросы:
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {popularSearches.map((suggestion, index) => (
+                    <motion.button
+                      key={suggestion.text}
+                      className="flex items-center w-full text-left px-4 py-3 text-sm hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 rounded-xl transition-all duration-300 border border-transparent hover:border-blue-200"
+                      onClick={() => setValue(suggestion.text)}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      whileHover={{ x: 5, scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <span className="text-lg mr-3">{suggestion.icon}</span>
+                      <span className="font-medium text-gray-700">
+                        {suggestion.text}
+                      </span>
+                    </motion.button>
+                  ))}
                 </div>
               </div>
             </motion.div>
