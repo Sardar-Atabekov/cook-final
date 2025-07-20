@@ -115,6 +115,58 @@ export const recipeApi = {
     return response.data; // { recipes, total, hasMore }
   },
 
+  // SSR версия для получения рецептов
+  getRecipesSSR: async (
+    ingredientIds: number[],
+    options: {
+      offset: number;
+      limit: number;
+      mealType: string;
+      country: string;
+      dietTags: string;
+      search?: string;
+    },
+    lang: string
+  ) => {
+    try {
+      const params = new URLSearchParams({
+        lang,
+        offset: options.offset.toString(),
+        limit: options.limit.toString(),
+        mealType: options.mealType,
+        country: options.country,
+        dietTags: options.dietTags,
+      });
+
+      // Если есть поиск по тексту, передаём только его
+      if (options.search && options.search.trim().length > 0) {
+        params.append('search', options.search.trim());
+        params.append('ingredientIds', ingredientIds.join(','));
+      } else if (ingredientIds.length > 0) {
+        params.append('ingredients', ingredientIds.join(','));
+      }
+
+      console.log('API SSR: Fetching recipes', { params: params.toString() });
+
+      const response = await fetch(`${baseUrl}recipes/recipes?${params}`, {
+        next: { revalidate: 10 * 60 }, // Кэшируем на 10 минут
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('API SSR: Recipes response', {
+        count: data?.recipes?.length || 0,
+      });
+      return data;
+    } catch (error) {
+      console.error('API SSR: Error fetching recipes', error);
+      throw error;
+    }
+  },
+
   getSuggestedRecipes: async (lang: string): Promise<Recipe[]> => {
     const hour = new Date().getHours();
     let mealType = 'lunch';
@@ -130,10 +182,38 @@ export const recipeApi = {
   },
 
   getRecipe: async (id: string, ingredientIds: number[]) => {
-    const response = await api.get(`/recipes/recipe/${id}`, {
-      params: { ingredientIds },
-    });
-    return response.data;
+    try {
+      console.log('API: Fetching recipe', { id, ingredientIds });
+      const response = await api.get(`/recipes/recipe/${id}`, {
+        params: { ingredientIds: ingredientIds.join(',') },
+      });
+      console.log('API: Recipe response', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('API: Error fetching recipe', { id, error });
+      throw error;
+    }
+  },
+
+  // SSR версия для получения рецепта
+  getRecipeSSR: async (id: string) => {
+    try {
+      console.log('API SSR: Fetching recipe', { id });
+      const response = await fetch(`${baseUrl}recipes/recipe/${id}`, {
+        next: { revalidate: 5 * 60 * 1000 }, // Кэшируем на 5 минут
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('API SSR: Recipe response', { id, hasData: !!data });
+      return data;
+    } catch (error) {
+      console.error('API SSR: Error fetching recipe', { id, error });
+      throw error;
+    }
   },
   getAllTags: async () => {
     try {
