@@ -124,14 +124,22 @@ export function RecipePageClient({
   // Получаем id рецепта
   const recipeId = initialRecipe?.id;
   // Используем React Query для client-side кэша рецепта
-  const { data: recipe, isLoading: recipeLoading } = useRecipeQuery(
+  const {
+    data: recipe,
+    isLoading: recipeLoading,
+    isFetching,
+  } = useRecipeQuery(
     recipeId,
     userIngredients.map((i) => i.id),
     initialRecipe
   );
 
   // Похожие рецепты через React Query
-  const { data: similarRecipes, isLoading: similarLoading } = useRecipesQuery(
+  const {
+    data: similarRecipes,
+    isLoading: similarLoading,
+    isFetching: similarFetching,
+  } = useRecipesQuery(
     {
       ingredientIds: [],
       lang: locale,
@@ -144,8 +152,8 @@ export function RecipePageClient({
     initialSimilarRecipes
   );
 
-  // Показываем скелетон только если реально грузим
-  if (isLoading || recipeLoading || !recipe || !recipe.id || similarLoading) {
+  const isRecipeReady = recipe && recipe.id === recipeId;
+  if (recipeLoading || isFetching || !isRecipeReady) {
     return <RecipePageSkeleton />;
   }
 
@@ -393,61 +401,83 @@ export function RecipePageClient({
       </div>
 
       {/* Similar Recipes */}
-      {similarRecipes && similarRecipes.length > 0 && (
+      {/* {similarLoading ||
+      similarFetching ||
+      !similarRecipes ||
+      similarRecipes.length === 0 ? (
         <div className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-            <ChefHatIcon2 className="h-6 w-6 mr-2 text-purple-600" />
-            Похожие блюда
-          </h2>
+          <Skeleton className="h-8 w-48 mb-6 bg-gradient-to-r from-gray-200 via-gray-200 to-gray-300 shadow-lg" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {similarRecipes
-              .filter((r: any) => r.id !== recipe.id)
-              .slice(0, 4)
-              .map((similarRecipe: any, _index: number) => (
-                <div key={similarRecipe.id} className="group">
-                  <Link href={`/${locale}/recipes/${similarRecipe.id}`}>
-                    <Card className="shadow-lg border-0 hover:shadow-xl transition-all duration-300 overflow-hidden hover:-translate-y-1">
-                      <div className="relative h-48">
-                        <Image
-                          src={
-                            similarRecipe.imageUrl || '/images/placeholder.svg'
-                          }
-                          alt={similarRecipe.title}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      </div>
-                      <CardContent className="p-4">
-                        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
-                          {similarRecipe.title}
-                        </h3>
-                        <div className="flex items-center justify-between text-sm text-gray-600">
-                          <div className="flex items-center space-x-2">
-                            <Clock className="h-4 w-4 text-blue-500" />
-                            <span>
-                              {tFilters('byMinutes', {
-                                count:
-                                  similarRecipe.prepTime ||
-                                  similarRecipe.cookTime,
-                              })}
-                            </span>
-                          </div>
-                          {similarRecipe.rating && (
-                            <div className="flex items-center space-x-2">
-                              <Star className="h-4 w-4 text-yellow-500" />
-                              <span>{similarRecipe.rating}</span>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                </div>
-              ))}
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i} className="shadow-lg border-0">
+                <Skeleton className="h-48 rounded-t-lg bg-gradient-to-r from-gray-200 via-gray-200 to-gray-300 shadow-lg" />
+                <CardContent className="p-4">
+                  <Skeleton className="h-4 w-full mb-2 bg-gradient-to-r from-gray-200 via-gray-200 to-gray-300 shadow-lg" />
+                  <Skeleton className="h-4 w-3/4 bg-gradient-to-r from-gray-200 via-gray-200 to-gray-300 shadow-lg" />
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
-      )}
+      ) : (
+        similarRecipes &&
+        similarRecipes.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+              <ChefHatIcon2 className="h-6 w-6 mr-2 text-purple-600" />
+              Похожие блюда
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {similarRecipes
+                .filter((r: any) => r.id !== recipe.id)
+                .slice(0, 4)
+                .map((similarRecipe: any, _index: number) => (
+                  <div key={similarRecipe.id} className="group">
+                    <Link href={`/${locale}/recipes/${similarRecipe.id}`}>
+                      <Card className="shadow-lg border-0 hover:shadow-xl transition-all duration-300 overflow-hidden hover:-translate-y-1">
+                        <div className="relative h-48">
+                          <Image
+                            src={
+                              similarRecipe.imageUrl ||
+                              '/images/placeholder.svg'
+                            }
+                            alt={similarRecipe.title}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        </div>
+                        <CardContent className="p-4">
+                          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+                            {similarRecipe.title}
+                          </h3>
+                          <div className="flex items-center justify-between text-sm text-gray-600">
+                            <div className="flex items-center space-x-2">
+                              <Clock className="h-4 w-4 text-blue-500" />
+                              <span>
+                                {tFilters('byMinutes', {
+                                  count:
+                                    similarRecipe.prepTime ||
+                                    similarRecipe.cookTime,
+                                })}
+                              </span>
+                            </div>
+                            {similarRecipe.rating && (
+                              <div className="flex items-center space-x-2">
+                                <Star className="h-4 w-4 text-yellow-500" />
+                                <span>{similarRecipe.rating}</span>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )
+      )} */}
     </div>
   );
 }

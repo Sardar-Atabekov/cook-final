@@ -149,7 +149,7 @@ export const recipeApi = {
       console.log('API SSR: Fetching recipes', { params: params.toString() });
 
       const response = await fetch(`${baseUrl}recipes/recipes?${params}`, {
-        next: { revalidate: 10 * 60 }, // Кэшируем на 10 минут
+        next: { revalidate: 5 * 60 * 1000 }, // Кэшируем на 10 минут
       });
 
       if (!response.ok) {

@@ -157,7 +157,7 @@ function useMealTypeQuery(
     },
     initialData,
     staleTime: 10 * 60 * 1000, // 10 minutes
-    gcTime: 15 * 60 * 1000, // 15 minutes
+    gcTime: 5 * 60 * 1000, // 15 minutes
     retry: (failureCount, error) => {
       // Retry up to 2 times with exponential backoff
       if (failureCount < 2) {
