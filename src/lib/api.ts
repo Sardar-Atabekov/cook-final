@@ -90,6 +90,8 @@ export const recipeApi = {
       mealType: string;
       country: string;
       dietTags: string;
+      sorting?: string;
+      byTime?: string;
       search?: string;
     },
     lang: string
@@ -102,6 +104,14 @@ export const recipeApi = {
       country: options.country,
       dietTags: options.dietTags,
     };
+
+    // Добавляем новые фильтры
+    if (options.sorting && options.sorting.trim()) {
+      params.sorting = options.sorting.trim();
+    }
+    if (options.byTime && options.byTime.trim()) {
+      params.byTime = options.byTime.trim();
+    }
 
     // Если есть поиск по тексту, передаём только его
     if (options.search && options.search.trim().length > 0) {
@@ -124,6 +134,8 @@ export const recipeApi = {
       mealType: string;
       country: string;
       dietTags: string;
+      sorting?: string;
+      byTime?: string;
       search?: string;
     },
     lang: string
@@ -137,6 +149,14 @@ export const recipeApi = {
         country: options.country,
         dietTags: options.dietTags,
       });
+
+      // Добавляем новые фильтры
+      if (options.sorting && options.sorting.trim()) {
+        params.append('sorting', options.sorting.trim());
+      }
+      if (options.byTime && options.byTime.trim()) {
+        params.append('byTime', options.byTime.trim());
+      }
 
       // Если есть поиск по тексту, передаём только его
       if (options.search && options.search.trim().length > 0) {

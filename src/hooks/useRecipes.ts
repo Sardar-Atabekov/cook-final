@@ -9,8 +9,10 @@ interface UseRecipesParams {
   lang: string;
   limit: number;
   mealType?: string;
-  country?: string;
+  kitchens?: string;
   dietTags?: string;
+  sorting?: string;
+  byTime?: string;
   page?: number;
 }
 
@@ -20,8 +22,10 @@ export function useRecipes({
   lang,
   limit,
   mealType = 'all',
-  country = 'all',
+  kitchens = 'all',
   dietTags = 'all',
+  sorting = 'all',
+  byTime = 'all',
   page = 1,
 }: UseRecipesParams) {
   const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
@@ -34,16 +38,38 @@ export function useRecipes({
     lang,
     limit,
     mealType,
-    country,
+    kitchens,
     dietTags,
+    sorting,
+    byTime,
     page,
   });
 
-  // если параметры поменялись — сбрасываем рецепты
+  // если параметры поменялись — сбрасываем рецепты только если это не пагинация
   useEffect(() => {
     if (prevParamsRef.current !== paramsKey) {
+      const prevParams = prevParamsRef.current
+        ? JSON.parse(prevParamsRef.current)
+        : {};
+      const currentParams = JSON.parse(paramsKey);
+
+      // Сбрасываем рецепты только если изменились фильтры, а не страница
+      const isPageChange =
+        prevParams.page !== currentParams.page &&
+        prevParams.mealType === currentParams.mealType &&
+        prevParams.kitchens === currentParams.kitchens &&
+        prevParams.dietTags === currentParams.dietTags &&
+        prevParams.sorting === currentParams.sorting &&
+        prevParams.byTime === currentParams.byTime &&
+        prevParams.searchText === currentParams.searchText &&
+        JSON.stringify(prevParams.ingredientIds) ===
+          JSON.stringify(currentParams.ingredientIds);
+
+      if (!isPageChange) {
+        setAllRecipes([]);
+      }
+
       prevParamsRef.current = paramsKey;
-      setAllRecipes([]);
     }
   }, [paramsKey]);
 
@@ -59,8 +85,10 @@ export function useRecipes({
         lang,
         limit,
         mealType,
-        country,
+        kitchens,
         dietTags,
+        sorting,
+        byTime,
         page,
       },
     ],
@@ -70,8 +98,10 @@ export function useRecipes({
         offset,
         limit,
         mealType: mealType === 'all' ? '' : mealType || '',
-        country: country === 'all' ? '' : country || '',
+        kitchens: kitchens === 'all' ? '' : kitchens || '',
         dietTags: dietTags === 'all' ? '' : dietTags || '',
+        sorting: sorting === 'all' ? '' : sorting || '',
+        byTime: byTime === 'all' ? '' : byTime || '',
         search: searchText.trim() || undefined,
       };
       const ingredients = searchText.trim() ? [] : ingredientIds;
@@ -94,8 +124,21 @@ export function useRecipes({
 
   useEffect(() => {
     if (!data) return;
-    setAllRecipes(data.recipes ?? []);
-  }, [data]);
+
+    if (page === 1) {
+      // Для первой страницы заменяем все рецепты
+      setAllRecipes(data.recipes ?? []);
+    } else {
+      // Для последующих страниц добавляем новые рецепты
+      setAllRecipes((prev) => {
+        const existingIds = new Set(prev.map((r) => r.id));
+        const newRecipes = (data.recipes ?? []).filter(
+          (r) => !existingIds.has(r.id)
+        );
+        return [...prev, ...newRecipes];
+      });
+    }
+  }, [data, page]);
 
   return {
     recipes: allRecipes,

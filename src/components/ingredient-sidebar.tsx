@@ -51,19 +51,31 @@ export function IngredientSidebar({
       .split(',')
       .map((id) => parseInt(id))
       .filter((id) => !isNaN(id));
-    setSelectedIds(ids);
+
+    // Проверяем, действительно ли изменились ID
+    const currentIds = selectedIds;
+    if (JSON.stringify(ids) !== JSON.stringify(currentIds)) {
+      setSelectedIds(ids);
+    }
   }, [searchParams.get('ingredients')]);
 
   // Синхронизация store -> URL (при изменении selectedIds)
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
-    if (selectedIds.length > 0)
-      params.set('ingredients', selectedIds.join(','));
-    else params.delete('ingredients');
-    params.delete('page');
-    router.replace(`?${params.toString()}`, { scroll: false });
-    // eslint-disable-next-line
-  }, [selectedIds]);
+    const currentIngredients = params.get('ingredients') || '';
+    const newIngredients = selectedIds.join(',');
+
+    // Обновляем URL только если действительно изменились ингредиенты
+    if (currentIngredients !== newIngredients) {
+      if (selectedIds.length > 0) {
+        params.set('ingredients', newIngredients);
+      } else {
+        params.delete('ingredients');
+      }
+      params.delete('page');
+      router.replace(`?${params.toString()}`, { scroll: false });
+    }
+  }, [selectedIds, searchParams, router]);
 
   // 1. Если в zustand есть категории для текущего языка — показываем их
   // 2. Если нет — используем initialGroupedCategories (и кладём их в zustand)

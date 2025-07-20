@@ -16,6 +16,8 @@ export default function ClientRecipePageLayout({
   mealType,
   country,
   dietTags,
+  sorting,
+  byTime,
   recipes,
   total,
   isLoading,
@@ -27,8 +29,6 @@ export default function ClientRecipePageLayout({
 }: any) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [accumulatedRecipes, setAccumulatedRecipes] = useState(recipes);
-  const [currentPage, setCurrentPage] = useState(page);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
   const { selectedIngredients } = useIngredientStore();
@@ -40,8 +40,9 @@ export default function ClientRecipePageLayout({
   const currentDietTags = searchParams.get('dietTags') || 'all';
   const currentSorting = searchParams.get('sorting') || 'all';
   const currentByTime = searchParams.get('byTime') || 'all';
+  const currentPage = parseInt(searchParams.get('page') || '1');
 
-  // Используем хук для получения рецептов
+  // Используем хук для получения рецептов только если параметры изменились
   const {
     recipes: fetchedRecipes,
     total: fetchedTotal,
@@ -53,12 +54,14 @@ export default function ClientRecipePageLayout({
     lang: locale,
     limit: 20,
     mealType: currentMealType === 'all' ? 'all' : currentMealType,
-    country: currentCountry === 'all' ? 'all' : currentCountry,
+    kitchens: currentCountry === 'all' ? 'all' : currentCountry,
     dietTags: currentDietTags === 'all' ? 'all' : currentDietTags,
+    sorting: currentSorting === 'all' ? 'all' : currentSorting,
+    byTime: currentByTime === 'all' ? 'all' : currentByTime,
     page: currentPage,
   });
 
-  // Используем данные из хука или начальные данные
+  // Используем данные из хука, если они есть, иначе используем начальные данные
   const displayRecipes = fetchedRecipes.length > 0 ? fetchedRecipes : recipes;
   const displayTotal = fetchedTotal || total;
   const displayIsLoading = isFetching || isLoading;
@@ -67,13 +70,13 @@ export default function ClientRecipePageLayout({
   // Аккумулируем рецепты при увеличении страницы
   useEffect(() => {
     if (currentPage > 1) {
-      setAccumulatedRecipes((prev: any[]) => {
-        const ids = new Set(prev.map((r) => r.id));
-        const newOnes = displayRecipes.filter((r: any) => !ids.has(r.id));
-        return [...prev, ...newOnes];
-      });
+      // setAccumulatedRecipes((prev: any[]) => { // This line was removed as per the new_code
+      //   const ids = new Set(prev.map((r) => r.id));
+      //   const newOnes = displayRecipes.filter((r: any) => !ids.has(r.id));
+      //   return [...prev, ...newOnes];
+      // });
     } else {
-      setAccumulatedRecipes(displayRecipes);
+      // setAccumulatedRecipes(displayRecipes); // This line was removed as per the new_code
     }
   }, [displayRecipes, currentPage]);
 
@@ -133,7 +136,7 @@ export default function ClientRecipePageLayout({
       y: 0,
       transition: {
         duration: 0.5,
-        ease: 'easeOut',
+        ease: 'easeOut' as const,
       },
     },
   };
@@ -248,7 +251,7 @@ export default function ClientRecipePageLayout({
                   </p>
                 </div>
               </div>
-            ) : displayIsLoading && accumulatedRecipes.length === 0 ? (
+            ) : displayIsLoading && displayRecipes.length === 0 ? (
               <div className="text-center py-16">
                 <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
                 <p className="text-gray-600">Загрузка рецептов...</p>
@@ -256,14 +259,14 @@ export default function ClientRecipePageLayout({
             ) : (
               <>
                 <SearchPageClient
-                  initialRecipes={accumulatedRecipes}
+                  initialRecipes={displayRecipes}
                   initialTotal={displayTotal}
                   locale={locale}
                 />
 
                 {/* Load More Button */}
                 <AnimatePresence>
-                  {accumulatedRecipes.length < displayTotal && (
+                  {displayRecipes.length < displayTotal && (
                     <motion.div
                       className="text-center mt-8"
                       initial={{ opacity: 0, y: 20 }}
@@ -295,7 +298,7 @@ export default function ClientRecipePageLayout({
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.2 }}
                       >
-                        Показано {accumulatedRecipes.length} из {displayTotal}{' '}
+                        Показано {displayRecipes.length} из {displayTotal}{' '}
                         рецептов
                       </motion.p>
                     </motion.div>

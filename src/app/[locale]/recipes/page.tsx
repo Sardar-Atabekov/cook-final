@@ -16,6 +16,8 @@ interface SearchPageProps {
     mealType?: string;
     country?: string;
     dietTags?: string;
+    sorting?: string;
+    byTime?: string;
     page?: string;
   };
 }
@@ -101,6 +103,8 @@ export default async function SearchPage({
   const mealType = resolvedParams.mealType || 'all';
   const country = resolvedParams.country || 'all';
   const dietTags = resolvedParams.dietTags || 'all';
+  const sorting = resolvedParams.sorting || 'all';
+  const byTime = resolvedParams.byTime || 'all';
 
   // Получаем рецепты для SSR (поиск и фильтрация на сервере)
   let recipes = [];
@@ -114,10 +118,12 @@ export default async function SearchPage({
       mealType: mealType === 'all' ? '' : mealType,
       country: country === 'all' ? '' : country,
       dietTags: dietTags === 'all' ? '' : dietTags,
+      sorting: sorting === 'all' ? '' : sorting,
+      byTime: byTime === 'all' ? '' : byTime,
       search: searchQuery || undefined,
     };
     const result = await recipeApi.getRecipes(
-      searchQuery ? [] : ingredientIds,
+      searchQuery ? ingredientIds : ingredientIds,
       filters,
       locale
     );
@@ -135,6 +141,8 @@ export default async function SearchPage({
       mealType={mealType}
       country={country}
       dietTags={dietTags}
+      sorting={sorting}
+      byTime={byTime}
       recipes={recipes}
       total={total}
       isLoading={isLoading}

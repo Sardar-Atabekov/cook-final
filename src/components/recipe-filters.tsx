@@ -358,8 +358,6 @@ export function RecipeFilters({
                 size="sm"
                 onClick={clearFilters}
                 className="text-red-600 hover:text-red-700 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 border-red-300 rounded-xl transition-all duration-300"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
               >
                 <X className="h-4 w-4 mr-2" />
                 {t('clearAllFilters')}

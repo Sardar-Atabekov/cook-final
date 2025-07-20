@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { RecipeCard } from '@/components/recipe-card';
-import { Skeleton } from '@/components/ui/skeleton';
 import { userRecipesApi } from '@/lib/api';
 import { useAuthStore } from '@/stores/useAuthStore';
 import type { Recipe } from '@/lib/api';
@@ -11,7 +10,6 @@ import type { Recipe } from '@/lib/api';
 export default function FavoritesPage() {
   const { token } = useAuthStore();
   const [savedRecipes, setSavedRecipes] = useState<Recipe[] | null>(null);
-  const [savedLoading, setSavedLoading] = useState(false);
   const [savedError, setSavedError] = useState<string | null>(null);
   const [savingIds, setSavingIds] = useState<string[]>([]);
   const t = useTranslations('favorites');
@@ -19,13 +17,11 @@ export default function FavoritesPage() {
   // Получаем сохранённые рецепты с сервера
   useEffect(() => {
     if (!token) return;
-    setSavedLoading(true);
     setSavedError(null);
     userRecipesApi
       .getSavedRecipes(token)
       .then((data) => setSavedRecipes(data.recipes || data))
-      .catch((e) => setSavedError(e?.message || 'Ошибка'))
-      .finally(() => setSavedLoading(false));
+      .catch((e) => setSavedError(e?.message || 'Ошибка'));
   }, [token]);
 
   // Функция для удаления рецепта из избранного
@@ -47,17 +43,7 @@ export default function FavoritesPage() {
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('title')}</h1>
       </div>
-      {savedLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="space-y-3">
-              <Skeleton className="h-48 w-full rounded-lg" />
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-4 w-1/2" />
-            </div>
-          ))}
-        </div>
-      ) : savedError ? (
+      {savedError ? (
         <div className="text-center py-12 text-red-600">{savedError}</div>
       ) : !token ? (
         <div className="text-center py-12">{t('loginToSeeSaved')}</div>
