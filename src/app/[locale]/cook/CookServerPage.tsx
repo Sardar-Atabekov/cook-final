@@ -8,7 +8,8 @@ export default async function CookServerPage({
 }: {
   params: { locale: string };
 }) {
-  const t = await getTranslations({ locale: params.locale, namespace: 'cook' });
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'cook' });
   return (
     <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-8">
       <div className="mb-8 text-center">

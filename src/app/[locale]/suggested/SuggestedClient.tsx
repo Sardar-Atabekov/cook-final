@@ -2,8 +2,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useIngredientStore } from '@/stores/useIngredientStore';
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Clock, Coffee, Sun, Moon, RefreshCw } from 'lucide-react';
+import { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
+import { Clock, Coffee, Sun, Moon, RefreshCw, AlertCircle } from 'lucide-react';
 import { RecipeCard } from '@/components/recipe-card';
 import { RecipeDetail } from '@/components/recipe-detail';
 import Footer from '@/components/footer';
@@ -48,43 +48,57 @@ const MEAL_TIME_CONFIG = {
 
 type MealType = keyof typeof MEAL_TIME_CONFIG;
 
-// Helper function to convert RecipeWithIngredients to Recipe
+// Optimized toRecipe function with error handling
 function toRecipe(recipe: RecipeWithIngredients | null): Recipe | null {
   if (!recipe) return null;
 
-  return {
-    description: recipe.description || '',
-    cookTime: (recipe as any).cookTime || 0,
-    rating: recipe.rating || 0,
-    prepTime: (recipe as any).prepTime || '',
-    nutrition: (recipe as any).nutrition || {},
-    id: String(recipe.id),
-    title: recipe.title,
-    cookingTime: recipe.cookingTime || 0,
-    country: recipe.country || '',
-    mealType: (recipe as any).mealType || recipe.type || '',
-    dietTags: (recipe as any).dietTags || [],
-    ingredients: (recipe.ingredients || []).map(
-      (i) => i.ingredient?.name || ''
-    ),
-    steps: (recipe as any).steps || recipe.instructions || [],
-    loading: false,
-    servings: (recipe as any).servings || 1,
-    difficulty: (recipe as any).difficulty || '',
-    imageUrl: recipe.imageUrl || '',
-    instructions: recipe.instructions || [],
-    sourceUrl: recipe.sourceUrl,
-    recipeIngredients: recipe.ingredients || [],
-    matchPercentage: recipe.matchPercentage
-      ? String(recipe.matchPercentage)
-      : undefined,
-    missingIngredients: recipe.missingIngredients as any,
-  };
+  try {
+    return {
+      description: recipe.description || '',
+      cookTime: (recipe as any).cookTime || 0,
+      rating: recipe.rating || 0,
+      prepTime: (recipe as any).prepTime || '',
+      nutrition: (recipe as any).nutrition || {},
+      id: String(recipe.id),
+      title: recipe.title || 'Untitled Recipe',
+      cookingTime: recipe.cookingTime || 0,
+      country: recipe.country || '',
+      mealType: (recipe as any).mealType || recipe.type || '',
+      dietTags: (recipe as any).dietTags || [],
+      ingredients: (recipe.ingredients || []).map(
+        (i) => i.ingredient?.name || ''
+      ),
+      steps: (recipe as any).steps || recipe.instructions || [],
+      loading: false,
+      servings: (recipe as any).servings || 1,
+      difficulty: (recipe as any).difficulty || '',
+      imageUrl: recipe.imageUrl || '',
+      instructions: recipe.instructions || [],
+      sourceUrl: recipe.sourceUrl,
+      recipeIngredients: recipe.ingredients || [],
+      matchPercentage: recipe.matchPercentage
+        ? String(recipe.matchPercentage)
+        : undefined,
+      missingIngredients: recipe.missingIngredients as any,
+    };
+  } catch (error) {
+    console.error('Error converting recipe:', error);
+    return null;
+  }
 }
 
 // Hook for determining current meal type based on time
 function useCurrentMealType(): MealType {
-  const [currentMealType, setCurrentMealType] = useState<MealType>('dinner');
+  const [currentMealType, setCurrentMealType] = useState<MealType>(() => {
+    // Initialize with correct meal type immediately
+    const hour = new Date().getHours();
+    for (const [mealType, config] of Object.entries(MEAL_TIME_CONFIG)) {
+      if (hour >= config.startHour && hour < config.endHour) {
+        return mealType as MealType;
+      }
+    }
+    return 'dinner';
+  });
 
   useEffect(() => {
     const updateMealType = () => {
@@ -96,49 +110,62 @@ function useCurrentMealType(): MealType {
           return;
         }
       }
-
-      // Default to dinner if no match (shouldn't happen with current ranges)
       setCurrentMealType('dinner');
     };
 
-    updateMealType();
-
-    // Update meal type every minute
-    const interval = setInterval(updateMealType, 60000);
-
+    // Update meal type every 30 seconds instead of every minute for better UX
+    const interval = setInterval(updateMealType, 30000);
     return () => clearInterval(interval);
   }, []);
 
   return currentMealType;
 }
 
-// Custom hook for meal type queries
+// Optimized hook for meal type queries with better error handling and caching
 function useMealTypeQuery(
   mealTypeId: string | undefined,
   ingredientIds: number[],
   locale: string,
-  initialData: RecipeWithIngredients[]
+  initialData: RecipeWithIngredients[],
+  enabled: boolean = true
 ) {
   return useQuery({
     queryKey: ['suggested', ingredientIds, mealTypeId, locale],
-    enabled: !!mealTypeId,
+    enabled: !!mealTypeId && enabled,
     queryFn: async () => {
       if (!mealTypeId) return [];
 
-      const filters = {
-        offset: 0,
-        limit: 20,
-        mealType: mealTypeId,
-        country: '',
-        dietTags: '',
-      };
+      try {
+        const filters = {
+          offset: 0,
+          limit: 20,
+          mealType: mealTypeId,
+          country: '',
+          dietTags: '',
+        };
 
-      const result = await recipeApi.getRecipes(ingredientIds, filters, locale);
-      return result.recipes || [];
+        const result = await recipeApi.getRecipes(
+          ingredientIds,
+          filters,
+          locale
+        );
+        return result?.recipes || [];
+      } catch (error) {
+        console.error(`Failed to fetch ${mealTypeId} recipes:`, error);
+        return initialData || [];
+      }
     },
     initialData,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 15 * 60 * 1000, // 15 minutes
+    retry: (failureCount, error) => {
+      // Retry up to 2 times with exponential backoff
+      if (failureCount < 2) {
+        return true;
+      }
+      return false;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }
 
@@ -163,8 +190,10 @@ export function SuggestedClient({
     [selectedIngredients]
   );
 
+  console.log('ingredientIds', ingredientIds);
   const [selectedRecipe, setSelectedRecipe] =
     useState<RecipeWithIngredients | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const t = useTranslations('suggested');
   const currentMealType = useCurrentMealType();
   const [activeTab, setActiveTab] = useState<MealType>(currentMealType);
@@ -184,65 +213,136 @@ export function SuggestedClient({
     []
   );
 
-  // Queries for each meal type
+  // Queries for each meal type with lazy loading for non-active tabs
   const breakfastQuery = useMealTypeQuery(
     mealTypeIds.breakfast,
     ingredientIds,
     locale,
-    initialBreakfast
+    initialBreakfast,
+    activeTab === 'breakfast' || ingredientIds.length > 0
   );
+
   const lunchQuery = useMealTypeQuery(
     mealTypeIds.lunch,
     ingredientIds,
     locale,
-    initialLunch
+    initialLunch,
+    activeTab === 'lunch' || ingredientIds.length > 0
   );
+
   const dinnerQuery = useMealTypeQuery(
     mealTypeIds.dinner,
     ingredientIds,
     locale,
-    initialDinner
+    initialDinner,
+    activeTab === 'dinner' || ingredientIds.length > 0
   );
 
   // Loading and error states
-  const isLoading =
-    breakfastQuery.isLoading || lunchQuery.isLoading || dinnerQuery.isLoading;
-  const error = breakfastQuery.error || lunchQuery.error || dinnerQuery.error;
+  const isLoading = useMemo(() => {
+    switch (activeTab) {
+      case 'breakfast':
+        return breakfastQuery.isLoading;
+      case 'lunch':
+        return lunchQuery.isLoading;
+      case 'dinner':
+        return dinnerQuery.isLoading;
+      default:
+        return false;
+    }
+  }, [
+    activeTab,
+    breakfastQuery.isLoading,
+    lunchQuery.isLoading,
+    dinnerQuery.isLoading,
+  ]);
 
-  // Refresh function
-  const handleRefresh = useCallback(() => {
-    breakfastQuery.refetch();
-    lunchQuery.refetch();
-    dinnerQuery.refetch();
+  const error = useMemo(() => {
+    switch (activeTab) {
+      case 'breakfast':
+        return breakfastQuery.error;
+      case 'lunch':
+        return lunchQuery.error;
+      case 'dinner':
+        return dinnerQuery.error;
+      default:
+        return null;
+    }
+  }, [activeTab, breakfastQuery.error, lunchQuery.error, dinnerQuery.error]);
+
+  // Optimized refresh function with loading state
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.allSettled([
+        breakfastQuery.refetch(),
+        lunchQuery.refetch(),
+        dinnerQuery.refetch(),
+      ]);
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
   }, [breakfastQuery, lunchQuery, dinnerQuery]);
 
   // Get current meal configuration
   const currentMealConfig = MEAL_TIME_CONFIG[activeTab];
   const MealIcon = currentMealConfig.icon;
 
-  // Get current recipes based on active tab
+  // Get current recipes based on active tab with error handling
   const currentRecipes = useMemo(() => {
-    switch (activeTab) {
-      case 'breakfast':
-        return breakfastQuery.data || [];
-      case 'lunch':
-        return lunchQuery.data || [];
-      case 'dinner':
-        return dinnerQuery.data || [];
-      default:
-        return [];
+    try {
+      switch (activeTab) {
+        case 'breakfast':
+          return breakfastQuery.data || [];
+        case 'lunch':
+          return lunchQuery.data || [];
+        case 'dinner':
+          return dinnerQuery.data || [];
+        default:
+          return [];
+      }
+    } catch (error) {
+      console.error('Error getting current recipes:', error);
+      return [];
     }
   }, [activeTab, breakfastQuery.data, lunchQuery.data, dinnerQuery.data]);
 
-  // Callback for recipe clicks
+  // Optimized callbacks
   const handleRecipeClick = useCallback((recipe: RecipeWithIngredients) => {
     setSelectedRecipe(recipe);
   }, []);
 
-  // Close recipe detail
   const handleCloseRecipeDetail = useCallback(() => {
     setSelectedRecipe(null);
   }, []);
+
+  const handleTabChange = useCallback(
+    (type: MealType) => {
+      setActiveTab(type);
+
+      // Prefetch data for the selected tab if not already loaded
+      switch (type) {
+        case 'breakfast':
+          if (!breakfastQuery.data?.length) {
+            breakfastQuery.refetch();
+          }
+          break;
+        case 'lunch':
+          if (!lunchQuery.data?.length) {
+            lunchQuery.refetch();
+          }
+          break;
+        case 'dinner':
+          if (!dinnerQuery.data?.length) {
+            dinnerQuery.refetch();
+          }
+          break;
+      }
+    },
+    [breakfastQuery, lunchQuery, dinnerQuery]
+  );
 
   return (
     <>
@@ -292,8 +392,9 @@ export function SuggestedClient({
                   <Button
                     key={type}
                     variant={activeTab === type ? 'default' : 'outline'}
-                    onClick={() => setActiveTab(type)}
+                    onClick={() => handleTabChange(type)}
                     className="flex items-center"
+                    disabled={isRefreshing}
                   >
                     <Icon className={`h-4 w-4 mr-2 ${config.color}`} />
                     {t(type, {})}
@@ -301,19 +402,44 @@ export function SuggestedClient({
                 );
               })}
             </div>
+
+            {/* Refresh button */}
+            {/* <div className="flex justify-center mt-4">
+              <Button
+                onClick={handleRefresh}
+                variant="ghost"
+                size="sm"
+                disabled={isRefreshing}
+                className="flex items-center"
+              >
+                <RefreshCw
+                  className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`}
+                />
+              </Button>
+            </div> */}
           </div>
 
           {/* Error Handling */}
           {error && (
-            <Card className="mb-8 text-center">
+            <Card className="mb-8 text-center border-red-200 bg-red-50">
               <CardContent className="pt-6">
+                <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
                 <h3 className="text-lg font-medium text-red-600 mb-2">
-                  {t('failedToLoad', {})}
+                  {t('failedToLoad', {}) || 'Failed to load recipes'}
                 </h3>
-                <p className="text-slate-600 mb-4">{t('tryRefresh', {})}</p>
-                <Button onClick={handleRefresh} variant="outline">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  {t('retry', {})}
+                <p className="text-slate-600 mb-4">
+                  {t('tryRefresh', {}) || 'Please try refreshing the page'}
+                </p>
+                <Button
+                  onClick={handleRefresh}
+                  variant="outline"
+                  disabled={isRefreshing}
+                  className="border-red-300 text-red-600 hover:bg-red-50"
+                >
+                  <RefreshCw
+                    className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`}
+                  />
+                  {t('retry', {}) || 'Retry'}
                 </Button>
               </CardContent>
             </Card>
@@ -337,39 +463,56 @@ export function SuggestedClient({
               )}
             </div>
 
-            {isLoading ? (
-              <RecipesGridSkeleton />
-            ) : (
-              <>
-                {currentRecipes.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {currentRecipes.map((recipe: RecipeWithIngredients) => (
-                      <div
-                        key={recipe.id}
-                        onClick={() => handleRecipeClick(recipe)}
-                        className="cursor-pointer"
-                      >
-                        <RecipeCard recipe={toRecipe(recipe)!} />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <Card className="text-center py-12">
-                    <CardContent>
-                      <MealIcon
-                        className={`h-16 w-16 ${currentMealConfig.color} mx-auto mb-4`}
-                      />
-                      <h3 className="text-lg font-medium text-slate-900 mb-2">
-                        {t('noRecipes', { mealType: t(activeTab, {}) })}
-                      </h3>
-                      <p className="text-slate-600 mb-4">
-                        {t('noRecipesDesc', {})}
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
-              </>
-            )}
+            <Suspense fallback={<RecipesGridSkeleton />}>
+              {isLoading ? (
+                <RecipesGridSkeleton />
+              ) : (
+                <>
+                  {currentRecipes.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {currentRecipes.map((recipe: RecipeWithIngredients) => {
+                        const convertedRecipe = toRecipe(recipe);
+                        if (!convertedRecipe) return null;
+
+                        return (
+                          <div
+                            key={recipe.id}
+                            onClick={() => handleRecipeClick(recipe)}
+                            className="cursor-pointer transition-transform hover:scale-105"
+                          >
+                            <RecipeCard recipe={convertedRecipe} />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <Card className="text-center py-12">
+                      <CardContent>
+                        <MealIcon
+                          className={`h-16 w-16 ${currentMealConfig.color} mx-auto mb-4 opacity-50`}
+                        />
+                        <h3 className="text-lg font-medium text-slate-900 mb-2">
+                          {t('noRecipes', { mealType: t(activeTab, {}) })}
+                        </h3>
+                        <p className="text-slate-600 mb-4">
+                          {t('noRecipesDesc', {})}
+                        </p>
+                        <Button
+                          onClick={handleRefresh}
+                          variant="outline"
+                          disabled={isRefreshing}
+                        >
+                          <RefreshCw
+                            className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`}
+                          />
+                          {t('tryAgain', {}) || 'Try Again'}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+                </>
+              )}
+            </Suspense>
           </section>
 
           {/* All Day Meal Options */}
@@ -379,33 +522,53 @@ export function SuggestedClient({
             </h2>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <SuggestedSection
-                title={t('breakfast', {})}
-                noRecipesText={t('noRecipesAvailable', {})}
-                icon={<Coffee className="h-5 w-5 text-amber-600" />}
-                colorClass="text-amber-600"
-                recipes={breakfastQuery.data || []}
-                isLoading={breakfastQuery.isLoading}
-                onRecipeClick={handleRecipeClick}
-              />
-              <SuggestedSection
-                title={t('lunch', {})}
-                noRecipesText={t('noRecipesAvailable', {})}
-                icon={<Sun className="h-5 w-5 text-yellow-600" />}
-                colorClass="text-yellow-600"
-                recipes={lunchQuery.data || []}
-                isLoading={lunchQuery.isLoading}
-                onRecipeClick={handleRecipeClick}
-              />
-              <SuggestedSection
-                title={t('dinner', {})}
-                noRecipesText={t('noRecipesAvailable', {})}
-                icon={<Moon className="h-5 w-5 text-blue-600" />}
-                colorClass="text-blue-600"
-                recipes={dinnerQuery.data || []}
-                isLoading={dinnerQuery.isLoading}
-                onRecipeClick={handleRecipeClick}
-              />
+              <Suspense
+                fallback={
+                  <div className="animate-pulse bg-slate-200 h-64 rounded-lg" />
+                }
+              >
+                <SuggestedSection
+                  title={t('breakfast', {})}
+                  noRecipesText={t('noRecipesAvailable', {})}
+                  icon={<Coffee className="h-5 w-5 text-amber-600" />}
+                  colorClass="text-amber-600"
+                  recipes={breakfastQuery.data || []}
+                  isLoading={breakfastQuery.isLoading}
+                  onRecipeClick={handleRecipeClick}
+                />
+              </Suspense>
+
+              <Suspense
+                fallback={
+                  <div className="animate-pulse bg-slate-200 h-64 rounded-lg" />
+                }
+              >
+                <SuggestedSection
+                  title={t('lunch', {})}
+                  noRecipesText={t('noRecipesAvailable', {})}
+                  icon={<Sun className="h-5 w-5 text-yellow-600" />}
+                  colorClass="text-yellow-600"
+                  recipes={lunchQuery.data || []}
+                  isLoading={lunchQuery.isLoading}
+                  onRecipeClick={handleRecipeClick}
+                />
+              </Suspense>
+
+              <Suspense
+                fallback={
+                  <div className="animate-pulse bg-slate-200 h-64 rounded-lg" />
+                }
+              >
+                <SuggestedSection
+                  title={t('dinner', {})}
+                  noRecipesText={t('noRecipesAvailable', {})}
+                  icon={<Moon className="h-5 w-5 text-blue-600" />}
+                  colorClass="text-blue-600"
+                  recipes={dinnerQuery.data || []}
+                  isLoading={dinnerQuery.isLoading}
+                  onRecipeClick={handleRecipeClick}
+                />
+              </Suspense>
             </div>
           </section>
 
@@ -422,15 +585,20 @@ export function SuggestedClient({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {initialRandom.map((recipe: RecipeWithIngredients) => (
-                  <div
-                    key={recipe.id}
-                    onClick={() => handleRecipeClick(recipe)}
-                    className="cursor-pointer"
-                  >
-                    <RecipeCard recipe={toRecipe(recipe)!} />
-                  </div>
-                ))}
+                {initialRandom.map((recipe: RecipeWithIngredients) => {
+                  const convertedRecipe = toRecipe(recipe);
+                  if (!convertedRecipe) return null;
+
+                  return (
+                    <div
+                      key={recipe.id}
+                      onClick={() => handleRecipeClick(recipe)}
+                      className="cursor-pointer transition-transform hover:scale-105"
+                    >
+                      <RecipeCard recipe={convertedRecipe} />
+                    </div>
+                  );
+                })}
               </div>
             </section>
           )}
@@ -458,12 +626,14 @@ export function SuggestedClient({
         </div>
 
         {/* Recipe Detail Modal */}
-        <RecipeDetail
-          recipe={toRecipe(selectedRecipe)}
-          isOpen={!!selectedRecipe}
-          onClose={handleCloseRecipeDetail}
-          onCookDish={() => {}}
-        />
+        {selectedRecipe && (
+          <RecipeDetail
+            recipe={toRecipe(selectedRecipe)}
+            isOpen={!!selectedRecipe}
+            onClose={handleCloseRecipeDetail}
+            onCookDish={() => {}}
+          />
+        )}
 
         <Footer />
       </div>
@@ -471,7 +641,7 @@ export function SuggestedClient({
   );
 }
 
-// Skeleton component for loading state
+// Optimized skeleton component
 function RecipesGridSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -480,13 +650,13 @@ function RecipesGridSkeleton() {
           key={i}
           className="bg-white rounded-xl shadow-sm border border-slate-200 animate-pulse"
         >
-          <div className="w-full h-48 bg-slate-200 rounded-t-xl" />
-          <div className="p-4">
-            <div className="h-4 bg-slate-200 rounded mb-2" />
-            <div className="h-3 bg-slate-200 rounded mb-4" />
-            <div className="flex justify-between">
-              <div className="h-3 bg-slate-200 rounded w-16" />
-              <div className="h-3 bg-slate-200 rounded w-12" />
+          <div className="w-full h-48 bg-gradient-to-r from-slate-200 to-slate-300 rounded-t-xl" />
+          <div className="p-4 space-y-3">
+            <div className="h-4 bg-gradient-to-r from-slate-200 to-slate-300 rounded w-3/4" />
+            <div className="h-3 bg-gradient-to-r from-slate-200 to-slate-300 rounded w-full" />
+            <div className="flex justify-between pt-2">
+              <div className="h-3 bg-gradient-to-r from-slate-200 to-slate-300 rounded w-16" />
+              <div className="h-3 bg-gradient-to-r from-slate-200 to-slate-300 rounded w-12" />
             </div>
           </div>
         </div>

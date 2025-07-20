@@ -69,10 +69,6 @@ export const ingredientsApi = {
 
   getGroupedIngredients: async (lang: string) => {
     // Используем fetch с кэшированием для ускорения загрузки
-    const baseUrl =
-      process.env.NODE_ENV === 'production'
-        ? process.env.NEXT_PUBLIC_SERVER
-        : 'http://localhost:5000/api/';
     const response = await fetch(`${baseUrl}ingredients/grouped?lang=${lang}`, {
       next: { revalidate: 7 * 24 * 60 * 60 }, // Кэшируем на 7 дней
     });
@@ -152,10 +148,6 @@ export const recipeApi = {
   // SSR версия с кешированием
   getAllTagsSSR: async () => {
     try {
-      const baseUrl =
-        process.env.NODE_ENV === 'production'
-          ? process.env.NEXT_PUBLIC_SERVER
-          : 'http://localhost:5000/api/';
       const response = await fetch(`${baseUrl}recipes/tags`, {
         next: { revalidate: 7 * 24 * 60 * 60 }, // Кэшируем на 7 дней
       });
