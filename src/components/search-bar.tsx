@@ -104,15 +104,15 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
         transition={{ duration: 0.4 }}
       >
         <form onSubmit={handleSubmit}>
-          <div className="relative flex items-center">
+          <div className="relative flex items-center h-14">
             <motion.div
-              className="relative flex-1"
+              className="relative flex-1 flex items-center"
               whileHover={{ scale: 1.01 }}
               transition={{ type: 'spring', stiffness: 300 }}
             >
               {/* Search Icon */}
               <motion.div
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 z-10"
+                className="absolute left-4 -translate-y-1/2 text-gray-400 z-10"
                 animate={{
                   scale: isFocused ? 1.2 : 1,
                   color: isFocused ? '#3b82f6' : '#9ca3af',
@@ -152,16 +152,14 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
                       type: 'spring',
                       stiffness: 300,
                     }}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                    className="absolute right-3 -translate-y-1/2"
                   >
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
                       onClick={handleClear}
-                      className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600 rounded-full transition-all duration-300"
-                      whileHover={{ scale: 1.1, rotate: 90 }}
-                      whileTap={{ scale: 0.9 }}
+                      className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600 rounded-full transition-all duration-300 flex items-center justify-center"
                     >
                       <X className="w-4 h-4" />
                     </Button>

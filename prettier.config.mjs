@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   semi: true,
   endOfLine: 'lf',
   singleQuote: true,

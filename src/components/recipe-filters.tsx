@@ -181,14 +181,7 @@ export function RecipeFilters({
       transition={{ duration: 0.5 }}
     >
       {/* Filter Container */}
-      <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-200/50">
-        <div className="flex items-center mb-6">
-          <div className="p-2 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full mr-3">
-            <Filter className="h-5 w-5 text-blue-600" />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-800">Фильтры</h3>
-        </div>
-
+      <div className="backdrop-blur-sm rounded-2xl p-6">
         {/* Filter Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           {/* Meal Type Filter */}
@@ -293,6 +286,34 @@ export function RecipeFilters({
             </Select>
           </motion.div>
 
+          {/* Time Filter */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            whileHover={{ y: -2 }}
+          >
+            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+              <Clock className="h-4 w-4 mr-2 text-red-500" />
+              Время
+            </label>
+            <Select
+              value={byTime}
+              onValueChange={(value) => handleChange({ byTime: value })}
+            >
+              <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm border-2 hover:border-red-300 transition-all duration-300 rounded-xl focus:ring-4 focus:ring-red-500/10">
+                <SelectValue placeholder="Время" />
+              </SelectTrigger>
+              <SelectContent className="bg-white/95 backdrop-blur-md border-0 shadow-2xl rounded-xl">
+                {byTimeOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </motion.div>
+
           {/* Sorting Filter */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -320,41 +341,13 @@ export function RecipeFilters({
               </SelectContent>
             </Select>
           </motion.div>
-
-          {/* Time Filter */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            whileHover={{ y: -2 }}
-          >
-            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-              <Clock className="h-4 w-4 mr-2 text-red-500" />
-              Время приготовления
-            </label>
-            <Select
-              value={byTime}
-              onValueChange={(value) => handleChange({ byTime: value })}
-            >
-              <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm border-2 hover:border-red-300 transition-all duration-300 rounded-xl focus:ring-4 focus:ring-red-500/10">
-                <SelectValue placeholder="Время" />
-              </SelectTrigger>
-              <SelectContent className="bg-white/95 backdrop-blur-md border-0 shadow-2xl rounded-xl">
-                {byTimeOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </motion.div>
         </div>
 
         {/* Clear Filters Button */}
         <AnimatePresence>
           {hasActiveFilters && (
             <motion.div
-              className="mt-6 flex justify-center"
+              className="mt-4 flex justify-center"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
@@ -380,7 +373,7 @@ export function RecipeFilters({
       <AnimatePresence>
         {hasActiveFilters && (
           <motion.div
-            className="mt-4 flex flex-wrap gap-2"
+            className="mt-2 flex flex-wrap gap-2"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}

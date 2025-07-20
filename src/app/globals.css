@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Critical CSS for navigation - load immediately */
+nav {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+nav * {
+  animation-delay: 0s !important;
+  animation-duration: 0s !important;
+  transition-delay: 0s !important;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -297,7 +310,6 @@
   .gradient-text {
     background: linear-gradient(135deg, var(--brand-blue), var(--brand-purple));
     background-clip: text;
-    background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
@@ -370,5 +382,54 @@
 
   .stagger-5 {
     animation-delay: 0.5s;
+  }
+
+  /* Ensure navigation is visible immediately */
+  nav > div {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* Navigation items instant display */
+  nav * {
+    animation-delay: 0s !important;
+    transition-delay: 0s !important;
+  }
+
+  /* Prevent any initial animations on navigation */
+  nav,
+  nav * {
+    animation-duration: 0s !important;
+  }
+
+  /* Prevent content flash on page load */
+  body {
+    opacity: 1 !important;
+  }
+
+  /* Ensure smooth page transitions */
+  * {
+    box-sizing: border-box;
+  }
+
+  /* Navigation specific optimizations */
+  nav {
+    contain: layout style paint;
+    will-change: auto;
+  }
+
+  /* Search bar icon alignment */
+  .search-icon-container {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* Ensure icons are properly centered in search bar */
+  .relative.flex.items-center .absolute {
+    align-items: center;
+    display: flex;
+    justify-content: center;
   }
 }
