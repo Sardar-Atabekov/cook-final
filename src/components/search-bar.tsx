@@ -5,6 +5,7 @@ import { Search, X, Sparkles, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import React, { useState, useEffect, useCallback, forwardRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 
 interface SearchBarProps {
   placeholder?: string;
@@ -23,6 +24,7 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
     },
     ref
   ) => {
+    const t = useTranslations('ux.input');
     const searchParams = useSearchParams();
     const router = useRouter();
     const urlValue = searchParams.get('q') || '';
@@ -192,7 +194,7 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
                 className="h-14 px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl font-medium"
               >
                 <Sparkles className="w-5 h-5 mr-2" />
-                Найти
+                {t('search')}
               </Button>
             </motion.div>
           </div>

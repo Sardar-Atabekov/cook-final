@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { recipeApi } from '@/lib/api';
 import { RecipePageClient } from './RecipePageClient';
+import { getTranslations } from 'next-intl/server';
 
 interface RecipePageProps {
   params: Promise<{ id: string; locale: string }>;
@@ -10,41 +11,55 @@ interface RecipePageProps {
 export async function generateMetadata({
   params,
 }: RecipePageProps): Promise<Metadata> {
-  const { id } = await params;
+  const { id, locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'recipe' });
   const recipe = await recipeApi.getRecipeSSR(id);
   if (!recipe) {
     return {
-      title: 'Рецепт не найден',
-      description: 'К сожалению, этот рецепт не найден или был удален.',
+      title: t('notFound'),
+      description: t('notFoundDescription'),
     };
   }
   return {
-    title: `${recipe.title} - Рецепт приготовления`,
+    title: `${recipe.title} - ${t('title')}`,
     description:
       recipe.description ||
-      `Подробный рецепт приготовления ${recipe.title}. Время приготовления: ${recipe.prepTime || recipe.cookTime} минут.`,
-    keywords: `${recipe.title}, рецепт, ${recipe.country}, ${recipe.mealType}, кулинария, готовка`,
+      t('titleDescription', {
+        title: recipe.title,
+        time: recipe.prepTime || recipe.cookTime,
+      }),
+    keywords: `${recipe.title}, ${t('recipe')}, ${recipe.country}, ${recipe.mealType}, ${t('keywords')}`,
     openGraph: {
       title: recipe.title,
-      description: recipe.description || `Рецепт приготовления ${recipe.title}`,
+      description:
+        recipe.description ||
+        t('titleDescription', {
+          title: recipe.title,
+          time: recipe.prepTime || recipe.cookTime,
+        }),
       images: recipe.imageUrl ? [{ url: recipe.imageUrl }] : [],
       type: 'article',
     },
     twitter: {
       card: 'summary_large_image',
       title: recipe.title,
-      description: recipe.description || `Рецепт приготовления ${recipe.title}`,
+      description:
+        recipe.description ||
+        t('titleDescription', {
+          title: recipe.title,
+          time: recipe.prepTime || recipe.cookTime,
+        }),
       images: recipe.imageUrl ? [recipe.imageUrl] : [],
     },
   };
 }
 
-async function getRecipeData(id: string, locale: string) {
-  const recipe = await recipeApi.getRecipeSSR(id, locale);
+async function getRecipeData(id: string) {
+  const recipe = await recipeApi.getRecipeSSR(id);
   return recipe;
 }
 
-async function getSimilarRecipes(recipe: any, locale) {
+async function getSimilarRecipes(recipe: any, locale: string) {
   if (!recipe) return null;
   return recipeApi.getRecipesSSR(
     [],
@@ -52,8 +67,8 @@ async function getSimilarRecipes(recipe: any, locale) {
       offset: 0,
       limit: 4,
       mealType: recipe.mealType || 'all',
-      country: recipe.country || 'all',
-      dietTags: 'all',
+      kitchens: recipe.kitchens || 'all',
+      dietTags: recipe.diets || 'all',
     },
     locale
   );
@@ -61,11 +76,11 @@ async function getSimilarRecipes(recipe: any, locale) {
 
 export default async function RecipePage({ params }: RecipePageProps) {
   const { id, locale } = await params;
-  const recipe = await getRecipeData(id, locale);
+  const recipe = await getRecipeData(id);
   if (!recipe || !recipe.id) {
     notFound();
   }
-  const similarRecipes = await getSimilarRecipes(recipe);
+  const similarRecipes = await getSimilarRecipes(recipe, locale);
   return (
     <RecipePageClient
       initialRecipe={recipe}

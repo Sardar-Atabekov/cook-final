@@ -248,17 +248,15 @@ export default function ClientRecipePageLayout({
               <div className="text-center py-16">
                 <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
                   <h3 className="text-lg font-semibold text-red-800 mb-2">
-                    Ошибка загрузки
+                    {t('errorLoading')}
                   </h3>
-                  <p className="text-red-600">
-                    Не удалось загрузить рецепты. Попробуйте обновить страницу.
-                  </p>
+                  <p className="text-red-600">{t('errorLoadingDescription')}</p>
                 </div>
               </div>
             ) : displayIsLoading && displayRecipes.length === 0 ? (
               <div className="text-center py-16">
                 <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
-                <p className="text-gray-600">Загрузка рецептов...</p>
+                <p className="text-gray-600">{t('loadingRecipes')}</p>
               </div>
             ) : (
               <>
@@ -287,7 +285,7 @@ export default function ClientRecipePageLayout({
                         {isLoadingMore ? (
                           <>
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Загрузка...
+                            {t('loadingRecipes')}
                           </>
                         ) : (
                           <>

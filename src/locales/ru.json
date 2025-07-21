@@ -44,7 +44,7 @@
       "noResults": "Ингредиенты не найдены",
       "addIngredient": "Добавить ингредиент",
       "emptyHint": "Начните вводить, чтобы добавить ингредиенты...",
-      "searchButton": "Найти рецепты"
+      "search": "Найти"
     },
     "sidebar": {
       "yourIngredients": "Ваши ингредиенты",
@@ -242,16 +242,20 @@
     "noCookingsHint": "Начните готовить и сохраните свои любимые рецепты.",
     "noCookingsButton": "Начать готовить",
     "noCookingsButtonDescription": "Начните готовить и сохраните свои любимые рецепты.",
-    "noCookingsButtonHint": "Начните готовить и сохраните свои любимые рецепты."
+    "noCookingsButtonHint": "Начните готовить и сохраните свои любимые рецепты.",
+    "loading": "Загрузка...",
+    "error": "Ошибка загрузки"
   },
   "recipe": {
+    "title": "Рецепт приготовления",
+    "titleDescription": "Подробный рецепт приготовления {title}. Время приготовления: {time} минут.",
     "backToRecipes": "Назад к рецептам",
-    "notFound": "Рецепт не найден",
-    "notFoundDescription": "Рецепт, который вы ищете, не существует.",
     "cookingTime": "{time} мин",
     "servings": "{count} порций",
     "youHave": "У вас есть {owned} из {total} ингредиентов",
     "ingredients": "Ингредиенты",
+    "recipe": "рецепт",
+    "keywords": "кулинария, готовка",
     "instructions": "Инструкции",
     "startCooking": "Начать готовить",
     "originalRecipe": "Оригинальный рецепт",
@@ -261,7 +265,10 @@
     "loading": "Загрузка рецепта...",
     "ingredientMatch": "Совпадение ингредиентов",
     "ingredientMatchDescription": "У вас есть {owned} из {total} ингредиентов",
-    "ingredientMatchPercentage": "{percentage}% совпадение"
+    "ingredientMatchPercentage": "{percentage}% совпадение",
+    "notFound": "Рецепт не найден",
+    "notFoundDescription": "Рецепт, который вы ищете, не существует.",
+    "notFoundHint": "Попробуйте сбросить фильтры или изменить параметры поиска для получения большего количества результатов"
   },
   "suggested": {
     "goodMorning": "Доброе утро!",
@@ -353,6 +360,9 @@
     "serverUnavailableDesc": "Не удается подключиться к серверу рецептов. Пожалуйста, попробуйте позже.",
     "noRecipesFound": "Рецепты не найдены",
     "noRecipesFoundTitle": "Начните поиск рецептов",
+    "errorLoading": "Ошибка загрузки",
+    "errorLoadingDescription": "Не удалось загрузить рецепты. Попробуйте обновить страницу.",
+    "loadingRecipes": "Загрузка рецептов...",
     "filters": "Фильтры",
     "noRecipesFoundSearch": "По запросу \"{query}\" ничего не найдено. Попробуйте изменить параметры поиска или использовать другие ключевые слова.",
     "noRecipesFoundDescription": "Используйте поиск и фильтры, чтобы найти идеальный рецепт для вашего настроения и доступных ингредиентов.",
@@ -372,6 +382,7 @@
     "recipeRemovedDesc": "\"{title}\" удален из избранных",
     "cookingTitle": "Готовим блюдо!",
     "filtersApplied": "Фильтры применены",
+    "tryAgain": "Попробовать снова",
     "cookingDesc": "Ингредиенты для \"{title}\" добавлены в кладовую. Приятного аппетита!"
   },
   "footer": {

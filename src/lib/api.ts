@@ -216,15 +216,12 @@ export const recipeApi = {
   },
 
   // SSR версия для получения рецепта
-  getRecipeSSR: async (id: string, locale: string) => {
+  getRecipeSSR: async (id: string) => {
     try {
       console.log('API SSR: Fetching recipe', { id });
-      const response = await fetch(
-        `${baseUrl}recipes/recipe/${id}?lang=${locale}`,
-        {
-          next: { revalidate: 5 * 60 * 1000 }, // Кэшируем на 5 минут
-        }
-      );
+      const response = await fetch(`${baseUrl}recipes/recipe/${id}`, {
+        next: { revalidate: 5 * 60 * 1000 }, // Кэшируем на 5 минут
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

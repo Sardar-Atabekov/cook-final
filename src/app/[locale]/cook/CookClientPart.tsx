@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react';
 import { RecipeCard } from '@/components/recipe-card';
 import type { Recipe } from '@/lib/api';
 import { baseUrl } from '@/lib/api';
+import { useTranslations } from 'next-intl';
 export default function CookClientPart() {
+  const t = useTranslations('cook');
   const { token, hydrated } = useAuthStore();
   const [recipes, setRecipes] = useState<Recipe[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -18,29 +20,28 @@ export default function CookClientPart() {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
-        if (!res.ok) throw new Error('Ошибка загрузки');
+        if (!res.ok) throw new Error(t('error'));
         return res.json();
       })
       .then((data) => setRecipes(data.recipes || data))
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, hydrated]);
 
-  if (!hydrated) return <div className="text-center py-12">Загрузка...</div>;
+  if (!hydrated) return <div className="text-center py-12">{t('loading')}</div>;
   if (!token)
     return (
       <div className="text-center py-12 text-gray-500">
-        Войдите, чтобы просматривать приготовленные блюда
+        {t('loginToSeeCookings')}
       </div>
     );
-  if (loading) return <div className="text-center py-12">Загрузка...</div>;
+  if (loading) return <div className="text-center py-12">{t('loading')}</div>;
   if (error)
     return <div className="text-center py-12 text-red-600">{error}</div>;
   if (!recipes || recipes.length === 0)
     return (
-      <div className="text-center py-12 text-gray-500">
-        У вас нет приготовленных блюд
-      </div>
+      <div className="text-center py-12 text-gray-500">{t('noCookings')}</div>
     );
 
   return (
