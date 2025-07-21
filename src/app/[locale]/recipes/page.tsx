@@ -101,7 +101,7 @@ export default async function SearchPage({
         .filter((id) => !isNaN(id))
     : [];
   const mealType = resolvedParams.mealType || 'all';
-  const country = resolvedParams.country || 'all';
+  const kitchens = resolvedParams.country || 'all';
   const dietTags = resolvedParams.dietTags || 'all';
   const sorting = resolvedParams.sorting || 'all';
   const byTime = resolvedParams.byTime || 'all';
@@ -116,7 +116,7 @@ export default async function SearchPage({
       offset: (page - 1) * 20,
       limit: 20,
       mealType: mealType === 'all' ? '' : mealType,
-      country: country === 'all' ? '' : country,
+      kitchens: kitchens === 'all' ? '' : kitchens,
       dietTags: dietTags === 'all' ? '' : dietTags,
       sorting: sorting === 'all' ? '' : sorting,
       byTime: byTime === 'all' ? '' : byTime,
@@ -139,7 +139,7 @@ export default async function SearchPage({
     <ClientRecipePageLayout
       searchQuery={searchQuery}
       mealType={mealType}
-      country={country}
+      kitchens={kitchens}
       dietTags={dietTags}
       sorting={sorting}
       byTime={byTime}

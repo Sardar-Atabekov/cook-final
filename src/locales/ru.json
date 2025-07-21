@@ -61,6 +61,7 @@
       "breakfast": "Завтрак",
       "lunch": "Обед",
       "baked-goods": "Выпечка",
+      "mealType": "Тип блюда",
       "desserts": "Десерты",
       "salads": "Салаты",
       "main": "Основное блюдо",
@@ -75,6 +76,8 @@
       "african": "Африканская",
       "american": "Американская",
       "asian": "Азиатская",
+      "kitchen": "Кухня",
+      "diet": "Диета",
       "australian": "Австралийская",
       "brazilian": "Бразильская",
       "caribbean": "Карибская",
@@ -82,6 +85,7 @@
       "chinese": "Китайская",
       "french": "Французская",
       "british": "Британская",
+      "time": "Время",
       "greek": "Греческая",
       "indian": "Индийская",
       "italian": "Итальянская",
@@ -108,7 +112,8 @@
       "byTime": "По времени приготовления",
       "byMinutes": "{count} минут",
       "byHours": "{count} часов",
-      "clearFilters": "Очистить фильтры"
+      "clearFilters": "Очистить фильтры",
+      "sorting": "Сортировка"
     }
   },
   "recipeDetail": {
@@ -153,7 +158,8 @@
     "signupErrorDescription": "Пожалуйста, попробуйте снова с другими данными."
   },
   "recipes": {
-    "title": "Результаты поиска рецептов",
+    "title": "Поиск рецептов",
+    "titleDescription": "Найдите идеальный рецепт по ингредиентам, типу блюда или кухне",
     "foundWith": "Найдены рецепты с использованием: {ingredients}",
     "noIngredients": "Ингредиенты не выбраны",
     "noIngredientsDescription": "Пожалуйста, добавьте ингредиенты для поиска рецептов.",
@@ -187,7 +193,7 @@
     "lowCarb": "Низкоуглеводное",
     "healthy": "Здоровое",
     "match": "{percentage}% совпадение",
-    "missing": "Не хватает:",
+    "missing": "Не хватает: {count}",
     "moreMissing": "+{count} ещё",
     "hasAllIngredients": "У вас есть все ингредиенты!",
     "notAllIngredients": "У вас не все ингредиенты!",
@@ -244,14 +250,18 @@
     "notFoundDescription": "Рецепт, который вы ищете, не существует.",
     "cookingTime": "{time} мин",
     "servings": "{count} порций",
-    "ingredientMatch": "Совпадение ингредиентов",
     "youHave": "У вас есть {owned} из {total} ингредиентов",
     "ingredients": "Ингредиенты",
     "instructions": "Инструкции",
     "startCooking": "Начать готовить",
+    "originalRecipe": "Оригинальный рецепт",
+    "similarRecipes": "Похожие рецепты",
     "saveRecipe": "Сохранить рецепт",
     "shareRecipe": "Поделиться рецептом",
-    "loading": "Загрузка рецепта..."
+    "loading": "Загрузка рецепта...",
+    "ingredientMatch": "Совпадение ингредиентов",
+    "ingredientMatchDescription": "У вас есть {owned} из {total} ингредиентов",
+    "ingredientMatchPercentage": "{percentage}% совпадение"
   },
   "suggested": {
     "goodMorning": "Доброе утро!",
@@ -303,6 +313,12 @@
     "next": "Далее",
     "cookDish": "Готовить блюдо",
     "originalRecipe": "Исходный рецепт",
+    "recipeSaved": "Рецепт сохранен",
+    "recipeRemoved": "Рецепт удален",
+    "linkCopied": "Ссылка скопирована!",
+    "copyError": "Ошибка копирования",
+    "recipeSavedDesc": "\"{title}\" добавлен в избранные",
+    "recipeRemovedDesc": "\"{title}\" удален из избранных",
     "clearAll": "Очистить все",
     "errorBoundaryDescription": "Произошла ошибка при загрузке содержимого. Пожалуйста, попробуйте ещё раз."
   },
@@ -318,6 +334,8 @@
     "home": "На главную"
   },
   "search": {
+    "title": "Поиск рецептов",
+    "titleDescription": "Найдите идеальный рецепт по ингредиентам, типу блюда или кухне",
     "defaultTitle": "Поиск рецептов - Найдите идеальное блюдо",
     "defaultDescription": "Ищите среди тысяч рецептов, чтобы найти идеальное блюдо для любого случая",
     "searchTitle": "Результаты поиска \"{query}\" - Поиск рецептов",
@@ -334,16 +352,26 @@
     "serverUnavailable": "Сервер недоступен",
     "serverUnavailableDesc": "Не удается подключиться к серверу рецептов. Пожалуйста, попробуйте позже.",
     "noRecipesFound": "Рецепты не найдены",
-    "noRecipesFoundSearch": "Попробуйте изменить поисковый запрос",
+    "noRecipesFoundTitle": "Начните поиск рецептов",
+    "filters": "Фильтры",
+    "noRecipesFoundSearch": "По запросу \"{query}\" ничего не найдено. Попробуйте изменить параметры поиска или использовать другие ключевые слова.",
+    "noRecipesFoundDescription": "Используйте поиск и фильтры, чтобы найти идеальный рецепт для вашего настроения и доступных ингредиентов.",
     "noRecipesFoundIngredients": "Попробуйте выбрать другие ингредиенты или изменить фильтры",
-    "noRecipesFoundHint": "Попробуйте изменить фильтры, поисковый запрос или добавить больше ингредиентов.",
+
+    "noRecipesFoundHint": "Попробуйте сбросить фильтры или изменить параметры поиска для получения большего количества результатов",
     "loadMore": "Показать больше рецептов",
+    "showMore": "Показать ещё",
     "showingCount": "Показано {current} из {total} рецептов",
     "recipeSaved": "Рецепт сохранен",
     "recipeRemoved": "Рецепт удален",
+    "activeFilters": "Активные фильтры",
+    "hide": "Скрыть",
+    "show": "Показать",
+    "showingAllRecipes": "Показаны все найденные рецепты ({count})",
     "recipeSavedDesc": "\"{title}\" добавлен в избранные",
     "recipeRemovedDesc": "\"{title}\" удален из избранных",
     "cookingTitle": "Готовим блюдо!",
+    "filtersApplied": "Фильтры применены",
     "cookingDesc": "Ингредиенты для \"{title}\" добавлены в кладовую. Приятного аппетита!"
   },
   "footer": {

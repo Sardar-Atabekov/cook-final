@@ -58,8 +58,8 @@ export function SearchPageClient({
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2,
+        staggerChildren: 0.03, // было 0.1
+        delayChildren: 0.05, // было 0.2
       },
     },
   };
@@ -70,8 +70,8 @@ export function SearchPageClient({
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.5,
-        ease: 'easeOut',
+        duration: 0.3, // было 0.5
+        ease: 'easeOut' as const,
       },
     },
   };
@@ -99,7 +99,7 @@ export function SearchPageClient({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          {searchQuery ? 'Рецепты не найдены' : 'Начните поиск рецептов'}
+          {searchQuery ? t('noRecipesFound') : t('noRecipesFoundTitle')}
         </motion.h3>
 
         <motion.p
@@ -109,8 +109,8 @@ export function SearchPageClient({
           transition={{ delay: 0.5 }}
         >
           {searchQuery
-            ? `По запросу "${searchQuery}" ничего не найдено. Попробуйте изменить параметры поиска или использовать другие ключевые слова.`
-            : 'Используйте поиск и фильтры, чтобы найти идеальный рецепт для вашего настроения и доступных ингредиентов.'}
+            ? t('noRecipesFoundSearch', { query: searchQuery })
+            : t('noRecipesFoundDescription')}
         </motion.p>
 
         {hasActiveFilters && (
@@ -121,8 +121,7 @@ export function SearchPageClient({
             transition={{ delay: 0.6 }}
           >
             <p className="text-sm text-gray-600 font-medium">
-              💡 Попробуйте сбросить фильтры или изменить параметры поиска для
-              получения большего количества результатов
+              💡 {t('noRecipesFoundHint')}
             </p>
           </motion.div>
         )}
@@ -149,8 +148,8 @@ export function SearchPageClient({
                 transition={{ delay: 0.2 }}
               >
                 {searchQuery
-                  ? `Результаты поиска: "${searchQuery}"`
-                  : 'Все рецепты'}
+                  ? t('searchResultsTitle', { query: searchQuery })
+                  : t('allRecipesTitle')}
               </motion.h1>
 
               <div className="flex items-center space-x-6 text-gray-600">
@@ -162,7 +161,7 @@ export function SearchPageClient({
                 >
                   <ChefHat className="w-4 h-4 mr-2 text-blue-600" />
                   <span className="font-medium">
-                    Найдено {initialTotal} рецептов
+                    {t('searchResultsCount', { count: initialTotal })}
                   </span>
                 </motion.span>
 
@@ -174,7 +173,7 @@ export function SearchPageClient({
                     transition={{ delay: 0.4 }}
                   >
                     <Filter className="w-4 h-4 mr-2 text-purple-600" />
-                    <span className="font-medium">Фильтры применены</span>
+                    <span className="font-medium">{t('filtersApplied')}</span>
                   </motion.span>
                 )}
               </div>
@@ -252,7 +251,7 @@ export function SearchPageClient({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.9 }}
               transition={{
-                delay: index * 0.1,
+                delay: index * 0.03, // было 0.1
                 type: 'spring',
                 stiffness: 300,
                 damping: 20,
@@ -284,13 +283,12 @@ export function SearchPageClient({
             </motion.div>
 
             <p className="text-gray-700 font-medium mb-2">
-              Показаны все найденные рецепты ({initialTotal})
+              {t('showingAllRecipes', { count: initialTotal })}
             </p>
 
             {hasActiveFilters && (
               <p className="text-sm text-gray-500">
-                💡 Попробуйте изменить фильтры для получения большего количества
-                результатов
+                💡 {t('noRecipesFoundHint')}
               </p>
             )}
           </div>

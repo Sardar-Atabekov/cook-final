@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { recipeApi } from '@/lib/api';
 import { useTagsStore } from '@/stores/useTagsStore';
 
@@ -56,6 +56,7 @@ export function useTags(lang: string, initialTags?: any[]) {
     }
     return [];
   });
+
   // isLoading только если нет initialTags и store пуст
   const [isLoading, setIsLoading] = useState(
     !(initialTags && initialTags.length > 0) &&
@@ -78,44 +79,50 @@ export function useTags(lang: string, initialTags?: any[]) {
     }
   }, [lang, setTagsStore]);
 
+  // Используем useRef для отслеживания инициализации
+  const isInitialized = useRef(false);
+
   useEffect(() => {
     setCurrentLocale(lang);
+
+    // Предотвращаем повторную инициализацию
+    if (isInitialized.current) return;
+
     // Если initialTags есть и не пустой — не делаем запрос
     if (initialTags && initialTags.length > 0) {
       setTags(initialTags);
       setTagsStore(initialTags, lang);
       setIsLoading(false);
+      isInitialized.current = true;
       return;
     }
+
     // Если store не пустой — используем store
     if (storeTags && storeTags.length > 0) {
       setTags(storeTags);
       setIsLoading(false);
-      // Проверяем, не устарел ли кэш
+      isInitialized.current = true;
+      // Проверяем, не устарел ли кэш (но не блокируем рендер)
       if (isCacheStale(lang)) {
         fetchTags();
       }
       return;
     }
+
     // Если есть кэш в localStorage
     const cached = getCache(lang);
     if (cached) {
       setTags(cached);
       setTagsStore(cached, lang);
       setIsLoading(false);
-      fetchTags(); // всё равно обновим на свежие
+      isInitialized.current = true;
+      // Обновляем на свежие данные в фоне
+      fetchTags();
     } else {
       fetchTags();
+      isInitialized.current = true;
     }
-  }, [
-    lang,
-    fetchTags,
-    initialTags,
-    storeTags,
-    setTagsStore,
-    isCacheStale,
-    setCurrentLocale,
-  ]);
+  }, [lang]); // Убираем все зависимости кроме lang
 
   // Позволяет вручную обновить теги
   const refreshTags = fetchTags;

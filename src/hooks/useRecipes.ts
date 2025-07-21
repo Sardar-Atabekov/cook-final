@@ -65,6 +65,7 @@ export function useRecipes({
         JSON.stringify(prevParams.ingredientIds) ===
           JSON.stringify(currentParams.ingredientIds);
 
+      // Если это не изменение страницы, то сбрасываем рецепты
       if (!isPageChange) {
         setAllRecipes([]);
       }

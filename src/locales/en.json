@@ -249,6 +249,8 @@
     "instructions": "Instructions",
     "startCooking": "Start cooking",
     "saveRecipe": "Save recipe",
+    "originalRecipe": "Original recipe",
+    "similarRecipes": "Similar recipes",
     "shareRecipe": "Share recipe",
     "loading": "Loading recipe..."
   },

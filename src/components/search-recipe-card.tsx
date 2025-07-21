@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +8,7 @@ import { Clock, Heart, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Recipe } from '@/lib/api';
 import Link from 'next/link';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 interface SearchRecipeCardProps {
   recipe: Recipe;
@@ -23,15 +23,16 @@ const SearchRecipeCardComponent = ({
   onSave,
   isSaved = false,
 }: SearchRecipeCardProps) => {
+  const t = useTranslations('recipes');
   const formatPrepTime = (minutes: number | string) => {
     const mins = typeof minutes === 'string' ? parseInt(minutes) : minutes;
     if (!mins || isNaN(mins)) return '—';
-    if (mins < 60) return `${mins} min`;
+    if (mins < 60) return t('cookingTime', { time: mins });
     const hours = Math.floor(mins / 60);
     const remainingMinutes = mins % 60;
     return remainingMinutes > 0
-      ? `${hours}h ${remainingMinutes}m`
-      : `${hours}h`;
+      ? t('cookingTimeHours', { hours, minutes: remainingMinutes })
+      : t('cookingTimeOnlyHours', { hours });
   };
 
   const getMatchColor = (percentage: string | number) => {
@@ -44,6 +45,7 @@ const SearchRecipeCardComponent = ({
   };
 
   const locale = useLocale();
+  const [imgError, setImgError] = useState(false);
 
   return (
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer h-full flex flex-col">
@@ -51,10 +53,15 @@ const SearchRecipeCardComponent = ({
         {/* Image wrapper */}
         <div className="relative w-full h-48 overflow-hidden">
           <Image
-            src={recipe.imageUrl || '/images/placeholder.svg'}
-            alt={recipe.title}
+            src={
+              imgError
+                ? '/images/placeholder.svg'
+                : recipe.imageUrl || '/images/placeholder.svg'
+            }
+            alt={recipe.title ? recipe.title : t('noTitle')}
             fill
             className="object-cover"
+            onError={() => setImgError(true)}
           />
           {recipe.matchPercentage !== undefined && (
             <Badge
@@ -63,7 +70,7 @@ const SearchRecipeCardComponent = ({
                 getMatchColor(recipe.matchPercentage)
               )}
             >
-              {recipe.matchPercentage}% Match
+              {t('match', { percentage: recipe.matchPercentage })}
             </Badge>
           )}
           {onSave && (
@@ -111,42 +118,19 @@ const SearchRecipeCardComponent = ({
           </p>
 
           <div className="text-sm mt-auto">
-            {recipe.missingIngredients &&
-            recipe.missingIngredients.length > 0 ? (
-              <>
-                <div className="text-xs text-gray-600 mb-1">
-                  Missing ingredients:
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {recipe.missingIngredients
-                    .slice(0, 3)
-                    .map((ingredient: any, index: number) => (
-                      <Badge
-                        key={index}
-                        variant="secondary"
-                        className="px-2 py-1 bg-orange-100 text-orange-800 text-xs"
-                      >
-                        {ingredient.matchedName || ingredient}
-                      </Badge>
-                    ))}
-                  {recipe.missingIngredients.length > 3 && (
-                    <Badge
-                      variant="secondary"
-                      className="px-2 py-1 bg-gray-100 text-gray-600 text-xs"
-                    >
-                      +{recipe.missingIngredients.length - 3} more
-                    </Badge>
-                  )}
-                </div>
-              </>
-            ) : recipe.matchPercentage === '100' ? (
-              <span className="text-green-600">
-                ✓ You have all ingredients!
+            {recipe.matchPercentage &&
+            parseInt(recipe.matchPercentage) > 0 &&
+            parseInt(recipe.matchPercentage) < 100 ? (
+              <span className="text-orange-600">
+                ✓{' '}
+                {t('missing', {
+                  count: recipe.missingIngredients?.length ?? 0,
+                })}
               </span>
+            ) : parseInt(recipe.matchPercentage ?? '0') === 100 ? (
+              <span className="text-green-600">✓ {t('hasAllIngredients')}</span>
             ) : (
-              <span className="text-red-600">
-                ✗ You don't have all ingredients!
-              </span>
+              <span className="text-red-600">✗ {t('notAllIngredients')}</span>
             )}
           </div>
         </CardContent>

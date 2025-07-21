@@ -88,7 +88,7 @@ export const recipeApi = {
       offset: number;
       limit: number;
       mealType: string;
-      country: string;
+      kitchens: string;
       dietTags: string;
       sorting?: string;
       byTime?: string;
@@ -101,7 +101,7 @@ export const recipeApi = {
       offset: options.offset,
       limit: options.limit,
       mealType: options.mealType,
-      country: options.country,
+      kitchens: options.kitchens,
       dietTags: options.dietTags,
     };
 
@@ -132,7 +132,7 @@ export const recipeApi = {
       offset: number;
       limit: number;
       mealType: string;
-      country: string;
+      kitchens: string;
       dietTags: string;
       sorting?: string;
       byTime?: string;
@@ -146,7 +146,7 @@ export const recipeApi = {
         offset: options.offset.toString(),
         limit: options.limit.toString(),
         mealType: options.mealType,
-        country: options.country,
+        kitchens: options.kitchens,
         dietTags: options.dietTags,
       });
 
@@ -241,7 +241,21 @@ export const recipeApi = {
   getAllTags: async () => {
     try {
       const response = await api.get(`/recipes/tags`);
-      return response.data.tags || response.data;
+      const data = response.data;
+
+      // Новая структура API возвращает объект с категориями
+      if (data.mealTypes || data.kitchens || data.diets) {
+        // Преобразуем в плоский массив для обратной совместимости
+        const allTags = [
+          ...(data.mealTypes || []),
+          ...(data.kitchens || []),
+          ...(data.diets || []),
+        ];
+        return allTags;
+      }
+
+      // Fallback для старой структуры
+      return data.tags || data;
     } catch (error) {
       console.error('Error fetching tags:', error);
       throw error;
@@ -260,7 +274,20 @@ export const recipeApi = {
       }
 
       const data = await response.json();
-      return data.tags;
+
+      // Новая структура API возвращает объект с категориями
+      if (data.mealTypes || data.kitchens || data.diets) {
+        // Преобразуем в плоский массив для обратной совместимости
+        const allTags = [
+          ...(data.mealTypes || []),
+          ...(data.kitchens || []),
+          ...(data.diets || []),
+        ];
+        return allTags;
+      }
+
+      // Fallback для старой структуры
+      return data.tags || data;
     } catch (error) {
       console.error('Error fetching SSR tags:', error);
       throw error;

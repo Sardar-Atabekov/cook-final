@@ -100,9 +100,9 @@ export function RecipePageClient({
         ? tCommon('recipeSaved') || 'Рецепт сохранён'
         : tCommon('recipeRemoved') || 'Рецепт удалён',
       description: isRecipeSaved(recipe.id)
-        ? tCommon('recipeSavedDescription') ||
+        ? tCommon('recipeSavedDesc', { title: recipe.title }) ||
           `"${recipe.title}" добавлен в избранные`
-        : tCommon('recipeRemovedDescription') ||
+        : tCommon('recipeRemovedDesc', { title: recipe.title }) ||
           `"${recipe.title}" удалён из избранных`,
     });
   };
@@ -149,7 +149,7 @@ export function RecipePageClient({
     infoItems.push({
       icon: Clock,
       color: 'text-blue-500',
-      text: `${recipe.prepTime || recipe.cookTime} мин`,
+      text: `${recipe.prepTime || recipe.cookTime} ${tCommon('minutes')}`,
     });
   }
   if (hasKitchens) {
@@ -255,7 +255,7 @@ export function RecipePageClient({
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-bold text-gray-900 text-lg flex items-center">
               <BookOpen className="h-5 w-5 mr-2 text-blue-600" />
-              Совпадение ингредиентов
+              {t('ingredientMatch')}
             </h3>
             <Badge
               className={`${
@@ -266,13 +266,16 @@ export function RecipePageClient({
                     : 'bg-red-100 text-red-800 border-red-200'
               } text-sm font-medium px-3 py-1`}
             >
-              {matchPercentage}% совпадение
+              {t('ingredientMatchPercentage', {
+                percentage: matchPercentage,
+              })}
             </Badge>
           </div>
           <div className="text-sm text-gray-600">
-            У вас есть{' '}
-            <span className="font-semibold text-green-600">{ownedCount}</span>{' '}
-            из {totalIngredients} ингредиентов
+            {t('ingredientMatchDescription', {
+              owned: ownedCount,
+              total: totalIngredients,
+            })}
           </div>
         </div>
       </div>
@@ -283,7 +286,7 @@ export function RecipePageClient({
           <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-200">
             <CardTitle className="flex items-center text-green-800">
               <ChefHatIcon className="h-5 w-5 mr-2" />
-              Ингредиенты
+              {t('ingredients')}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
@@ -318,7 +321,7 @@ export function RecipePageClient({
         <div className="mt-8 flex flex-col sm:flex-row gap-4">
           <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white hover:scale-105 transition-transform">
             <ChefHat className="w-4 h-4 mr-2" />
-            {tCommon('cookDish') || 'Приготовить блюдо'}
+            {t('startCooking') || 'Приготовить блюдо'}
           </Button>
           {recipe.sourceUrl && (
             <Button
@@ -327,7 +330,7 @@ export function RecipePageClient({
               className="flex-1 hover:scale-105 transition-transform"
             >
               <ExternalLink className="w-4 h-4 mr-2" />
-              {tCommon('originalRecipe') || 'Оригинальный рецепт'}
+              {t('originalRecipe') || 'Оригинальный рецепт'}
             </Button>
           )}
         </div>
@@ -358,7 +361,7 @@ export function RecipePageClient({
           <div className="mt-12">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
               <ChefHatIcon2 className="h-6 w-6 mr-2 text-purple-600" />
-              Похожие блюда
+              {t('similarRecipes') || 'Похожие блюда'}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {similarRecipes

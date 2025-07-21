@@ -39,7 +39,7 @@ export function RecipeFilters({
   const { tags, isLoading, error } = useTags(locale, initialTags);
 
   const mealType = searchParams.get('mealType') || 'all';
-  const country = searchParams.get('country') || 'all';
+  const kitchens = searchParams.get('country') || 'all';
   const dietTags = searchParams.get('dietTags') || 'all';
   const sorting = searchParams.get('sorting') || 'all';
   const byTime = searchParams.get('byTime') || 'all';
@@ -86,7 +86,7 @@ export function RecipeFilters({
   const handleChange = useCallback(
     (newFilters: {
       mealType?: string;
-      country?: string;
+      kitchens?: string;
       dietTags?: string;
       sorting?: string;
       byTime?: string;
@@ -94,8 +94,8 @@ export function RecipeFilters({
       const params = new URLSearchParams(searchParams.toString());
       if (newFilters.mealType !== undefined)
         params.set('mealType', newFilters.mealType);
-      if (newFilters.country !== undefined)
-        params.set('country', newFilters.country);
+      if (newFilters.kitchens !== undefined)
+        params.set('country', newFilters.kitchens);
       if (newFilters.dietTags !== undefined)
         params.set('dietTags', newFilters.dietTags);
       if (newFilters.sorting !== undefined)
@@ -121,7 +121,7 @@ export function RecipeFilters({
 
   const hasActiveFilters =
     mealType !== 'all' ||
-    country !== 'all' ||
+    kitchens !== 'all' ||
     dietTags !== 'all' ||
     sorting !== 'all' ||
     byTime !== 'all';
@@ -193,7 +193,7 @@ export function RecipeFilters({
           >
             <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
               <Utensils className="h-4 w-4 mr-2 text-blue-500" />
-              Тип блюда
+              {t('mealType')}
             </label>
             <Select
               value={mealType}
@@ -227,11 +227,11 @@ export function RecipeFilters({
           >
             <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
               <Globe className="h-4 w-4 mr-2 text-green-500" />
-              Кухня
+              {t('kitchen')}
             </label>
             <Select
-              value={country}
-              onValueChange={(value) => handleChange({ country: value })}
+              value={kitchens}
+              onValueChange={(value) => handleChange({ kitchens: value })}
             >
               <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm border-2 hover:border-green-300 transition-all duration-300 rounded-xl focus:ring-4 focus:ring-green-500/10">
                 <SelectValue placeholder="Выберите кухню" />
@@ -261,7 +261,7 @@ export function RecipeFilters({
           >
             <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
               <Sparkles className="h-4 w-4 mr-2 text-purple-500" />
-              Диета
+              {t('diet')}
             </label>
             <Select
               value={dietTags}
@@ -295,7 +295,7 @@ export function RecipeFilters({
           >
             <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
               <Clock className="h-4 w-4 mr-2 text-red-500" />
-              Время
+              {t('time')}
             </label>
             <Select
               value={byTime}
@@ -323,7 +323,7 @@ export function RecipeFilters({
           >
             <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
               <TrendingUp className="h-4 w-4 mr-2 text-orange-500" />
-              Сортировка
+              {t('sorting')}
             </label>
             <Select
               value={sorting}
@@ -393,7 +393,7 @@ export function RecipeFilters({
                 </Badge>
               </motion.div>
             )}
-            {country !== 'all' && (
+            {kitchens !== 'all' && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -404,8 +404,8 @@ export function RecipeFilters({
                   className="bg-gradient-to-r from-green-100 to-green-200 text-green-800 border-green-300 rounded-full px-3 py-1"
                 >
                   <Globe className="h-3 w-3 mr-1" />
-                  {countries.find((t) => t.id.toString() === country)?.slug ||
-                    country}
+                  {countries.find((t) => t.id.toString() === kitchens)?.slug ||
+                    kitchens}
                 </Badge>
               </motion.div>
             )}

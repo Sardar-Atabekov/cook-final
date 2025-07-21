@@ -47,35 +47,44 @@ export function IngredientSidebar({
 
   // Синхронизация URL -> store (при монтировании/изменении URL)
   useEffect(() => {
-    const ids = (searchParams.get('ingredients') || '')
+    const ingredientsParam = searchParams.get('ingredients') || '';
+    const ids = ingredientsParam
       .split(',')
       .map((id) => parseInt(id))
       .filter((id) => !isNaN(id));
 
     // Проверяем, действительно ли изменились ID
     const currentIds = selectedIds;
-    if (JSON.stringify(ids) !== JSON.stringify(currentIds)) {
+    const idsChanged = JSON.stringify(ids) !== JSON.stringify(currentIds);
+
+    if (idsChanged) {
       setSelectedIds(ids);
     }
   }, [searchParams.get('ingredients')]);
 
   // Синхронизация store -> URL (при изменении selectedIds)
   useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
-    const currentIngredients = params.get('ingredients') || '';
+    const currentIngredients = searchParams.get('ingredients') || '';
     const newIngredients = selectedIds.join(',');
 
     // Обновляем URL только если действительно изменились ингредиенты
     if (currentIngredients !== newIngredients) {
+      const params = new URLSearchParams(searchParams.toString());
       if (selectedIds.length > 0) {
         params.set('ingredients', newIngredients);
       } else {
         params.delete('ingredients');
       }
       params.delete('page');
-      router.replace(`?${params.toString()}`, { scroll: false });
+
+      // Используем setTimeout для предотвращения циклических обновлений
+      const timeoutId = setTimeout(() => {
+        router.replace(`?${params.toString()}`, { scroll: false });
+      }, 0);
+
+      return () => clearTimeout(timeoutId);
     }
-  }, [selectedIds, searchParams, router]);
+  }, [selectedIds]);
 
   // 1. Если в zustand есть категории для текущего языка — показываем их
   // 2. Если нет — используем initialGroupedCategories (и кладём их в zustand)

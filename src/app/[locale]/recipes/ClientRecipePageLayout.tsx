@@ -10,11 +10,12 @@ import { Button } from '@/components/ui/button';
 import { Loader2, ChevronDown, Search, Filter } from 'lucide-react';
 import { useRecipes } from '@/hooks/useRecipes';
 import { useIngredientStore } from '@/stores/useIngredientStore';
+import { useTranslations } from 'next-intl';
 
 export default function ClientRecipePageLayout({
   searchQuery,
   mealType,
-  country,
+  kitchens,
   dietTags,
   sorting,
   byTime,
@@ -27,6 +28,7 @@ export default function ClientRecipePageLayout({
   locale,
   page,
 }: any) {
+  const t = useTranslations('search');
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -36,7 +38,7 @@ export default function ClientRecipePageLayout({
   // Получаем текущие параметры из URL
   const currentSearchQuery = searchParams.get('q') || '';
   const currentMealType = searchParams.get('mealType') || 'all';
-  const currentCountry = searchParams.get('country') || 'all';
+  const currentKitchens = searchParams.get('country') || 'all';
   const currentDietTags = searchParams.get('dietTags') || 'all';
   const currentSorting = searchParams.get('sorting') || 'all';
   const currentByTime = searchParams.get('byTime') || 'all';
@@ -54,7 +56,7 @@ export default function ClientRecipePageLayout({
     lang: locale,
     limit: 20,
     mealType: currentMealType === 'all' ? 'all' : currentMealType,
-    kitchens: currentCountry === 'all' ? 'all' : currentCountry,
+    kitchens: currentKitchens === 'all' ? 'all' : currentKitchens,
     dietTags: currentDietTags === 'all' ? 'all' : currentDietTags,
     sorting: currentSorting === 'all' ? 'all' : currentSorting,
     byTime: currentByTime === 'all' ? 'all' : currentByTime,
@@ -158,10 +160,10 @@ export default function ClientRecipePageLayout({
           >
             <motion.div className="text-center mb-8" variants={itemVariants}>
               <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                Поиск рецептов
+                {t('title')}
               </h1>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Найдите идеальный рецепт по ингредиентам, типу блюда или кухне
+                {t('titleDescription')}
               </p>
             </motion.div>
 
@@ -171,7 +173,7 @@ export default function ClientRecipePageLayout({
               variants={itemVariants}
             >
               <SearchBar
-                placeholder="Поиск рецептов..."
+                placeholder={t('searchPlaceholder')}
                 className="w-full"
                 onSearch={handleSearch}
               />
@@ -188,14 +190,16 @@ export default function ClientRecipePageLayout({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <Filter className="h-5 w-5 text-blue-600" />
-                      <h3 className="font-semibold text-gray-900">Фильтры</h3>
+                      <h3 className="font-semibold text-gray-900">
+                        {t('filters')}
+                      </h3>
                       {(currentMealType !== 'all' ||
-                        currentCountry !== 'all' ||
+                        currentKitchens !== 'all' ||
                         currentDietTags !== 'all' ||
                         currentSorting !== 'all' ||
                         currentByTime !== 'all') && (
                         <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
-                          Активны
+                          {t('activeFilters')}
                         </span>
                       )}
                     </div>
@@ -205,7 +209,7 @@ export default function ClientRecipePageLayout({
                       onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
                       className="flex items-center space-x-2"
                     >
-                      <span>{isFiltersExpanded ? 'Скрыть' : 'Показать'}</span>
+                      <span>{isFiltersExpanded ? t('hide') : t('show')}</span>
                       <ChevronDown
                         className={`h-4 w-4 transition-transform duration-200 ${isFiltersExpanded ? 'rotate-180' : ''}`}
                       />
@@ -287,7 +291,7 @@ export default function ClientRecipePageLayout({
                           </>
                         ) : (
                           <>
-                            Показать ещё
+                            {t('showMore')}
                             <ChevronDown className="w-4 h-4 ml-2" />
                           </>
                         )}
@@ -298,8 +302,10 @@ export default function ClientRecipePageLayout({
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.2 }}
                       >
-                        Показано {displayRecipes.length} из {displayTotal}{' '}
-                        рецептов
+                        {t('showingCount', {
+                          current: displayRecipes.length,
+                          total: displayTotal,
+                        })}
                       </motion.p>
                     </motion.div>
                   )}
