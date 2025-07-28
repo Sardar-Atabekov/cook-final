@@ -94,12 +94,8 @@ export default async function SearchPage({
 
   // Парсим параметры поиска
   const searchQuery = resolvedParams.q?.trim() || '';
-  const ingredientIds = resolvedParams.ingredients
-    ? resolvedParams.ingredients
-        .split(',')
-        .map((id) => parseInt(id))
-        .filter((id) => !isNaN(id))
-    : [];
+  // ingredientIds и ingredients больше не нужны
+  // const ingredientIds = ...
   const mealType = resolvedParams.mealType || 'all';
   const kitchens = resolvedParams.country || 'all';
   const dietTags = resolvedParams.dietTags || 'all';
@@ -122,17 +118,28 @@ export default async function SearchPage({
       byTime: byTime === 'all' ? '' : byTime,
       search: searchQuery || undefined,
     };
+    // ingredientIds больше не передаём
     const result = await recipeApi.getRecipes(
-      searchQuery ? ingredientIds : ingredientIds,
+      [], // пустой массив ингредиентов
       filters,
       locale
     );
     recipes = result.recipes || [];
     total = result.total || 0;
+    console.log('Server: recipes loaded', {
+      recipes: recipes.length,
+      total,
+      searchQuery,
+      mealType,
+      kitchens,
+      dietTags,
+      filters: filters,
+    });
   } catch (e) {
     error = e instanceof Error ? e : new Error('Failed to load recipes');
     recipes = [];
     total = 0;
+    console.log('Server: error loading recipes', e);
   }
 
   return (

@@ -1,6 +1,5 @@
 'use client';
 
-import { useSearchParams, useRouter } from 'next/navigation';
 import React, { useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,9 +22,10 @@ import {
   Sparkles,
   TrendingUp,
 } from 'lucide-react';
+import { useFiltersStore } from '@/stores/useFiltersStore';
 
 interface RecipeFiltersProps {
-  initialTags?: any[];
+  initialTags?: unknown[];
   locale: string;
 }
 
@@ -34,29 +34,41 @@ export function RecipeFilters({
   locale,
 }: RecipeFiltersProps) {
   const t = useTranslations('ux.filters');
-  const searchParams = useSearchParams();
-  const router = useRouter();
   const { tags, isLoading, error } = useTags(locale, initialTags);
 
-  const mealType = searchParams.get('mealType') || 'all';
-  const kitchens = searchParams.get('country') || 'all';
-  const dietTags = searchParams.get('dietTags') || 'all';
-  const sorting = searchParams.get('sorting') || 'all';
-  const byTime = searchParams.get('byTime') || 'all';
+  // Используем store напрямую
+  const {
+    mealType,
+    country: kitchens,
+    dietTags,
+    sorting,
+    byTime,
+    setMealType,
+    setCountry,
+    setDietTags,
+    setSorting,
+    setByTime,
+    clearFilters,
+    hasActiveFilters,
+  } = useFiltersStore();
 
-  const mealTypes = useMemo(
-    () =>
-      Array.isArray(tags) ? tags.filter((t) => t.type === 'meal_type') : [],
-    [tags]
-  );
-  const countries = useMemo(
-    () => (Array.isArray(tags) ? tags.filter((t) => t.type === 'kitchen') : []),
-    [tags]
-  );
-  const diets = useMemo(
-    () => (Array.isArray(tags) ? tags.filter((t) => t.type === 'diet') : []),
-    [tags]
-  );
+  // Универсальный способ получить mealTypes, kitchens, diets
+  let mealTypes: any[] = [];
+  let countries: any[] = [];
+  let diets: any[] = [];
+  if (Array.isArray(tags)) {
+    mealTypes = tags.filter((t: any) => t.type === 'meal_type');
+    countries = tags.filter((t: any) => t.type === 'kitchen');
+    diets = tags.filter((t: any) => t.type === 'diet');
+  } else if (tags && typeof tags === 'object' && !Array.isArray(tags)) {
+    mealTypes = (tags as any)?.mealTypes || [];
+    countries = (tags as any)?.kitchens || [];
+    diets = (tags as any)?.diets || [];
+  } else {
+    mealTypes = [];
+    countries = [];
+    diets = [];
+  }
 
   const sortingOptions = useMemo(
     () => [
@@ -83,48 +95,13 @@ export function RecipeFilters({
     [t]
   );
 
-  const handleChange = useCallback(
-    (newFilters: {
-      mealType?: string;
-      kitchens?: string;
-      dietTags?: string;
-      sorting?: string;
-      byTime?: string;
-    }) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (newFilters.mealType !== undefined)
-        params.set('mealType', newFilters.mealType);
-      if (newFilters.kitchens !== undefined)
-        params.set('country', newFilters.kitchens);
-      if (newFilters.dietTags !== undefined)
-        params.set('dietTags', newFilters.dietTags);
-      if (newFilters.sorting !== undefined)
-        params.set('sorting', newFilters.sorting);
-      if (newFilters.byTime !== undefined)
-        params.set('byTime', newFilters.byTime);
-      params.delete('page');
-      router.replace(`?${params.toString()}`, { scroll: false });
-    },
-    [searchParams, router]
-  );
-
-  const clearFilters = useCallback(() => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('mealType', 'all');
-    params.set('country', 'all');
-    params.set('dietTags', 'all');
-    params.set('sorting', 'all');
-    params.set('byTime', 'all');
-    params.delete('page');
-    router.replace(`?${params.toString()}`, { scroll: false });
-  }, [searchParams, router]);
-
-  const hasActiveFilters =
-    mealType !== 'all' ||
-    kitchens !== 'all' ||
-    dietTags !== 'all' ||
-    sorting !== 'all' ||
-    byTime !== 'all';
+  // hasActiveFilters is now managed by the store
+  // const hasActiveFilters =
+  //   mealType !== 'all' ||
+  //   kitchens !== 'all' ||
+  //   dietTags !== 'all' ||
+  //   sorting !== 'all' ||
+  //   byTime !== 'all';
 
   if (isLoading && tags.length === 0) {
     return (
@@ -197,7 +174,7 @@ export function RecipeFilters({
             </label>
             <Select
               value={mealType}
-              onValueChange={(value) => handleChange({ mealType: value })}
+              onValueChange={(value) => setMealType(value)}
             >
               <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm border-2 hover:border-blue-300 transition-all duration-300 rounded-xl focus:ring-4 focus:ring-blue-500/10">
                 <SelectValue placeholder="Выберите тип" />
@@ -205,12 +182,15 @@ export function RecipeFilters({
               <SelectContent className="bg-white/95 backdrop-blur-md border-0 shadow-2xl rounded-xl">
                 <SelectItem value="all">{t('allMealTypes')}</SelectItem>
                 {mealTypes.length === 0 && (
-                  <SelectItem value="" disabled>
+                  <SelectItem value="none" disabled>
                     {t('noMealTypesAvailable')}
                   </SelectItem>
                 )}
-                {mealTypes.map((type) => (
-                  <SelectItem key={type.id} value={type.id.toString()}>
+                {mealTypes.map((type: any) => (
+                  <SelectItem
+                    key={type.id}
+                    value={type.id?.toString?.() ?? String(type.id)}
+                  >
                     {t(type.slug)}
                   </SelectItem>
                 ))}
@@ -231,7 +211,7 @@ export function RecipeFilters({
             </label>
             <Select
               value={kitchens}
-              onValueChange={(value) => handleChange({ kitchens: value })}
+              onValueChange={(value) => setCountry(value)}
             >
               <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm border-2 hover:border-green-300 transition-all duration-300 rounded-xl focus:ring-4 focus:ring-green-500/10">
                 <SelectValue placeholder="Выберите кухню" />
@@ -239,12 +219,15 @@ export function RecipeFilters({
               <SelectContent className="bg-white/95 backdrop-blur-md border-0 shadow-2xl rounded-xl">
                 <SelectItem value="all">{t('allCountries')}</SelectItem>
                 {countries.length === 0 && (
-                  <SelectItem value="" disabled>
+                  <SelectItem value="none" disabled>
                     {t('noCountriesAvailable')}
                   </SelectItem>
                 )}
-                {countries.map((type) => (
-                  <SelectItem key={type.id} value={type.id.toString()}>
+                {countries.map((type: any) => (
+                  <SelectItem
+                    key={type.id}
+                    value={type.id?.toString?.() ?? String(type.id)}
+                  >
                     {t(type.slug)}
                   </SelectItem>
                 ))}
@@ -265,7 +248,7 @@ export function RecipeFilters({
             </label>
             <Select
               value={dietTags}
-              onValueChange={(value) => handleChange({ dietTags: value })}
+              onValueChange={(value) => setDietTags(value)}
             >
               <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm border-2 hover:border-purple-300 transition-all duration-300 rounded-xl focus:ring-4 focus:ring-purple-500/10">
                 <SelectValue placeholder="Выберите диету" />
@@ -273,12 +256,15 @@ export function RecipeFilters({
               <SelectContent className="bg-white/95 backdrop-blur-md border-0 shadow-2xl rounded-xl">
                 <SelectItem value="all">{t('allDiets')}</SelectItem>
                 {diets.length === 0 && (
-                  <SelectItem value="" disabled>
+                  <SelectItem value="none" disabled>
                     {t('noDietsAvailable')}
                   </SelectItem>
                 )}
-                {diets.map((type) => (
-                  <SelectItem key={type.id} value={type.id.toString()}>
+                {diets.map((type: any) => (
+                  <SelectItem
+                    key={type.id}
+                    value={type.id?.toString?.() ?? String(type.id)}
+                  >
                     {t(type.slug)}
                   </SelectItem>
                 ))}
@@ -297,10 +283,7 @@ export function RecipeFilters({
               <Clock className="h-4 w-4 mr-2 text-red-500" />
               {t('time')}
             </label>
-            <Select
-              value={byTime}
-              onValueChange={(value) => handleChange({ byTime: value })}
-            >
+            <Select value={byTime} onValueChange={(value) => setByTime(value)}>
               <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm border-2 hover:border-red-300 transition-all duration-300 rounded-xl focus:ring-4 focus:ring-red-500/10">
                 <SelectValue placeholder="Время" />
               </SelectTrigger>
@@ -327,7 +310,7 @@ export function RecipeFilters({
             </label>
             <Select
               value={sorting}
-              onValueChange={(value) => handleChange({ sorting: value })}
+              onValueChange={(value) => setSorting(value)}
             >
               <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm border-2 hover:border-orange-300 transition-all duration-300 rounded-xl focus:ring-4 focus:ring-orange-500/10">
                 <SelectValue placeholder="Сортировка" />
@@ -345,7 +328,7 @@ export function RecipeFilters({
 
         {/* Clear Filters Button */}
         <AnimatePresence>
-          {hasActiveFilters && (
+          {hasActiveFilters() && (
             <motion.div
               className="mt-4 flex justify-center"
               initial={{ opacity: 0, y: 10 }}
@@ -369,7 +352,7 @@ export function RecipeFilters({
 
       {/* Active Filters Display */}
       <AnimatePresence>
-        {hasActiveFilters && (
+        {hasActiveFilters() && (
           <motion.div
             className="mt-2 flex flex-wrap gap-2"
             initial={{ opacity: 0, y: 10 }}
@@ -388,8 +371,8 @@ export function RecipeFilters({
                   className="bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border-blue-300 rounded-full px-3 py-1"
                 >
                   <Utensils className="h-3 w-3 mr-1" />
-                  {mealTypes.find((t) => t.id.toString() === mealType)?.slug ||
-                    mealType}
+                  {mealTypes.find((t: any) => String(t.id) === mealType)
+                    ?.slug || mealType}
                 </Badge>
               </motion.div>
             )}
@@ -404,8 +387,8 @@ export function RecipeFilters({
                   className="bg-gradient-to-r from-green-100 to-green-200 text-green-800 border-green-300 rounded-full px-3 py-1"
                 >
                   <Globe className="h-3 w-3 mr-1" />
-                  {countries.find((t) => t.id.toString() === kitchens)?.slug ||
-                    kitchens}
+                  {countries.find((t: any) => String(t.id) === kitchens)
+                    ?.slug || kitchens}
                 </Badge>
               </motion.div>
             )}
@@ -420,7 +403,7 @@ export function RecipeFilters({
                   className="bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border-purple-300 rounded-full px-3 py-1"
                 >
                   <Sparkles className="h-3 w-3 mr-1" />
-                  {diets.find((t) => t.id.toString() === dietTags)?.slug ||
+                  {diets.find((t: any) => String(t.id) === dietTags)?.slug ||
                     dietTags}
                 </Badge>
               </motion.div>

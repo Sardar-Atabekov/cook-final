@@ -18,6 +18,7 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
+import { useFiltersStore } from '@/stores/useFiltersStore';
 
 interface SearchPageClientProps {
   initialRecipes: Recipe[];
@@ -31,23 +32,45 @@ export function SearchPageClient({
   locale,
 }: SearchPageClientProps) {
   const t = useTranslations('search');
-  const searchParams = useSearchParams();
+  const {
+    mealType,
+    country,
+    dietTags,
+    sorting,
+    byTime,
+    searchText: searchQuery,
+    hasActiveFilters,
+  } = useFiltersStore();
   const [isVisible, setIsVisible] = useState(false);
 
-  // Получаем параметры поиска для отображения
-  const searchQuery = searchParams.get('q') || '';
-  const mealType = searchParams.get('mealType') || 'all';
-  const country = searchParams.get('country') || 'all';
-  const dietTags = searchParams.get('dietTags') || 'all';
-  const sorting = searchParams.get('sorting') || 'all';
-  const byTime = searchParams.get('byTime') || 'all';
+  // Отладочная информация
+  console.log('SearchPageClient DEBUG:', {
+    initialRecipes: initialRecipes.length,
+    initialTotal,
+    hasRecipes: initialRecipes.length > 0,
+    totalIsZero: initialTotal === 0 || String(initialTotal) === '0',
+    shouldShowNoRecipes:
+      (initialTotal === 0 || String(initialTotal) === '0') &&
+      initialRecipes.length === 0,
+    shouldShowSimilar:
+      (initialTotal === 0 || String(initialTotal) === '0') &&
+      initialRecipes.length > 0,
+  });
 
-  const hasActiveFilters =
-    mealType !== 'all' ||
-    country !== 'all' ||
-    dietTags !== 'all' ||
-    sorting !== 'all' ||
-    byTime !== 'all';
+  // Получаем параметры поиска для отображения
+  // const searchQuery = searchParams.get('q') || '';
+  // const mealType = searchParams.get('mealType') || 'all';
+  // const country = searchParams.get('country') || 'all';
+  // const dietTags = searchParams.get('dietTags') || 'all';
+  // const sorting = searchParams.get('sorting') || 'all';
+  // const byTime = searchParams.get('byTime') || 'all';
+
+  // const hasActiveFilters =
+  //   mealType !== 'all' ||
+  //   country !== 'all' ||
+  //   dietTags !== 'all' ||
+  //   sorting !== 'all' ||
+  //   byTime !== 'all';
 
   useEffect(() => {
     setIsVisible(true);
@@ -76,7 +99,11 @@ export function SearchPageClient({
     },
   };
 
-  if (initialRecipes.length === 0) {
+  // Нет ни одного подходящего рецепта и нет похожих — только сообщение
+  if (
+    (initialTotal === 0 || String(initialTotal) === '0') &&
+    initialRecipes.length === 0
+  ) {
     return (
       <motion.div
         className="text-center py-20 flex flex-col items-center justify-center min-h-[400px]"
@@ -92,28 +119,23 @@ export function SearchPageClient({
         >
           <SearchIcon className="w-16 h-16 text-gray-400" />
         </motion.div>
-
         <motion.h3
           className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent mb-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          {searchQuery ? t('noRecipesFound') : t('noRecipesFoundTitle')}
+          {t('noRecipesFound')}
         </motion.h3>
-
         <motion.p
           className="text-gray-600 mb-6 max-w-lg mx-auto text-lg leading-relaxed"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          {searchQuery
-            ? t('noRecipesFoundSearch', { query: searchQuery })
-            : t('noRecipesFoundDescription')}
+          {t('noRecipesFoundDescription')}
         </motion.p>
-
-        {hasActiveFilters && (
+        {hasActiveFilters() && (
           <motion.div
             className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border border-blue-200/50"
             initial={{ opacity: 0, y: 10 }}
@@ -128,6 +150,82 @@ export function SearchPageClient({
       </motion.div>
     );
   }
+
+  // Если total === 0, но есть похожие рецепты — показываем их и счетчик 0
+  // Можно добавить поясняющий текст
+  if (
+    (initialTotal === 0 || String(initialTotal) === '0') &&
+    initialRecipes.length > 0
+  ) {
+    return (
+      <motion.div
+        className="flex-1"
+        variants={containerVariants}
+        initial="hidden"
+        animate={isVisible ? 'visible' : 'hidden'}
+      >
+        <motion.div className="mb-8" variants={itemVariants}>
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200/50">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              <div className="flex-1">
+                <motion.h1
+                  className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent mb-3"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  {t('allRecipesTitle')}
+                </motion.h1>
+                <div className="flex items-center space-x-6 text-gray-600">
+                  <motion.span
+                    className="flex items-center bg-blue-50 px-3 py-1 rounded-full"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <ChefHat className="w-4 h-4 mr-2 text-blue-600" />
+                    <span className="font-medium">
+                      {t('searchResultsCount', { count: 0 })}
+                    </span>
+                  </motion.span>
+                </div>
+                <div className="mt-4 text-gray-500 text-base">
+                  По вашему запросу ничего не найдено, но вот похожие рецепты:
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+        {/* Grid с похожими рецептами */}
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6"
+          variants={itemVariants}
+        >
+          <AnimatePresence>
+            {initialRecipes.map((recipe, index) => (
+              <motion.div
+                key={recipe.id}
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.9 }}
+                transition={{
+                  delay: index * 0.03,
+                  type: 'spring',
+                  stiffness: 300,
+                  damping: 20,
+                }}
+                whileHover={{ y: -5 }}
+              >
+                <SearchRecipeCard recipe={recipe} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  // Обычный случай — total > 0
 
   return (
     <motion.div
@@ -165,7 +263,7 @@ export function SearchPageClient({
                   </span>
                 </motion.span>
 
-                {hasActiveFilters && (
+                {hasActiveFilters() && (
                   <motion.span
                     className="flex items-center bg-purple-50 px-3 py-1 rounded-full"
                     initial={{ opacity: 0, scale: 0.8 }}
@@ -180,7 +278,7 @@ export function SearchPageClient({
             </div>
 
             {/* Active Filters Summary */}
-            {hasActiveFilters && (
+            {hasActiveFilters() && (
               <motion.div
                 className="flex flex-wrap gap-2"
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -286,7 +384,7 @@ export function SearchPageClient({
               {t('showingAllRecipes', { count: initialTotal })}
             </p>
 
-            {hasActiveFilters && (
+            {hasActiveFilters() && (
               <p className="text-sm text-gray-500">
                 💡 {t('noRecipesFoundHint')}
               </p>

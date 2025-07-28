@@ -50,7 +50,17 @@ export const useIngredientStore = create<IngredientStore>()(
       },
       clearIngredients: () => set({ selectedIngredients: [], selectedIds: [] }),
       hasIngredient: (id) => get().selectedIngredients.some((i) => i.id === id),
-      setSelectedIds: (ids) => set({ selectedIds: ids }),
+      setSelectedIds: (ids) => {
+        // Получаем все текущие ингредиенты из groupedCategories
+        const allIngredients = get()
+          .groupedCategories.flatMap((cat) => cat.ingredients)
+          .filter(Boolean);
+        // Находим объекты ингредиентов по id
+        const newSelectedIngredients = allIngredients.filter((ing) =>
+          ids.includes(ing.id)
+        );
+        set({ selectedIds: ids, selectedIngredients: newSelectedIngredients });
+      },
       getSelectedIds: () => get().selectedIds,
       setGroupedCategories: (categories, lang) =>
         set({

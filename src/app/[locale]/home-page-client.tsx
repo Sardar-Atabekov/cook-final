@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useMemo, useRef, useEffect, useState } from 'react';
 import Footer from '@/components/footer';
 import { useRouter } from 'next/navigation';

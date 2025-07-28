@@ -106,29 +106,25 @@ export function LoadingSpinner({
 }
 
 // Скелетон для карточек рецептов
-export function RecipeCardSkeleton({ count = 6 }: { count?: number }) {
+export function RecipeCardSkeleton() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {Array.from({ length: count }).map((_, i) => (
-        <motion.div
-          key={i}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.1 }}
-          className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
-        >
-          <div className="w-full h-48 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-shimmer" />
-          <div className="p-4 space-y-3">
-            <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded w-3/4 animate-shimmer" />
-            <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded w-full animate-shimmer" />
-            <div className="flex justify-between pt-2">
-              <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded w-16 animate-shimmer" />
-              <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded w-12 animate-shimmer" />
-            </div>
-          </div>
-        </motion.div>
-      ))}
-    </div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200"
+    >
+      <div className="w-full h-48 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-shimmer" />
+      <div className="p-4 space-y-3">
+        <div className="h-5 bg-gradient-to-r from-gray-200 to-gray-300 rounded w-3/4 animate-shimmer" />
+        <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded w-full animate-shimmer" />
+        <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded w-2/3 animate-shimmer" />
+        <div className="flex justify-between pt-2">
+          <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded w-16 animate-shimmer" />
+          <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded w-12 animate-shimmer" />
+        </div>
+      </div>
+    </motion.div>
   );
 }
 

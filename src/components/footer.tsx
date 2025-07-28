@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
@@ -72,6 +73,7 @@ export default function Footer() {
 
   return (
     <motion.footer
+      data-testid="footer"
       className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white py-20 relative overflow-hidden"
       variants={containerVariants}
       initial="hidden"

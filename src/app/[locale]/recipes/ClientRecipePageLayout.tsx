@@ -10,7 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Loader2, ChevronDown, Search, Filter } from 'lucide-react';
 import { useRecipes } from '@/hooks/useRecipes';
 import { useIngredientStore } from '@/stores/useIngredientStore';
+import { useFiltersStore } from '@/stores/useFiltersStore';
 import { useTranslations } from 'next-intl';
+import { RecipeCardSkeleton } from '@/components/loading-spinner';
 
 export default function ClientRecipePageLayout({
   searchQuery,
@@ -34,14 +36,18 @@ export default function ClientRecipePageLayout({
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
   const { selectedIngredients } = useIngredientStore();
+  const {
+    mealType: currentMealType,
+    country: currentKitchens,
+    dietTags: currentDietTags,
+    sorting: currentSorting,
+    byTime: currentByTime,
+    searchText: currentSearchQuery,
+    setFilters,
+    hasActiveFilters,
+  } = useFiltersStore();
 
-  // Получаем текущие параметры из URL
-  const currentSearchQuery = searchParams.get('q') || '';
-  const currentMealType = searchParams.get('mealType') || 'all';
-  const currentKitchens = searchParams.get('country') || 'all';
-  const currentDietTags = searchParams.get('dietTags') || 'all';
-  const currentSorting = searchParams.get('sorting') || 'all';
-  const currentByTime = searchParams.get('byTime') || 'all';
+  // Получаем текущую страницу из URL (только для пагинации)
   const currentPage = parseInt(searchParams.get('page') || '1');
 
   // Используем хук для получения рецептов только если параметры изменились
@@ -55,19 +61,69 @@ export default function ClientRecipePageLayout({
     searchText: currentSearchQuery,
     lang: locale,
     limit: 20,
-    mealType: currentMealType === 'all' ? 'all' : currentMealType,
-    kitchens: currentKitchens === 'all' ? 'all' : currentKitchens,
-    dietTags: currentDietTags === 'all' ? 'all' : currentDietTags,
-    sorting: currentSorting === 'all' ? 'all' : currentSorting,
-    byTime: currentByTime === 'all' ? 'all' : currentByTime,
+    mealType: currentMealType,
+    kitchens: currentKitchens,
+    dietTags: currentDietTags,
+    sorting: currentSorting,
+    byTime: currentByTime,
     page: currentPage,
   });
 
-  // Используем данные из хука, если они есть, иначе используем начальные данные
-  const displayRecipes = fetchedRecipes.length > 0 ? fetchedRecipes : recipes;
-  const displayTotal = fetchedTotal || total;
+  // Универсальная логика отображения
+  const isClientLoaded =
+    !isFetching && (fetchedTotal !== undefined || fetchError);
+  const isExactMatch = isClientLoaded && fetchedTotal > 0;
+  const isSimilar = isClientLoaded && fetchedTotal === 0 && recipes.length > 0;
+  const isNothing =
+    isClientLoaded && fetchedTotal === 0 && recipes.length === 0;
+
+  const displayRecipes = isExactMatch
+    ? fetchedRecipes
+    : isSimilar
+      ? recipes
+      : [];
+
+  const displayTotal = isClientLoaded ? fetchedTotal : total;
+
   const displayIsLoading = isFetching || isLoading;
   const displayError = fetchError || error;
+
+  // Отладочная информация
+  console.log('=== DEBUG INFO ===');
+  console.log('isClientLoaded:', isClientLoaded);
+  console.log('isExactMatch:', isExactMatch);
+  console.log('isSimilar:', isSimilar);
+  console.log('isNothing:', isNothing);
+  console.log('displayRecipes', displayRecipes.length);
+  console.log('displayTotal', displayTotal);
+  console.log('displayIsLoading', displayIsLoading);
+  console.log('displayError', displayError);
+  console.log('fetchedRecipes', fetchedRecipes.length);
+  console.log('fetchedTotal', fetchedTotal);
+  console.log('recipes (server)', recipes.length);
+  console.log('total (server)', total);
+  console.log('isLoading from useRecipes:', isLoading);
+  console.log('isFetching from useRecipes:', isFetching);
+  console.log('currentMealType:', currentMealType);
+  console.log('currentKitchens:', currentKitchens);
+  console.log('currentDietTags:', currentDietTags);
+  console.log('currentSorting:', currentSorting);
+  console.log('currentByTime:', currentByTime);
+  console.log('selectedIngredients:', selectedIngredients);
+  console.log('currentSearchQuery:', currentSearchQuery);
+  console.log('hasActiveFilters:', hasActiveFilters());
+  console.log('displayTotal logic:', {
+    fetchedTotal,
+    total,
+    result: displayTotal,
+  });
+  console.log('displayRecipes logic:', {
+    fetchedRecipesLength: fetchedRecipes.length,
+    fetchedTotal,
+    recipesLength: recipes.length,
+    result: displayRecipes.length,
+  });
+  console.log('==================');
 
   // Аккумулируем рецепты при увеличении страницы
   useEffect(() => {
@@ -81,32 +137,6 @@ export default function ClientRecipePageLayout({
       // setAccumulatedRecipes(displayRecipes); // This line was removed as per the new_code
     }
   }, [displayRecipes, currentPage]);
-
-  // Обработка поиска
-  const handleSearch = (query: string) => {
-    const newParams = new URLSearchParams(searchParams.toString());
-    if (query) newParams.set('q', query);
-    else newParams.delete('q');
-    newParams.delete('page');
-    router.replace(`?${newParams.toString()}`, { scroll: false });
-  };
-
-  // Обработка фильтров
-  const handleFiltersChange = (newFilters: any) => {
-    const newParams = new URLSearchParams(searchParams.toString());
-    if (newFilters.mealType !== undefined)
-      newParams.set('mealType', newFilters.mealType);
-    if (newFilters.country !== undefined)
-      newParams.set('country', newFilters.country);
-    if (newFilters.dietTags !== undefined)
-      newParams.set('dietTags', newFilters.dietTags);
-    if (newFilters.sorting !== undefined)
-      newParams.set('sorting', newFilters.sorting);
-    if (newFilters.byTime !== undefined)
-      newParams.set('byTime', newFilters.byTime);
-    newParams.delete('page');
-    router.replace(`?${newParams.toString()}`, { scroll: false });
-  };
 
   // Кнопка "Показать ещё"
   const handleShowMore = async () => {
@@ -175,7 +205,7 @@ export default function ClientRecipePageLayout({
               <SearchBar
                 placeholder={t('searchPlaceholder')}
                 className="w-full"
-                onSearch={handleSearch}
+                onSearch={() => {}}
               />
             </motion.div>
 
@@ -193,11 +223,7 @@ export default function ClientRecipePageLayout({
                       <h3 className="font-semibold text-gray-900">
                         {t('filters')}
                       </h3>
-                      {(currentMealType !== 'all' ||
-                        currentKitchens !== 'all' ||
-                        currentDietTags !== 'all' ||
-                        currentSorting !== 'all' ||
-                        currentByTime !== 'all') && (
+                      {hasActiveFilters() && (
                         <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
                           {t('activeFilters')}
                         </span>
@@ -253,19 +279,26 @@ export default function ClientRecipePageLayout({
                   <p className="text-red-600">{t('errorLoadingDescription')}</p>
                 </div>
               </div>
-            ) : displayIsLoading && displayRecipes.length === 0 ? (
-              <div className="text-center py-16">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
-                <p className="text-gray-600">{t('loadingRecipes')}</p>
+            ) : displayIsLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 py-8">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <RecipeCardSkeleton key={i} />
+                ))}
               </div>
             ) : (
               <>
+                {/* Отладочная информация для SearchPageClient */}
+                {console.log('SearchPageClient props:', {
+                  initialRecipes: displayRecipes.length,
+                  initialTotal: displayTotal,
+                  shouldShowNoRecipes: isNothing,
+                  shouldShowSimilar: isSimilar,
+                })}
                 <SearchPageClient
                   initialRecipes={displayRecipes}
                   initialTotal={displayTotal}
                   locale={locale}
                 />
-
                 {/* Load More Button */}
                 <AnimatePresence>
                   {displayRecipes.length < displayTotal && (

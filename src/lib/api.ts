@@ -122,7 +122,15 @@ export const recipeApi = {
     }
 
     const response = await api.get('/recipes/recipes', { params });
-    return response.data; // { recipes, total, hasMore }
+    const data = response.data;
+    console.log('API Client: Recipes response', {
+      count: data?.recipes?.length || 0,
+      total: data?.total || 0,
+      hasRecipes: !!data?.recipes,
+      recipesLength: data?.recipes?.length || 0,
+      params: params,
+    });
+    return data; // { recipes, total, hasMore }
   },
 
   // SSR версия для получения рецептов
@@ -179,6 +187,10 @@ export const recipeApi = {
       const data = await response.json();
       console.log('API SSR: Recipes response', {
         count: data?.recipes?.length || 0,
+        total: data?.total || 0,
+        hasRecipes: !!data?.recipes,
+        recipesLength: data?.recipes?.length || 0,
+        params: params.toString(),
       });
       return data;
     } catch (error) {

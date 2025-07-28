@@ -45,47 +45,6 @@ export function IngredientSidebar({
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Синхронизация URL -> store (при монтировании/изменении URL)
-  useEffect(() => {
-    const ingredientsParam = searchParams.get('ingredients') || '';
-    const ids = ingredientsParam
-      .split(',')
-      .map((id) => parseInt(id))
-      .filter((id) => !isNaN(id));
-
-    // Проверяем, действительно ли изменились ID
-    const currentIds = selectedIds;
-    const idsChanged = JSON.stringify(ids) !== JSON.stringify(currentIds);
-
-    if (idsChanged) {
-      setSelectedIds(ids);
-    }
-  }, [searchParams.get('ingredients')]);
-
-  // Синхронизация store -> URL (при изменении selectedIds)
-  useEffect(() => {
-    const currentIngredients = searchParams.get('ingredients') || '';
-    const newIngredients = selectedIds.join(',');
-
-    // Обновляем URL только если действительно изменились ингредиенты
-    if (currentIngredients !== newIngredients) {
-      const params = new URLSearchParams(searchParams.toString());
-      if (selectedIds.length > 0) {
-        params.set('ingredients', newIngredients);
-      } else {
-        params.delete('ingredients');
-      }
-      params.delete('page');
-
-      // Используем setTimeout для предотвращения циклических обновлений
-      const timeoutId = setTimeout(() => {
-        router.replace(`?${params.toString()}`, { scroll: false });
-      }, 0);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [selectedIds]);
-
   // 1. Если в zustand есть категории для текущего языка — показываем их
   // 2. Если нет — используем initialGroupedCategories (и кладём их в zustand)
   useEffect(() => {

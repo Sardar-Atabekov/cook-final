@@ -52,7 +52,6 @@ export function LanguageToggle() {
   const pathname = usePathname();
   const router = useRouter();
   const setLanguage = useLanguageStore((state) => state.setLanguage);
-  console.log('allLanguages', allLanguages.length);
   const switchLanguage = (newLocale: string) => {
     if (newLocale === currentLocale) return; // чтобы не перезапускать зря
 

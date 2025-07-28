@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import React, { useState, useEffect, useCallback, forwardRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslations } from 'next-intl';
+import { useFiltersStore } from '@/stores/useFiltersStore';
 
 interface SearchBarProps {
   placeholder?: string;
@@ -25,32 +26,26 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
     ref
   ) => {
     const t = useTranslations('ux.input');
-    const searchParams = useSearchParams();
-    const router = useRouter();
-    const urlValue = searchParams.get('q') || '';
-    const [value, setValue] = useState(urlValue);
+    const { searchText, setSearchText } = useFiltersStore();
+    const [value, setValue] = useState(searchText);
     const [isFocused, setIsFocused] = useState(false);
     const [showClear, setShowClear] = useState(false);
 
-    // Debounce обновления URL
+    // Debounce обновления store
     useEffect(() => {
       const handler = setTimeout(() => {
-        const params = new URLSearchParams(searchParams.toString());
-        if (value) params.set('q', value);
-        else params.delete('q');
-        params.delete('page');
-        if (value !== urlValue) {
-          router.replace(`?${params.toString()}`, { scroll: false });
+        if (value !== searchText) {
+          setSearchText(value);
           onSearch?.(value);
         }
       }, 300);
       return () => clearTimeout(handler);
-    }, [value, urlValue, searchParams, router, onSearch]);
+    }, [value, searchText, setSearchText, onSearch]);
 
-    // Синхронизация value с urlValue при смене фильтров/URL
+    // Синхронизация value с searchText при смене фильтров
     useEffect(() => {
-      setValue(urlValue);
-    }, [urlValue]);
+      setValue(searchText);
+    }, [searchText]);
 
     // Показывать кнопку очистки только если есть значение
     useEffect(() => {
@@ -66,12 +61,9 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
 
     const handleClear = useCallback(() => {
       setValue('');
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete('q');
-      params.delete('page');
-      router.replace(`?${params.toString()}`, { scroll: false });
+      setSearchText('');
       onSearch?.('');
-    }, [searchParams, router, onSearch]);
+    }, [setSearchText, onSearch]);
 
     const handleFocus = useCallback(() => {
       setIsFocused(true);

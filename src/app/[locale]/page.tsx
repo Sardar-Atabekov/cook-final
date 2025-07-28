@@ -1,3 +1,4 @@
+import React from 'react';
 import { HomePageClient } from './home-page-client';
 
 const locales = [
