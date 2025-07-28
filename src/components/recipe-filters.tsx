@@ -70,30 +70,30 @@ export function RecipeFilters({
     diets = [];
   }
 
-  const sortingOptions = useMemo(
-    () => [
-      { label: t('allSorting'), value: 'all', icon: Sparkles },
-      { label: t('popular'), value: 'popular', icon: TrendingUp },
-      { label: t('random'), value: 'random', icon: Sparkles },
-      { label: t('raitings'), value: 'raitings', icon: TrendingUp },
-      { label: t('ingCount'), value: 'ingCount', icon: Utensils },
-      { label: t('byTime'), value: 'byTime', icon: Clock },
-    ],
-    [t]
-  );
+  // const sortingOptions = useMemo(
+  //   () => [
+  //     { label: t('allSorting'), value: 'all', icon: Sparkles },
+  //     { label: t('popular'), value: 'popular', icon: TrendingUp },
+  //     { label: t('random'), value: 'random', icon: Sparkles },
+  //     { label: t('raitings'), value: 'raitings', icon: TrendingUp },
+  //     { label: t('ingCount'), value: 'ingCount', icon: Utensils },
+  //     { label: t('byTime'), value: 'byTime', icon: Clock },
+  //   ],
+  //   [t]
+  // );
 
-  const byTimeOptions = useMemo(
-    () => [
-      { label: t('byTime'), value: 'all', icon: Clock },
-      { label: t('byMinutes', { count: 15 }), value: '15', icon: Clock },
-      { label: t('byMinutes', { count: 30 }), value: '30', icon: Clock },
-      { label: t('byMinutes', { count: 45 }), value: '45', icon: Clock },
-      { label: t('byHours', { count: 1 }), value: '60', icon: Clock },
-      { label: t('byHours', { count: 2 }), value: '120', icon: Clock },
-      { label: t('byHours', { count: 3 }), value: '180', icon: Clock },
-    ],
-    [t]
-  );
+  // const byTimeOptions = useMemo(
+  //   () => [
+  //     { label: t('byTime'), value: 'all', icon: Clock },
+  //     { label: t('byMinutes', { count: 15 }), value: '15', icon: Clock },
+  //     { label: t('byMinutes', { count: 30 }), value: '30', icon: Clock },
+  //     { label: t('byMinutes', { count: 45 }), value: '45', icon: Clock },
+  //     { label: t('byHours', { count: 1 }), value: '60', icon: Clock },
+  //     { label: t('byHours', { count: 2 }), value: '120', icon: Clock },
+  //     { label: t('byHours', { count: 3 }), value: '180', icon: Clock },
+  //   ],
+  //   [t]
+  // );
 
   // hasActiveFilters is now managed by the store
   // const hasActiveFilters =
@@ -273,10 +273,10 @@ export function RecipeFilters({
           </motion.div>
 
           {/* Time Filter */}
-          <motion.div
+          {/* <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.3 }}
             whileHover={{ y: -2 }}
           >
             <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
@@ -295,10 +295,10 @@ export function RecipeFilters({
                 ))}
               </SelectContent>
             </Select>
-          </motion.div>
+          </motion.div> */}
 
           {/* Sorting Filter */}
-          <motion.div
+          {/* <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
@@ -323,7 +323,7 @@ export function RecipeFilters({
                 ))}
               </SelectContent>
             </Select>
-          </motion.div>
+          </motion.div>  */}
         </div>
 
         {/* Clear Filters Button */}
@@ -408,7 +408,7 @@ export function RecipeFilters({
                 </Badge>
               </motion.div>
             )}
-            {sorting !== 'all' && (
+            {/* {sorting !== 'all' && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -439,7 +439,7 @@ export function RecipeFilters({
                     byTime}
                 </Badge>
               </motion.div>
-            )}
+            )} */}
           </motion.div>
         )}
       </AnimatePresence>

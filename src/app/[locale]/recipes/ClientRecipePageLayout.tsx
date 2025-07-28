@@ -5,7 +5,6 @@ import { IngredientSidebar } from '@/components/ingredient-sidebar';
 import { SearchBar } from '@/components/search-bar';
 import { RecipeFilters } from '@/components/recipe-filters';
 import { SearchPageClient } from '@/components/search-page-client';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Loader2, ChevronDown, Search, Filter } from 'lucide-react';
 import { useRecipes } from '@/hooks/useRecipes';
@@ -50,7 +49,7 @@ export default function ClientRecipePageLayout({
   // Получаем текущую страницу из URL (только для пагинации)
   const currentPage = parseInt(searchParams.get('page') || '1');
 
-  // Используем хук для получения рецептов только если параметры изменились
+  // Используем хук для получения рецептов
   const {
     recipes: fetchedRecipes,
     total: fetchedTotal,
@@ -69,74 +68,14 @@ export default function ClientRecipePageLayout({
     page: currentPage,
   });
 
-  // Универсальная логика отображения
-  const isClientLoaded =
-    !isFetching && (fetchedTotal !== undefined || fetchError);
-  const isExactMatch = isClientLoaded && fetchedTotal > 0;
-  const isSimilar = isClientLoaded && fetchedTotal === 0 && recipes.length > 0;
-  const isNothing =
-    isClientLoaded && fetchedTotal === 0 && recipes.length === 0;
-
-  const displayRecipes = isExactMatch
-    ? fetchedRecipes
-    : isSimilar
-      ? recipes
-      : [];
-
-  const displayTotal = isClientLoaded ? fetchedTotal : total;
-
+  // Упрощенная логика отображения
+  const displayRecipes = fetchedRecipes.length > 0 ? fetchedRecipes : recipes;
+  const displayTotal = fetchedTotal !== undefined ? fetchedTotal : total;
   const displayIsLoading = isFetching || isLoading;
   const displayError = fetchError || error;
 
-  // Отладочная информация
-  console.log('=== DEBUG INFO ===');
-  console.log('isClientLoaded:', isClientLoaded);
-  console.log('isExactMatch:', isExactMatch);
-  console.log('isSimilar:', isSimilar);
-  console.log('isNothing:', isNothing);
-  console.log('displayRecipes', displayRecipes.length);
-  console.log('displayTotal', displayTotal);
-  console.log('displayIsLoading', displayIsLoading);
-  console.log('displayError', displayError);
-  console.log('fetchedRecipes', fetchedRecipes.length);
-  console.log('fetchedTotal', fetchedTotal);
-  console.log('recipes (server)', recipes.length);
-  console.log('total (server)', total);
-  console.log('isLoading from useRecipes:', isLoading);
-  console.log('isFetching from useRecipes:', isFetching);
-  console.log('currentMealType:', currentMealType);
-  console.log('currentKitchens:', currentKitchens);
-  console.log('currentDietTags:', currentDietTags);
-  console.log('currentSorting:', currentSorting);
-  console.log('currentByTime:', currentByTime);
-  console.log('selectedIngredients:', selectedIngredients);
-  console.log('currentSearchQuery:', currentSearchQuery);
-  console.log('hasActiveFilters:', hasActiveFilters());
-  console.log('displayTotal logic:', {
-    fetchedTotal,
-    total,
-    result: displayTotal,
-  });
-  console.log('displayRecipes logic:', {
-    fetchedRecipesLength: fetchedRecipes.length,
-    fetchedTotal,
-    recipesLength: recipes.length,
-    result: displayRecipes.length,
-  });
-  console.log('==================');
-
-  // Аккумулируем рецепты при увеличении страницы
-  useEffect(() => {
-    if (currentPage > 1) {
-      // setAccumulatedRecipes((prev: any[]) => { // This line was removed as per the new_code
-      //   const ids = new Set(prev.map((r) => r.id));
-      //   const newOnes = displayRecipes.filter((r: any) => !ids.has(r.id));
-      //   return [...prev, ...newOnes];
-      // });
-    } else {
-      // setAccumulatedRecipes(displayRecipes); // This line was removed as per the new_code
-    }
-  }, [displayRecipes, currentPage]);
+  // Показываем скелетон при любом новом запросе
+  const shouldShowSkeleton = displayIsLoading;
 
   // Кнопка "Показать ещё"
   const handleShowMore = async () => {
@@ -150,29 +89,6 @@ export default function ClientRecipePageLayout({
     }, 500);
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.5,
-        ease: 'easeOut' as const,
-      },
-    },
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       <div className="flex">
@@ -182,38 +98,27 @@ export default function ClientRecipePageLayout({
         />
         <main className="flex-1 h-full overflow-y-auto p-6 mb-10">
           {/* Header Section */}
-          <motion.div
-            className="mb-8"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            <motion.div className="text-center mb-8" variants={itemVariants}>
+          <div className="mb-8">
+            <div className="text-center mb-8">
               <h1 className="text-3xl font-bold text-gray-900 mb-4">
                 {t('title')}
               </h1>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                 {t('titleDescription')}
               </p>
-            </motion.div>
+            </div>
 
             {/* Search Bar */}
-            <motion.div
-              className="w-full max-w-4xl mx-auto mb-6"
-              variants={itemVariants}
-            >
+            <div className="w-full max-w-4xl mx-auto mb-6">
               <SearchBar
                 placeholder={t('searchPlaceholder')}
                 className="w-full"
                 onSearch={() => {}}
               />
-            </motion.div>
+            </div>
 
             {/* Filters Toggle */}
-            <motion.div
-              className="w-full max-w-4xl mx-auto"
-              variants={itemVariants}
-            >
+            <div className="w-full max-w-4xl mx-auto">
               <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                 {/* Filter Header */}
                 <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
@@ -244,32 +149,17 @@ export default function ClientRecipePageLayout({
                 </div>
 
                 {/* Filter Content */}
-                <AnimatePresence>
-                  {isFiltersExpanded && (
-                    <motion.div
-                      className="p-6"
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <RecipeFilters
-                        initialTags={initialTags}
-                        locale={locale}
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {isFiltersExpanded && (
+                  <div className="p-6">
+                    <RecipeFilters initialTags={initialTags} locale={locale} />
+                  </div>
+                )}
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
 
           {/* Results Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
+          <div>
             {displayError ? (
               <div className="text-center py-16">
                 <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
@@ -279,7 +169,7 @@ export default function ClientRecipePageLayout({
                   <p className="text-red-600">{t('errorLoadingDescription')}</p>
                 </div>
               </div>
-            ) : displayIsLoading ? (
+            ) : shouldShowSkeleton ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 py-8">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <RecipeCardSkeleton key={i} />
@@ -291,8 +181,8 @@ export default function ClientRecipePageLayout({
                 {console.log('SearchPageClient props:', {
                   initialRecipes: displayRecipes.length,
                   initialTotal: displayTotal,
-                  shouldShowNoRecipes: isNothing,
-                  shouldShowSimilar: isSimilar,
+                  shouldShowNoRecipes: displayRecipes.length === 0,
+                  shouldShowSimilar: false, // isSimilar logic removed
                 })}
                 <SearchPageClient
                   initialRecipes={displayRecipes}
@@ -300,18 +190,13 @@ export default function ClientRecipePageLayout({
                   locale={locale}
                 />
                 {/* Load More Button */}
-                <AnimatePresence>
-                  {displayRecipes.length < displayTotal && (
-                    <motion.div
-                      className="text-center mt-8"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.3 }}
-                    >
+                {displayRecipes.length > 0 &&
+                  displayRecipes.length < displayTotal &&
+                  !displayIsLoading && (
+                    <div className="text-center mt-8">
                       <Button
                         onClick={handleShowMore}
-                        disabled={displayIsLoading || isLoadingMore}
+                        disabled={isLoadingMore}
                         className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                         size="lg"
                       >
@@ -327,43 +212,29 @@ export default function ClientRecipePageLayout({
                           </>
                         )}
                       </Button>
-                      <motion.p
-                        className="text-sm text-gray-500 mt-3"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.2 }}
-                      >
+                      <p className="text-sm text-gray-500 mt-3">
                         {t('showingCount', {
                           current: displayRecipes.length,
                           total: displayTotal,
                         })}
-                      </motion.p>
-                    </motion.div>
+                      </p>
+                    </div>
                   )}
-                </AnimatePresence>
 
                 {/* Loading Progress Bar */}
-                <AnimatePresence>
-                  {isLoadingMore && (
-                    <motion.div
-                      className="w-full max-w-4xl mx-auto mt-4"
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 4 }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <div className="w-full bg-gray-200 rounded-full h-1 overflow-hidden">
-                        <div
-                          className="bg-blue-600 h-1 rounded-full animate-pulse"
-                          style={{ width: '100%' }}
-                        />
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {isLoadingMore && (
+                  <div className="w-full max-w-4xl mx-auto mt-4">
+                    <div className="w-full bg-gray-200 rounded-full h-1 overflow-hidden">
+                      <div
+                        className="bg-blue-600 h-1 rounded-full animate-pulse"
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+                  </div>
+                )}
               </>
             )}
-          </motion.div>
+          </div>
         </main>
       </div>
     </div>

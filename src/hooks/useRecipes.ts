@@ -79,7 +79,7 @@ export function useRecipes({
     }
   }, [paramsKey]);
 
-  const { data, isLoading, error, isFetching, isPreviousData } = useQuery<{
+  const { data, isLoading, error, isFetching } = useQuery<{
     recipes: Recipe[];
     total: number;
   }>({
@@ -98,7 +98,7 @@ export function useRecipes({
         page,
       },
     ],
-    queryFn: () => {
+    queryFn: async () => {
       const offset = (page - 1) * limit;
       const filters = {
         offset,
@@ -110,21 +110,9 @@ export function useRecipes({
         byTime: byTime === 'all' ? '' : byTime || '',
         search: searchText.trim() || undefined,
       };
-      console.log('useRecipes queryFn params:', {
-        ingredientIds,
-        filters,
-        lang,
-        page,
-        mealType,
-        kitchens,
-        dietTags,
-        sorting,
-        byTime,
-      });
       return recipeApi.getRecipes(ingredientIds, filters, lang);
     },
     staleTime: 7 * 24 * 60 * 60 * 1000, // 7 дней
-    keepPreviousData: ingredientIds.length === 0, // Только если нет ингредиентов
     gcTime: 7 * 24 * 60 * 60 * 1000, // 7 дней для рецептов
     retry: (failureCount, error: any) => {
       // Don't retry on connection refused errors
@@ -156,18 +144,6 @@ export function useRecipes({
     }
   }, [data, page]);
 
-  // Отладочная информация
-  console.log('useRecipes return:', {
-    recipes: allRecipes.length,
-    total: data?.total || 0,
-    dataTotal: data?.total,
-    hasData: !!data,
-    dataRecipesLength: data?.recipes?.length || 0,
-    isLoading,
-    isFetching,
-    isPreviousData,
-  });
-
   return {
     recipes: allRecipes,
     total: data?.total || 0,
@@ -178,6 +154,5 @@ export function useRecipes({
     currentCount: allRecipes.length,
     error,
     isFetching,
-    isPreviousData,
   };
 }

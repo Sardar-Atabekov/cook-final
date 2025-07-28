@@ -31,19 +31,12 @@ export function IngredientSidebar({
   const locale = useLocale();
 
   const {
-    selectedIngredients,
-    addIngredient,
-    removeIngredient,
-    clearIngredients,
     groupedCategories,
     setGroupedCategories,
     isCacheStale,
     selectedIds,
     setSelectedIds,
   } = useIngredientStore();
-
-  const searchParams = useSearchParams();
-  const router = useRouter();
 
   // 1. Если в zustand есть категории для текущего языка — показываем их
   // 2. Если нет — используем initialGroupedCategories (и кладём их в zustand)
@@ -235,23 +228,36 @@ export function IngredientSidebar({
               {t('selected', { count: selectedIds.length })}
             </h3>
             <div className="flex flex-wrap gap-2">
-              {selectedIds.map((ingredient: any) => (
-                <Badge
-                  key={ingredient}
-                  variant="default"
-                  className="bg-blue-600 text-white flex items-center"
-                >
-                  {ingredient}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="ml-2 h-auto p-0 hover:text-gray-200"
-                    onClick={() => toggleIngredient({ id: ingredient })}
+              {selectedIds.map((ingredientId: number) => {
+                // Находим название ингредиента по ID из всех категорий
+                let ingredientName = `ID: ${ingredientId}`;
+                for (const category of categoriesData) {
+                  const found = category.ingredients.find(
+                    (i: any) => i.id === ingredientId
+                  );
+                  if (found) {
+                    ingredientName = found.name;
+                    break;
+                  }
+                }
+                return (
+                  <Badge
+                    key={ingredientId}
+                    variant="default"
+                    className="bg-blue-600 text-white flex items-center"
                   >
-                    <X className="w-3 h-3" />
-                  </Button>
-                </Badge>
-              ))}
+                    {ingredientName}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="ml-2 h-auto p-0 hover:text-gray-200"
+                      onClick={() => toggleIngredient({ id: ingredientId })}
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </Badge>
+                );
+              })}
             </div>
           </div>
         )}
