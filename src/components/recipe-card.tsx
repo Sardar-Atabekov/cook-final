@@ -4,7 +4,16 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Heart, Star, ChefHat, MapPin, Users, Zap } from 'lucide-react';
+import {
+  Clock,
+  Heart,
+  Star,
+  ChefHat,
+  MapPin,
+  Users,
+  Zap,
+  ExternalLink,
+} from 'lucide-react';
 import type { Recipe } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { useRouter, usePathname } from 'next/navigation';
@@ -125,26 +134,67 @@ export function RecipeCard({
               </motion.div>
             )}
 
-            {/* Save button */}
-            {onSave && (
-              <motion.button
-                className={cn(
-                  'absolute top-3 right-3 p-2 rounded-full transition-all duration-300 shadow-lg z-10',
-                  isSaved
-                    ? 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700'
-                    : 'bg-white/90 text-gray-600 hover:bg-white hover:scale-110 backdrop-blur-sm'
-                )}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onSave();
-                }}
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <Heart className={cn('w-4 h-4', isSaved && 'fill-current')} />
-              </motion.button>
-            )}
+            {/* Action buttons */}
+            <div className="absolute top-3 right-3 flex space-x-2 z-10">
+              {/* External link button */}
+              {(recipe.sourceUrl || recipe.source_url) && (
+                <motion.a
+                  href={recipe.sourceUrl || recipe.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-full transition-all duration-300 shadow-lg bg-white/90 text-gray-600 hover:bg-white hover:scale-110 backdrop-blur-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </motion.a>
+              )}
+
+              {/* Save button */}
+              {onSave && (
+                <motion.button
+                  className={cn(
+                    'p-2 rounded-full transition-all duration-300 shadow-lg',
+                    isSaved
+                      ? 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700'
+                      : 'bg-white/90 text-gray-600 hover:bg-white hover:scale-110 backdrop-blur-sm'
+                  )}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onSave();
+                  }}
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <Heart className={cn('w-4 h-4', isSaved && 'fill-current')} />
+                </motion.button>
+              )}
+
+              {/* Default save button (if no onSave prop) */}
+              {!onSave && (
+                <motion.button
+                  className={cn(
+                    'p-2 rounded-full transition-all duration-300 shadow-lg',
+                    isSaved
+                      ? 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700'
+                      : 'bg-white/90 text-gray-600 hover:bg-white hover:scale-110 backdrop-blur-sm'
+                  )}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('clicked');
+                  }}
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <Heart className={cn('w-4 h-4', isSaved && 'fill-current')} />
+                </motion.button>
+              )}
+            </div>
 
             {/* Recipe info overlay */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4">

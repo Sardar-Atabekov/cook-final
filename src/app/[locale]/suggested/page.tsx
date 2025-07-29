@@ -2,7 +2,7 @@ import { recipeApi } from '@/lib/api';
 import { SuggestedClient } from './SuggestedClient';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { SuggestedPageError } from './error';
+import SuggestedPageError from './error';
 
 const LIMIT = 6; // Increased for better UX
 const TIMEOUT_MS = 10000; // 10 seconds timeout

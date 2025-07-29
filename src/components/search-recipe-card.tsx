@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Heart, Star } from 'lucide-react';
+import { Clock, ExternalLink, Heart, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Recipe } from '@/lib/api';
 import Link from 'next/link';
@@ -47,6 +47,7 @@ const SearchRecipeCardComponent = ({
   const locale = useLocale();
   const [imgError, setImgError] = useState(false);
 
+  console.log(recipe);
   return (
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer h-full flex flex-col">
       <Link href={`/${locale}/recipes/${recipe.id}`}>
@@ -89,6 +90,16 @@ const SearchRecipeCardComponent = ({
             >
               <Heart className={cn('w-4 h-4', isSaved && 'fill-current')} />
             </button>
+          )}
+          {recipe.sourceUrl && (
+            <Link
+              href={recipe.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`p-2 rounded-full transition-all duration-200 shadow-lg hover:scale-105 bg-white/90 text-gray-700 hover:bg-white`}
+            >
+              <ExternalLink className={`h-4 w-4`} />
+            </Link>
           )}
         </div>
 

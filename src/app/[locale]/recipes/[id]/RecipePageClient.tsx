@@ -228,6 +228,16 @@ export function RecipePageClient({
                 className={`h-4 w-4 ${isRecipeSaved(recipe.id) && 'fill-current'}`}
               />
             </button>
+            {recipe.sourceUrl && (
+              <Link
+                href={recipe.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`p-2 rounded-full transition-all duration-200 shadow-lg hover:scale-105 bg-white/90 text-gray-700 hover:bg-white`}
+              >
+                <ExternalLink className={`h-4 w-4`} />
+              </Link>
+            )}
           </div>
 
           <div className="absolute bottom-4 left-4 right-4">

@@ -1,9 +1,13 @@
 export interface RecipeIngredient {
-  recipe_id: number;
+  recipe_id?: number;
+  recipeId?: number;
   line: string;
   matched_name?: string;
+  matchedName?: string;
   ingredient_id?: number;
-  created_at: string;
+  ingredientId?: number;
+  created_at?: string;
+  createdAt?: string;
 }
 
 export interface UserIngredient {
@@ -27,14 +31,83 @@ export function calculateIngredientMatch(
   // Получаем id выбранных пользователем ингредиентов
   const userIngredientIds = userIngredients.map((ing) => ing.id);
 
-  // Разделяем ингредиенты на имеющиеся и отсутствующие
-  const ownedIngredients = recipeIngredients.filter(
-    (ri) => ri.ingredient_id && userIngredientIds.includes(ri.ingredient_id)
+  // Также создаем массив названий для дополнительной проверки
+  const userIngredientNames = userIngredients.map((ing) =>
+    ing.name.toLowerCase().trim()
   );
 
-  const missingIngredients = recipeIngredients.filter(
-    (ri) => !ri.ingredient_id || !userIngredientIds.includes(ri.ingredient_id)
-  );
+  // Ингредиенты, которые есть по умолчанию у каждого
+  const defaultIngredients = [
+    'соль',
+    'перец',
+    'вода',
+    'salt',
+    'pepper',
+    'water',
+  ];
+
+  // Разделяем ингредиенты на имеющиеся и отсутствующие
+  const ownedIngredients: RecipeIngredient[] = [];
+  const missingIngredients: RecipeIngredient[] = [];
+
+  recipeIngredients.forEach((ri) => {
+    let isOwned = false;
+
+    // Проверяем по ID (пробуем разные варианты названий поля)
+    const ingredientId = ri.ingredient_id || ri.ingredientId;
+    if (ingredientId && userIngredientIds.includes(ingredientId)) {
+      isOwned = true;
+    }
+
+    // Проверяем по названию (если не нашли по ID)
+    if (!isOwned && ri.line) {
+      const recipeIngredientName = ri.line.toLowerCase().trim();
+      const matchedByName = userIngredientNames.some(
+        (userName) =>
+          recipeIngredientName.includes(userName) ||
+          userName.includes(recipeIngredientName)
+      );
+
+      if (matchedByName) {
+        isOwned = true;
+      }
+    }
+
+    // Проверяем по matched_name/matchedName (если есть)
+    const matchedName = ri.matched_name || ri.matchedName;
+    if (!isOwned && matchedName) {
+      const matchedNameLower = matchedName.toLowerCase().trim();
+      const matchedByName = userIngredientNames.some(
+        (userName) =>
+          matchedNameLower.includes(userName) ||
+          userName.includes(matchedNameLower)
+      );
+
+      if (matchedByName) {
+        isOwned = true;
+      }
+    }
+
+    // Проверяем, является ли ингредиент одним из стандартных (соль, перец, вода)
+    if (!isOwned) {
+      const ingredientText = (ri.line || matchedName || '')
+        .toLowerCase()
+        .trim();
+      const isDefaultIngredient = defaultIngredients.some((defaultIngredient) =>
+        ingredientText.includes(defaultIngredient)
+      );
+
+      if (isDefaultIngredient) {
+        isOwned = true;
+      }
+    }
+
+    if (isOwned) {
+      ownedIngredients.push(ri);
+    } else {
+      missingIngredients.push(ri);
+    }
+  });
 
   // Считаем процент совпадения
   const totalIngredients = recipeIngredients.length;

@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { recipeApi } from '@/lib/api';
-import type { Recipe } from '@/types/recipe';
+import { recipeApi, type Recipe } from '@/lib/api';
 
 interface UseRecipesParams {
   ingredientIds: number[];
@@ -53,8 +52,8 @@ export function useRecipes({
         : {};
       const currentParams = JSON.parse(paramsKey);
 
-      // Сбрасываем рецепты только если изменились фильтры, а не страница
-      const isPageChange =
+      // Проверяем, изменились ли только фильтры (не страница)
+      const isOnlyPageChange =
         prevParams.page !== currentParams.page &&
         prevParams.mealType === currentParams.mealType &&
         prevParams.kitchens === currentParams.kitchens &&
@@ -65,14 +64,20 @@ export function useRecipes({
         JSON.stringify(prevParams.ingredientIds) ===
           JSON.stringify(currentParams.ingredientIds);
 
-      // Если это не изменение страницы, то сбрасываем рецепты
-      if (!isPageChange) {
+      // Если изменились фильтры (не только страница), то сбрасываем рецепты
+      if (!isOnlyPageChange) {
         console.log('Resetting recipes due to filter change:', {
           prevParams,
           currentParams,
-          isPageChange,
+          isOnlyPageChange,
         });
         setAllRecipes([]);
+      } else {
+        console.log('Page change detected, keeping existing recipes:', {
+          prevParams,
+          currentParams,
+          isOnlyPageChange,
+        });
       }
 
       prevParamsRef.current = paramsKey;
@@ -131,6 +136,7 @@ export function useRecipes({
 
     if (page === 1) {
       // Для первой страницы заменяем все рецепты
+      console.log('Replacing all recipes for page 1');
       setAllRecipes(data.recipes ?? []);
     } else {
       // Для последующих страниц добавляем новые рецепты
@@ -139,6 +145,7 @@ export function useRecipes({
         const newRecipes = (data.recipes ?? []).filter(
           (r) => !existingIds.has(r.id)
         );
+
         return [...prev, ...newRecipes];
       });
     }

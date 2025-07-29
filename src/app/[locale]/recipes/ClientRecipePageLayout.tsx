@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { IngredientSidebar } from '@/components/ingredient-sidebar';
 import { SearchBar } from '@/components/search-bar';
@@ -10,6 +10,7 @@ import { Loader2, ChevronDown, Search, Filter } from 'lucide-react';
 import { useRecipes } from '@/hooks/useRecipes';
 import { useIngredientStore } from '@/stores/useIngredientStore';
 import { useFiltersStore } from '@/stores/useFiltersStore';
+import { usePaginationStore } from '@/stores/usePaginationStore';
 import { useTranslations } from 'next-intl';
 import { RecipeCardSkeleton } from '@/components/loading-spinner';
 
@@ -20,8 +21,6 @@ export default function ClientRecipePageLayout({
   dietTags,
   sorting,
   byTime,
-  recipes,
-  total,
   isLoading,
   error,
   initialGroupedCategories,
@@ -34,6 +33,7 @@ export default function ClientRecipePageLayout({
   const searchParams = useSearchParams();
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
+  const [previousRecipesCount, setPreviousRecipesCount] = useState(0);
   const { selectedIngredients } = useIngredientStore();
   const {
     mealType: currentMealType,
@@ -45,9 +45,25 @@ export default function ClientRecipePageLayout({
     setFilters,
     hasActiveFilters,
   } = useFiltersStore();
+  const { currentPage, setCurrentPage, resetPage } = usePaginationStore();
 
-  // Получаем текущую страницу из URL (только для пагинации)
-  const currentPage = parseInt(searchParams.get('page') || '1');
+  // Сбрасываем страницу на 1 при изменении параметров поиска
+  useEffect(() => {
+    console.log('Reset effect triggered, currentPage:', currentPage);
+    if (currentPage > 1) {
+      console.log('Resetting page because filters changed');
+      resetPage();
+    }
+  }, [
+    selectedIngredients,
+    currentSearchQuery,
+    currentMealType,
+    currentKitchens,
+    currentDietTags,
+    currentSorting,
+    currentByTime,
+    resetPage,
+  ]);
 
   // Используем хук для получения рецептов
   const {
@@ -68,25 +84,61 @@ export default function ClientRecipePageLayout({
     page: currentPage,
   });
 
-  // Упрощенная логика отображения
-  const displayRecipes = fetchedRecipes.length > 0 ? fetchedRecipes : recipes;
-  const displayTotal = fetchedTotal !== undefined ? fetchedTotal : total;
+  // Логика отображения данных - всегда используем данные из хука
+  const displayRecipes = fetchedRecipes.length > 0 ? fetchedRecipes : [];
+  const displayTotal = fetchedTotal !== undefined ? fetchedTotal : 0;
+
   const displayIsLoading = isFetching || isLoading;
   const displayError = fetchError || error;
 
-  // Показываем скелетон при любом новом запросе
-  const shouldShowSkeleton = displayIsLoading;
+  // Проверяем, загружаются ли данные для пагинации или для новых фильтров
+  const isPaginationLoading = isLoadingMore && isFetching;
+  const isNewDataLoading = displayIsLoading && !isLoadingMore;
+
+  // Показываем скелетон при загрузке новых данных (не при пагинации) и когда нет рецептов
+  const shouldShowSkeleton = isNewDataLoading && displayRecipes.length === 0;
+
+  console.log('Debug states:', {
+    isNewDataLoading,
+    displayRecipesLength: displayRecipes.length,
+    shouldShowSkeleton,
+    isLoadingMore,
+    isFetching,
+    displayIsLoading,
+    fetchedRecipesLength: fetchedRecipes.length,
+    previousRecipesCount,
+    isLoading,
+  });
+
+  // Сбрасываем состояние загрузки кнопки "Показать еще" когда данные загрузились
+  useEffect(() => {
+    console.log('Reset effect:', {
+      isLoadingMore,
+      isFetching,
+      fetchedRecipesLength: fetchedRecipes.length,
+      previousRecipesCount,
+    });
+    if (
+      isLoadingMore &&
+      !isFetching &&
+      fetchedRecipes.length > previousRecipesCount
+    ) {
+      console.log(
+        'Resetting isLoadingMore, recipes increased from',
+        previousRecipesCount,
+        'to',
+        fetchedRecipes.length
+      );
+      setIsLoadingMore(false);
+      setPreviousRecipesCount(fetchedRecipes.length);
+    }
+  }, [isLoadingMore, isFetching, fetchedRecipes.length, previousRecipesCount]);
 
   // Кнопка "Показать ещё"
   const handleShowMore = async () => {
     setIsLoadingMore(true);
-    const newParams = new URLSearchParams(searchParams.toString());
-    newParams.set('page', String(currentPage + 1));
-    router.replace(`?${newParams.toString()}`, { scroll: false });
-
-    setTimeout(() => {
-      setIsLoadingMore(false);
-    }, 500);
+    setPreviousRecipesCount(fetchedRecipes.length);
+    setCurrentPage(currentPage + 1);
   };
 
   return (
@@ -177,22 +229,15 @@ export default function ClientRecipePageLayout({
               </div>
             ) : (
               <>
-                {/* Отладочная информация для SearchPageClient */}
-                {console.log('SearchPageClient props:', {
-                  initialRecipes: displayRecipes.length,
-                  initialTotal: displayTotal,
-                  shouldShowNoRecipes: displayRecipes.length === 0,
-                  shouldShowSimilar: false, // isSimilar logic removed
-                })}
                 <SearchPageClient
                   initialRecipes={displayRecipes}
                   initialTotal={displayTotal}
                   locale={locale}
                 />
+
                 {/* Load More Button */}
-                {displayRecipes.length > 0 &&
-                  displayRecipes.length < displayTotal &&
-                  !displayIsLoading && (
+                {(displayRecipes.length > 0 || isLoadingMore) &&
+                  displayRecipes.length < displayTotal && (
                     <div className="text-center mt-8">
                       <Button
                         onClick={handleShowMore}
@@ -220,18 +265,6 @@ export default function ClientRecipePageLayout({
                       </p>
                     </div>
                   )}
-
-                {/* Loading Progress Bar */}
-                {isLoadingMore && (
-                  <div className="w-full max-w-4xl mx-auto mt-4">
-                    <div className="w-full bg-gray-200 rounded-full h-1 overflow-hidden">
-                      <div
-                        className="bg-blue-600 h-1 rounded-full animate-pulse"
-                        style={{ width: '100%' }}
-                      />
-                    </div>
-                  </div>
-                )}
               </>
             )}
           </div>

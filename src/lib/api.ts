@@ -30,6 +30,7 @@ export interface Recipe {
   imageUrl: string;
   instructions: string[];
   sourceUrl?: string;
+  source_url?: string; // Добавляем альтернативное название поля
   recipeIngredients: RecipeIngredient[];
   matchPercentage?: string;
   missingIngredients?: RecipeIngredient[];
@@ -130,6 +131,18 @@ export const recipeApi = {
       recipesLength: data?.recipes?.length || 0,
       params: params,
     });
+
+    // Debug: проверим sourceUrl в первых рецептах
+    if (data?.recipes?.length > 0) {
+      console.log('First recipe sourceUrl check:', {
+        recipe1: data.recipes[0],
+        sourceUrl: data.recipes[0]?.sourceUrl,
+        source_url: data.recipes[0]?.source_url,
+        hasSourceUrl: !!data.recipes[0]?.sourceUrl,
+        hasSource_url: !!data.recipes[0]?.source_url,
+      });
+    }
+
     return data; // { recipes, total, hasMore }
   },
 
@@ -192,6 +205,18 @@ export const recipeApi = {
         recipesLength: data?.recipes?.length || 0,
         params: params.toString(),
       });
+
+      // Debug: проверим sourceUrl в первых рецептах
+      if (data?.recipes?.length > 0) {
+        console.log('SSR First recipe sourceUrl check:', {
+          recipe1: data.recipes[0],
+          sourceUrl: data.recipes[0]?.sourceUrl,
+          source_url: data.recipes[0]?.source_url,
+          hasSourceUrl: !!data.recipes[0]?.sourceUrl,
+          hasSource_url: !!data.recipes[0]?.source_url,
+        });
+      }
+
       return data;
     } catch (error) {
       console.error('API SSR: Error fetching recipes', error);
