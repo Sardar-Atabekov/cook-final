@@ -155,7 +155,12 @@
     "loginError": "Ошибка входа",
     "loginErrorDescription": "Пожалуйста, проверьте ваши данные и попробуйте снова.",
     "signupError": "Ошибка регистрации",
-    "signupErrorDescription": "Пожалуйста, попробуйте снова с другими данными."
+    "signupErrorDescription": "Пожалуйста, попробуйте снова с другими данными.",
+    "or": "или",
+    "signInWithGoogle": "Войти через Google",
+    "signingInWithGoogle": "Вход через Google...",
+    "popupBlocked": "Всплывающее окно заблокировано",
+    "popupBlockedDescription": "Пожалуйста, разрешите всплывающие окна для этого сайта, чтобы войти через Google."
   },
   "recipes": {
     "title": "Поиск рецептов",

@@ -155,7 +155,12 @@
     "loginError": "Login error",
     "loginErrorDescription": "Please check your credentials and try again.",
     "signupError": "Registration error",
-    "signupErrorDescription": "Please try again with different credentials."
+    "signupErrorDescription": "Please try again with different credentials.",
+    "or": "or",
+    "signInWithGoogle": "Sign in with Google",
+    "signingInWithGoogle": "Signing in with Google...",
+    "popupBlocked": "Popup blocked",
+    "popupBlockedDescription": "Please allow popups for this site to sign in with Google."
   },
   "recipes": {
     "title": "Recipe search",

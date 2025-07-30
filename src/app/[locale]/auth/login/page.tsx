@@ -28,6 +28,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { ChefHat, Eye, EyeOff } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useLoginMutation } from '@/hooks/use-auth-mutation';
+import { GoogleAuthButton } from '@/components/google-auth-button';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -163,6 +164,19 @@ export default function LoginPage() {
               </form>
             </Form>
 
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-gray-500">{t('or')}</span>
+              </div>
+            </div>
+
+            {/* Google Auth Button */}
+            <GoogleAuthButton />
+
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
                 {t('dontHaveAccount')}{' '}
@@ -178,7 +192,7 @@ export default function LoginPage() {
         </Card>
 
         {/* Demo Credentials */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        {/* <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <h3 className="text-sm font-medium text-blue-900 mb-2">
             Demo Credentials
           </h3>
@@ -187,7 +201,7 @@ export default function LoginPage() {
             <br />
             Password: demo123
           </p>
-        </div>
+        </div> */}
       </div>
     </div>
   );

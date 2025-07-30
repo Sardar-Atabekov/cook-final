@@ -28,6 +28,7 @@ import { useSignupMutation } from '@/hooks/use-auth-mutation';
 import { ChefHat, Eye, EyeOff } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { GoogleAuthButton } from '@/components/google-auth-button';
 
 const signupSchema = z
   .object({
@@ -224,6 +225,19 @@ export default function SignupPage() {
                 </Button>
               </form>
             </Form>
+
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-gray-500">{t('or')}</span>
+              </div>
+            </div>
+
+            {/* Google Auth Button */}
+            <GoogleAuthButton />
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">

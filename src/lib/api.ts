@@ -54,6 +54,16 @@ export const authApi = {
     const response = await api.post('/auth/signup', { email, password, name });
     return response.data;
   },
+
+  googleAuth: async (code: string) => {
+    const response = await api.post('auth/google/callback', { code });
+    return response.data;
+  },
+
+  googleAuthUrl: async () => {
+    const response = await api.get('auth/google/url');
+    return response.data;
+  },
 };
 
 export const ingredientsApi = {

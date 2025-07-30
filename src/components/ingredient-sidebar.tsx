@@ -36,6 +36,7 @@ export function IngredientSidebar({
     isCacheStale,
     selectedIds,
     setSelectedIds,
+    clearIngredientsOnLanguageChange,
   } = useIngredientStore();
 
   // 1. Если в zustand есть категории для текущего языка — показываем их
@@ -54,14 +55,10 @@ export function IngredientSidebar({
     setGroupedCategories,
   ]);
 
-  // Очищаем старые данные при смене языка
+  // Очищаем выбранные ингредиенты при смене языка
   useEffect(() => {
-    const currentLang = useIngredientStore.getState().language;
-    if (currentLang && currentLang !== locale) {
-      // Очищаем старые данные при смене языка
-      setGroupedCategories([], locale);
-    }
-  }, [locale, setGroupedCategories]);
+    clearIngredientsOnLanguageChange(locale);
+  }, [locale, clearIngredientsOnLanguageChange]);
 
   // 3. Если кэш устарел — делаем запрос к API и обновляем zustand
   const shouldFetch = isCacheStale(locale);

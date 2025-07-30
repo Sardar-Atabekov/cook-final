@@ -11,6 +11,7 @@ import {
 import { Globe } from 'lucide-react';
 import { getAvailableLocales } from '@/lib/locale-utils';
 import { useLanguageStore } from '@/stores/useLanguageStore';
+import { useIngredientStore } from '@/stores/useIngredientStore';
 
 const allLanguages = [
   { code: 'ru', name: 'Русский', flag: '🇷🇺' },
@@ -52,8 +53,15 @@ export function LanguageToggle() {
   const pathname = usePathname();
   const router = useRouter();
   const setLanguage = useLanguageStore((state) => state.setLanguage);
+  const clearIngredientsOnLanguageChange = useIngredientStore(
+    (state) => state.clearIngredientsOnLanguageChange
+  );
+
   const switchLanguage = (newLocale: string) => {
     if (newLocale === currentLocale) return; // чтобы не перезапускать зря
+
+    // Очищаем выбранные ингредиенты при смене языка
+    clearIngredientsOnLanguageChange(newLocale);
 
     // Обновляем стор, увеличиваем version
     setLanguage(newLocale);
