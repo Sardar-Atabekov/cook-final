@@ -106,6 +106,9 @@ export const useIngredientStore = create<IngredientStore>()(
             selectedIds: [],
             language: newLang,
           });
+        } else if (!currentLang) {
+          // Если язык еще не установлен, просто устанавливаем его
+          set({ language: newLang });
         }
       },
     }),

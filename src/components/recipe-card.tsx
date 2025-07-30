@@ -81,9 +81,9 @@ export function RecipeCard({
       className="group"
     >
       <Link href={`/${locale}/recipes/${recipe.id}`}>
-        <Card className="overflow-hidden cursor-pointer h-full flex flex-col border-0 bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-500 rounded-2xl">
+        <Card className="overflow-hidden cursor-pointer h-full flex flex-col border-0 bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-500 rounded-2xl min-h-[250px] recipe-card">
           {/* Image wrapper */}
-          <div className="relative w-full h-52 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
+          <div className="relative w-full h-40 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 recipe-card-image rounded-t-2xl">
             {!imageError ? (
               <Image
                 src={recipe.imageUrl || '/images/placeholder.svg'}
@@ -97,6 +97,7 @@ export function RecipeCard({
                 onError={handleImageError}
                 priority={priority}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                unoptimized={recipe.imageUrl?.includes('ture.ru')}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
@@ -124,11 +125,11 @@ export function RecipeCard({
               >
                 <Badge
                   className={cn(
-                    'text-white text-xs font-bold rounded-full shadow-lg px-3 py-1',
+                    'text-white text-sm font-bold rounded-full shadow-lg px-4 py-2 min-w-[120px] match-badge',
                     getMatchColor(Number(recipe.matchPercentage))
                   )}
                 >
-                  <Zap className="w-3 h-3 mr-1" />
+                  <Zap className="w-4 h-4 mr-2" />
                   {t('match', { percentage: recipe.matchPercentage })}
                 </Badge>
               </motion.div>
@@ -201,7 +202,9 @@ export function RecipeCard({
               <div className="flex items-center justify-between text-white text-sm">
                 <div className="flex items-center bg-black/30 px-2 py-1 rounded-full">
                   <Clock className="w-4 h-4 mr-1" />
-                  {formatPrepTime(Number(recipe.prepTime))}
+                  {recipe.prepTime
+                    ? formatPrepTime(Number(recipe.prepTime))
+                    : '—'}
                 </div>
                 <div className="flex items-center bg-black/30 px-2 py-1 rounded-full">
                   <Star className="mr-1 h-3 w-3 text-yellow-400 fill-current" />
@@ -219,21 +222,21 @@ export function RecipeCard({
           </div>
 
           {/* Content */}
-          <CardContent className="p-5 flex flex-col flex-1">
+          <CardContent className="p-4 flex flex-col flex-1">
             <motion.h3
-              className="font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors line-clamp-2 text-lg leading-tight"
+              className="font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2 text-lg leading-tight min-h-[2.5rem]"
               whileHover={{ x: 5 }}
               transition={{ type: 'spring', stiffness: 300 }}
             >
               {recipe.title}
             </motion.h3>
 
-            <p className="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">
+            <p className="text-sm text-gray-600 mb-3 line-clamp-2 leading-relaxed">
               {recipe.description}
             </p>
 
             {/* Recipe metadata */}
-            <div className="flex items-center text-xs text-gray-500 mb-4 space-x-4">
+            <div className="flex items-center text-xs text-gray-500 mb-3 space-x-4">
               {recipe.country && (
                 <motion.div
                   className="flex items-center bg-gray-100 px-2 py-1 rounded-full"
@@ -251,66 +254,6 @@ export function RecipeCard({
                   <ChefHat className="w-3 h-3 mr-1" />
                   {recipe.mealType}
                 </motion.div>
-              )}
-            </div>
-
-            {/* Missing ingredients */}
-            <div className="text-sm mt-auto">
-              {recipe.missingIngredients &&
-              recipe.missingIngredients.length > 0 ? (
-                <>
-                  <div className="text-xs text-gray-600 mb-2 font-medium flex items-center">
-                    <span className="w-2 h-2 bg-orange-500 rounded-full mr-2" />
-                    {t('missing')}
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    {recipe.missingIngredients
-                      .slice(0, 3)
-                      .map((ingredient, index) => (
-                        <motion.div
-                          key={index}
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: index * 0.1 }}
-                        >
-                          <Badge
-                            variant="secondary"
-                            className="px-2 py-1 bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 text-xs border-0 font-medium"
-                          >
-                            {ingredient.ingredient?.name}
-                          </Badge>
-                        </motion.div>
-                      ))}
-                    {recipe.missingIngredients.length > 3 && (
-                      <Badge
-                        variant="secondary"
-                        className="px-2 py-1 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-600 text-xs border-0 font-medium"
-                      >
-                        +{recipe.missingIngredients.length - 3} {t('more')}
-                      </Badge>
-                    )}
-                  </div>
-                </>
-              ) : recipe.matchPercentage === '100' ? (
-                <motion.span
-                  className="text-green-600 font-medium flex items-center bg-green-50 px-3 py-2 rounded-lg"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse" />
-                  {t('hasAllIngredients')}
-                </motion.span>
-              ) : (
-                <motion.span
-                  className="text-red-600 font-medium flex items-center bg-red-50 px-3 py-2 rounded-lg"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <span className="w-2 h-2 bg-red-500 rounded-full mr-2" />
-                  {t('notAllIngredients')}
-                </motion.span>
               )}
             </div>
           </CardContent>

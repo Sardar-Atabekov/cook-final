@@ -5,7 +5,6 @@ import { useIngredientStore } from '@/stores/useIngredientStore';
 import { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
 import { Clock, Coffee, Sun, Moon, RefreshCw, AlertCircle } from 'lucide-react';
 import { RecipeCard } from '@/components/recipe-card';
-import { RecipeDetail } from '@/components/recipe-detail';
 import Footer from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -140,7 +139,7 @@ function useMealTypeQuery(
           offset: 0,
           limit: 20,
           mealType: mealTypeId,
-          country: '',
+          kitchens: '',
           dietTags: '',
         };
 
@@ -156,8 +155,8 @@ function useMealTypeQuery(
       }
     },
     initialData,
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    gcTime: 15 * 60 * 1000, // 15 minutes
+    staleTime: 1000 * 60 * 1000, // 10 minutes
+    gcTime: 1500 * 60 * 1000, // 15 minutes
     retry: (failureCount, error) => {
       // Retry up to 2 times with exponential backoff
       if (failureCount < 2) {
@@ -191,8 +190,6 @@ export function SuggestedClient({
   );
 
   console.log('ingredientIds', ingredientIds);
-  const [selectedRecipe, setSelectedRecipe] =
-    useState<RecipeWithIngredients | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const t = useTranslations('suggested');
   const currentMealType = useCurrentMealType();
@@ -308,15 +305,6 @@ export function SuggestedClient({
       return [];
     }
   }, [activeTab, breakfastQuery.data, lunchQuery.data, dinnerQuery.data]);
-
-  // Optimized callbacks
-  const handleRecipeClick = useCallback((recipe: RecipeWithIngredients) => {
-    setSelectedRecipe(recipe);
-  }, []);
-
-  const handleCloseRecipeDetail = useCallback(() => {
-    setSelectedRecipe(null);
-  }, []);
 
   const handleTabChange = useCallback(
     (type: MealType) => {
@@ -477,7 +465,6 @@ export function SuggestedClient({
                         return (
                           <div
                             key={recipe.id}
-                            onClick={() => handleRecipeClick(recipe)}
                             className="cursor-pointer transition-transform hover:scale-105"
                           >
                             <RecipeCard recipe={convertedRecipe} />
@@ -515,63 +502,6 @@ export function SuggestedClient({
             </Suspense>
           </section>
 
-          {/* All Day Meal Options */}
-          <section className="mb-12">
-            <h2 className="text-2xl font-bold text-slate-900 mb-6">
-              {t('mealOptionsByTime', {})}
-            </h2>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <Suspense
-                fallback={
-                  <div className="animate-pulse bg-slate-200 h-64 rounded-lg" />
-                }
-              >
-                <SuggestedSection
-                  title={t('breakfast', {})}
-                  noRecipesText={t('noRecipesAvailable', {})}
-                  icon={<Coffee className="h-5 w-5 text-amber-600" />}
-                  colorClass="text-amber-600"
-                  recipes={breakfastQuery.data || []}
-                  isLoading={breakfastQuery.isLoading}
-                  onRecipeClick={handleRecipeClick}
-                />
-              </Suspense>
-
-              <Suspense
-                fallback={
-                  <div className="animate-pulse bg-slate-200 h-64 rounded-lg" />
-                }
-              >
-                <SuggestedSection
-                  title={t('lunch', {})}
-                  noRecipesText={t('noRecipesAvailable', {})}
-                  icon={<Sun className="h-5 w-5 text-yellow-600" />}
-                  colorClass="text-yellow-600"
-                  recipes={lunchQuery.data || []}
-                  isLoading={lunchQuery.isLoading}
-                  onRecipeClick={handleRecipeClick}
-                />
-              </Suspense>
-
-              <Suspense
-                fallback={
-                  <div className="animate-pulse bg-slate-200 h-64 rounded-lg" />
-                }
-              >
-                <SuggestedSection
-                  title={t('dinner', {})}
-                  noRecipesText={t('noRecipesAvailable', {})}
-                  icon={<Moon className="h-5 w-5 text-blue-600" />}
-                  colorClass="text-blue-600"
-                  recipes={dinnerQuery.data || []}
-                  isLoading={dinnerQuery.isLoading}
-                  onRecipeClick={handleRecipeClick}
-                />
-              </Suspense>
-            </div>
-          </section>
-
           {/* More Inspiration */}
           {initialRandom.length > 0 && (
             <section>
@@ -592,7 +522,6 @@ export function SuggestedClient({
                   return (
                     <div
                       key={recipe.id}
-                      onClick={() => handleRecipeClick(recipe)}
                       className="cursor-pointer transition-transform hover:scale-105"
                     >
                       <RecipeCard recipe={convertedRecipe} />
@@ -625,16 +554,6 @@ export function SuggestedClient({
           )}
         </div>
 
-        {/* Recipe Detail Modal */}
-        {selectedRecipe && (
-          <RecipeDetail
-            recipe={toRecipe(selectedRecipe)}
-            isOpen={!!selectedRecipe}
-            onClose={handleCloseRecipeDetail}
-            onCookDish={() => {}}
-          />
-        )}
-
         <Footer />
       </div>
     </>
@@ -650,7 +569,7 @@ function RecipesGridSkeleton() {
           key={i}
           className="bg-white rounded-xl shadow-sm border border-slate-200 animate-pulse"
         >
-          <div className="w-full h-48 bg-gradient-to-r from-slate-200 to-slate-300 rounded-t-xl" />
+          <div className="w-full h-40 bg-gradient-to-r from-slate-200 to-slate-300 rounded-t-xl" />
           <div className="p-4 space-y-3">
             <div className="h-4 bg-gradient-to-r from-slate-200 to-slate-300 rounded w-3/4" />
             <div className="h-3 bg-gradient-to-r from-slate-200 to-slate-300 rounded w-full" />

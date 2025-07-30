@@ -40,6 +40,9 @@ describe('useIngredientStore', () => {
   it('should clear ingredients on language change', () => {
     const ingredient = { id: 1, name: 'Tomato' };
 
+    // Сначала устанавливаем начальный язык
+    useIngredientStore.setState({ language: 'ru' });
+
     // Добавляем ингредиент
     useIngredientStore.getState().addIngredient(ingredient);
     expect(useIngredientStore.getState().selectedIds).toHaveLength(1);
@@ -86,6 +89,9 @@ describe('useIngredientStore', () => {
 
   it('should clear ingredients when setting grouped categories with different language', () => {
     const ingredient = { id: 1, name: 'Tomato' };
+
+    // Сначала устанавливаем начальный язык
+    useIngredientStore.setState({ language: 'ru' });
 
     // Добавляем ингредиент
     useIngredientStore.getState().addIngredient(ingredient);

@@ -454,4 +454,46 @@ nav * {
     -webkit-line-clamp: 3;
     overflow: hidden;
   }
+
+  /* Recipe card improvements */
+  .recipe-card {
+    transition: all 0.3s ease;
+  }
+
+  .recipe-card:hover {
+    box-shadow:
+      0 20px 25px -5px rgb(0 0 0 / 10%),
+      0 10px 10px -5px rgb(0 0 0 / 4%);
+    transform: translateY(-4px);
+  }
+
+  .recipe-card-image {
+    overflow: hidden;
+    position: relative;
+  }
+
+  .recipe-card-image img {
+    transition: transform 0.3s ease;
+  }
+
+  .recipe-card:hover .recipe-card-image img {
+    transform: scale(1.05);
+  }
+
+  /* Match badge improvements */
+  .match-badge {
+    backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+
+  /* Missing ingredients styling */
+  .missing-ingredients {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 1px solid #f59e0b;
+  }
+
+  .has-all-ingredients {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    border: 1px solid #10b981;
+  }
 }
