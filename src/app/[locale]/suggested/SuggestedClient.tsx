@@ -150,7 +150,6 @@ function useMealTypeQuery(
         );
         return result?.recipes || [];
       } catch (error) {
-        console.error(`Failed to fetch ${mealTypeId} recipes:`, error);
         return initialData || [];
       }
     },
@@ -189,7 +188,6 @@ export function SuggestedClient({
     [selectedIngredients]
   );
 
-  console.log('ingredientIds', ingredientIds);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const t = useTranslations('suggested');
   const currentMealType = useCurrentMealType();
@@ -277,7 +275,7 @@ export function SuggestedClient({
         dinnerQuery.refetch(),
       ]);
     } catch (error) {
-      console.error('Error refreshing data:', error);
+      console.error('Error refreshing recipes:', error);
     } finally {
       setIsRefreshing(false);
     }

@@ -134,24 +134,6 @@ export const recipeApi = {
 
     const response = await api.get('/recipes/recipes', { params });
     const data = response.data;
-    console.log('API Client: Recipes response', {
-      count: data?.recipes?.length || 0,
-      total: data?.total || 0,
-      hasRecipes: !!data?.recipes,
-      recipesLength: data?.recipes?.length || 0,
-      params: params,
-    });
-
-    // Debug: проверим sourceUrl в первых рецептах
-    if (data?.recipes?.length > 0) {
-      console.log('First recipe sourceUrl check:', {
-        recipe1: data.recipes[0],
-        sourceUrl: data.recipes[0]?.sourceUrl,
-        source_url: data.recipes[0]?.source_url,
-        hasSourceUrl: !!data.recipes[0]?.sourceUrl,
-        hasSource_url: !!data.recipes[0]?.source_url,
-      });
-    }
 
     return data; // { recipes, total, hasMore }
   },
@@ -171,67 +153,42 @@ export const recipeApi = {
     },
     lang: string
   ) => {
-    try {
-      const params = new URLSearchParams({
-        lang,
-        offset: options.offset.toString(),
-        limit: options.limit.toString(),
-        mealType: options.mealType,
-        kitchens: options.kitchens,
-        dietTags: options.dietTags,
-      });
+    const params = new URLSearchParams({
+      lang,
+      offset: options.offset.toString(),
+      limit: options.limit.toString(),
+      mealType: options.mealType,
+      kitchens: options.kitchens,
+      dietTags: options.dietTags,
+    });
 
-      // Добавляем новые фильтры
-      if (options.sorting && options.sorting.trim()) {
-        params.append('sorting', options.sorting.trim());
-      }
-      if (options.byTime && options.byTime.trim()) {
-        params.append('byTime', options.byTime.trim());
-      }
-
-      // Если есть поиск по тексту, передаём только его
-      if (options.search && options.search.trim().length > 0) {
-        params.append('search', options.search.trim());
-        params.append('ingredientIds', ingredientIds.join(','));
-      } else if (ingredientIds.length > 0) {
-        params.append('ingredients', ingredientIds.join(','));
-      }
-
-      console.log('API SSR: Fetching recipes', { params: params.toString() });
-
-      const response = await fetch(`${baseUrl}recipes/recipes?${params}`, {
-        next: { revalidate: 5 * 60 * 1000 }, // Кэшируем на 10 минут
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('API SSR: Recipes response', {
-        count: data?.recipes?.length || 0,
-        total: data?.total || 0,
-        hasRecipes: !!data?.recipes,
-        recipesLength: data?.recipes?.length || 0,
-        params: params.toString(),
-      });
-
-      // Debug: проверим sourceUrl в первых рецептах
-      if (data?.recipes?.length > 0) {
-        console.log('SSR First recipe sourceUrl check:', {
-          recipe1: data.recipes[0],
-          sourceUrl: data.recipes[0]?.sourceUrl,
-          source_url: data.recipes[0]?.source_url,
-          hasSourceUrl: !!data.recipes[0]?.sourceUrl,
-          hasSource_url: !!data.recipes[0]?.source_url,
-        });
-      }
-
-      return data;
-    } catch (error) {
-      console.error('API SSR: Error fetching recipes', error);
-      throw error;
+    // Добавляем новые фильтры
+    if (options.sorting && options.sorting.trim()) {
+      params.append('sorting', options.sorting.trim());
     }
+    if (options.byTime && options.byTime.trim()) {
+      params.append('byTime', options.byTime.trim());
+    }
+
+    // Если есть поиск по тексту, передаём только его
+    if (options.search && options.search.trim().length > 0) {
+      params.append('search', options.search.trim());
+      params.append('ingredientIds', ingredientIds.join(','));
+    } else if (ingredientIds.length > 0) {
+      params.append('ingredients', ingredientIds.join(','));
+    }
+
+    const response = await fetch(`${baseUrl}recipes/recipes?${params}`, {
+      next: { revalidate: 5 * 60 * 1000 }, // Кэшируем на 10 минут
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    return data;
   },
 
   getSuggestedRecipes: async (lang: string): Promise<Recipe[]> => {
@@ -249,93 +206,69 @@ export const recipeApi = {
   },
 
   getRecipe: async (id: string, ingredientIds: number[]) => {
-    try {
-      console.log('API: Fetching recipe', { id, ingredientIds });
-      const response = await api.get(`/recipes/recipe/${id}`, {
-        params: { ingredientIds: ingredientIds.join(',') },
-      });
-      console.log('API: Recipe response', response.data);
-      return response.data;
-    } catch (error) {
-      console.error('API: Error fetching recipe', { id, error });
-      throw error;
-    }
+    const response = await api.get(`/recipes/recipe/${id}`, {
+      params: { ingredientIds: ingredientIds.join(',') },
+    });
+    return response.data;
   },
 
   // SSR версия для получения рецепта
   getRecipeSSR: async (id: string) => {
-    try {
-      console.log('API SSR: Fetching recipe', { id });
-      const response = await fetch(`${baseUrl}recipes/recipe/${id}`, {
-        next: { revalidate: 5 * 60 * 1000 }, // Кэшируем на 5 минут
-      });
+    const response = await fetch(`${baseUrl}recipes/recipe/${id}`, {
+      next: { revalidate: 5 * 60 * 1000 }, // Кэшируем на 5 минут
+    });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('API SSR: Recipe response', { id, hasData: !!data });
-      return data;
-    } catch (error) {
-      console.error('API SSR: Error fetching recipe', { id, error });
-      throw error;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    const data = await response.json();
+    return data;
   },
   getAllTags: async () => {
-    try {
-      const response = await api.get(`/recipes/tags`);
-      const data = response.data;
+    const response = await api.get(`/recipes/tags`);
+    const data = response.data;
 
-      // Новая структура API возвращает объект с категориями
-      if (data.mealTypes || data.kitchens || data.diets) {
-        // Преобразуем в плоский массив для обратной совместимости
-        const allTags = [
-          ...(data.mealTypes || []),
-          ...(data.kitchens || []),
-          ...(data.diets || []),
-        ];
-        return allTags;
-      }
-
-      // Fallback для старой структуры
-      return data.tags || data;
-    } catch (error) {
-      console.error('Error fetching tags:', error);
-      throw error;
+    // Новая структура API возвращает объект с категориями
+    if (data.mealTypes || data.kitchens || data.diets) {
+      // Преобразуем в плоский массив для обратной совместимости
+      const allTags = [
+        ...(data.mealTypes || []),
+        ...(data.kitchens || []),
+        ...(data.diets || []),
+      ];
+      return allTags;
     }
+
+    // Fallback для старой структуры
+    return data.tags || data;
   },
 
   // SSR версия с кешированием
   getAllTagsSSR: async () => {
-    try {
-      const response = await fetch(`${baseUrl}recipes/tags`, {
-        next: { revalidate: 7 * 24 * 60 * 60 }, // Кэшируем на 7 дней
-      });
+    const response = await fetch(`${baseUrl}recipes/tags`, {
+      next: { revalidate: 7 * 24 * 60 * 60 }, // Кэшируем на 7 дней
+    });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      // Новая структура API возвращает объект с категориями
-      if (data.mealTypes || data.kitchens || data.diets) {
-        // Преобразуем в плоский массив для обратной совместимости
-        const allTags = [
-          ...(data.mealTypes || []),
-          ...(data.kitchens || []),
-          ...(data.diets || []),
-        ];
-        return allTags;
-      }
-
-      // Fallback для старой структуры
-      return data.tags || data;
-    } catch (error) {
-      console.error('Error fetching SSR tags:', error);
-      throw error;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    const data = await response.json();
+
+    // Новая структура API возвращает объект с категориями
+    if (data.mealTypes || data.kitchens || data.diets) {
+      // Преобразуем в плоский массив для обратной совместимости
+      const allTags = [
+        ...(data.mealTypes || []),
+        ...(data.kitchens || []),
+        ...(data.diets || []),
+      ];
+      return allTags;
+    }
+
+    // Fallback для старой структуры
+    return data.tags || data;
   },
 };
 

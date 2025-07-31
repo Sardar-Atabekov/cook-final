@@ -48,8 +48,6 @@ export default function GoogleCallbackPage() {
             }
           },
           onError: (error) => {
-            console.error('Google auth error:', error);
-
             // Отправляем сообщение об ошибке в родительское окно (если это popup)
             if (window.opener) {
               window.opener.postMessage(

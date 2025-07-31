@@ -14,7 +14,6 @@ import {
   Utensils,
 } from 'lucide-react';
 import type { Recipe } from '@/lib/api';
-import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
@@ -23,13 +22,11 @@ import { useFiltersStore } from '@/stores/useFiltersStore';
 interface SearchPageClientProps {
   initialRecipes: Recipe[];
   initialTotal: number;
-  locale: string;
 }
 
 export function SearchPageClient({
   initialRecipes,
   initialTotal,
-  locale,
 }: SearchPageClientProps) {
   const t = useTranslations('search');
   const {
@@ -42,35 +39,6 @@ export function SearchPageClient({
     hasActiveFilters,
   } = useFiltersStore();
   const [isVisible, setIsVisible] = useState(false);
-
-  // Отладочная информация
-  console.log('SearchPageClient DEBUG:', {
-    initialRecipes: initialRecipes.length,
-    initialTotal,
-    hasRecipes: initialRecipes.length > 0,
-    totalIsZero: initialTotal === 0 || String(initialTotal) === '0',
-    shouldShowNoRecipes:
-      (initialTotal === 0 || String(initialTotal) === '0') &&
-      initialRecipes.length === 0,
-    shouldShowSimilar:
-      (initialTotal === 0 || String(initialTotal) === '0') &&
-      initialRecipes.length > 0,
-  });
-
-  // Получаем параметры поиска для отображения
-  // const searchQuery = searchParams.get('q') || '';
-  // const mealType = searchParams.get('mealType') || 'all';
-  // const country = searchParams.get('country') || 'all';
-  // const dietTags = searchParams.get('dietTags') || 'all';
-  // const sorting = searchParams.get('sorting') || 'all';
-  // const byTime = searchParams.get('byTime') || 'all';
-
-  // const hasActiveFilters =
-  //   mealType !== 'all' ||
-  //   country !== 'all' ||
-  //   dietTags !== 'all' ||
-  //   sorting !== 'all' ||
-  //   byTime !== 'all';
 
   useEffect(() => {
     setIsVisible(true);

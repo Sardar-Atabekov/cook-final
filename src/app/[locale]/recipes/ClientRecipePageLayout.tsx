@@ -1,12 +1,11 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
 import { IngredientSidebar } from '@/components/ingredient-sidebar';
 import { SearchBar } from '@/components/search-bar';
 import { RecipeFilters } from '@/components/recipe-filters';
 import { SearchPageClient } from '@/components/search-page-client';
 import { Button } from '@/components/ui/button';
-import { Loader2, ChevronDown, Search, Filter } from 'lucide-react';
+import { Loader2, ChevronDown, Filter } from 'lucide-react';
 import { useRecipes } from '@/hooks/useRecipes';
 import { useIngredientStore } from '@/stores/useIngredientStore';
 import { useFiltersStore } from '@/stores/useFiltersStore';
@@ -21,16 +20,13 @@ export default function ClientRecipePageLayout({
   dietTags,
   sorting,
   byTime,
-  isLoading,
-  error,
+  recipes: initialRecipes,
+  total: initialTotal,
   initialGroupedCategories,
   initialTags,
   locale,
-  page,
 }: any) {
   const t = useTranslations('search');
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
   const [previousRecipesCount, setPreviousRecipesCount] = useState(0);
@@ -47,11 +43,21 @@ export default function ClientRecipePageLayout({
   } = useFiltersStore();
   const { currentPage, setCurrentPage, resetPage } = usePaginationStore();
 
+  // Синхронизируем начальные параметры с состоянием фильтров
+  useEffect(() => {
+    setFilters({
+      mealType: mealType === 'all' ? 'all' : mealType,
+      country: kitchens === 'all' ? 'all' : kitchens,
+      dietTags: dietTags === 'all' ? 'all' : dietTags,
+      sorting: sorting === 'all' ? 'all' : sorting,
+      byTime: byTime === 'all' ? 'all' : byTime,
+      searchText: searchQuery || '',
+    });
+  }, [mealType, kitchens, dietTags, sorting, byTime, searchQuery, setFilters]);
+
   // Сбрасываем страницу на 1 при изменении параметров поиска
   useEffect(() => {
-    console.log('Reset effect triggered, currentPage:', currentPage);
     if (currentPage > 1) {
-      console.log('Resetting page because filters changed');
       resetPage();
     }
   }, [
@@ -63,6 +69,7 @@ export default function ClientRecipePageLayout({
     currentSorting,
     currentByTime,
     resetPage,
+    currentPage,
   ]);
 
   // Используем хук для получения рецептов
@@ -84,55 +91,92 @@ export default function ClientRecipePageLayout({
     page: currentPage,
   });
 
-  // Логика отображения данных - всегда используем данные из хука
-  const displayRecipes = fetchedRecipes.length > 0 ? fetchedRecipes : [];
-  const displayTotal = fetchedTotal !== undefined ? fetchedTotal : 0;
+  // Логика отображения данных - используем данные из хука или начальные данные
+  // Показываем начальные данные только если фильтры соответствуют начальным параметрам
+  const filtersMatchInitial =
+    currentMealType === (mealType === 'all' ? 'all' : mealType) &&
+    currentKitchens === (kitchens === 'all' ? 'all' : kitchens) &&
+    currentDietTags === (dietTags === 'all' ? 'all' : dietTags) &&
+    currentSorting === (sorting === 'all' ? 'all' : sorting) &&
+    currentByTime === (byTime === 'all' ? 'all' : byTime) &&
+    currentSearchQuery === (searchQuery || '') &&
+    selectedIngredients.length === 0;
 
-  const displayIsLoading = isFetching || isLoading;
-  const displayError = fetchError || error;
+  const displayRecipes =
+    fetchedRecipes.length > 0
+      ? fetchedRecipes
+      : filtersMatchInitial
+        ? initialRecipes || []
+        : [];
+  // Сохраняем предыдущее значение total во время пагинации
+  const [previousTotal, setPreviousTotal] = useState(initialTotal || 0);
+
+  // Обновляем previousTotal когда получаем новые данные
+  useEffect(() => {
+    if (fetchedTotal !== undefined && fetchedTotal > 0) {
+      setPreviousTotal(fetchedTotal);
+    }
+  }, [fetchedTotal]);
+
+  // Инициализируем previousTotal с начальными данными
+  useEffect(() => {
+    if (initialTotal > 0) {
+      setPreviousTotal(initialTotal);
+    }
+  }, [initialTotal]);
+
+  const displayTotal =
+    fetchedTotal !== undefined && fetchedTotal > 0
+      ? fetchedTotal
+      : filtersMatchInitial
+        ? initialTotal || 0
+        : previousTotal || 0;
+
+  const displayIsLoading = isFetching;
+  const displayError = fetchError;
 
   // Проверяем, загружаются ли данные для пагинации или для новых фильтров
-  const isPaginationLoading = isLoadingMore && isFetching;
   const isNewDataLoading = displayIsLoading && !isLoadingMore;
 
-  // Показываем скелетон при загрузке новых данных (не при пагинации) и когда нет рецептов
-  const shouldShowSkeleton = isNewDataLoading && displayRecipes.length === 0;
-
-  console.log('Debug states:', {
-    isNewDataLoading,
-    displayRecipesLength: displayRecipes.length,
-    shouldShowSkeleton,
-    isLoadingMore,
-    isFetching,
-    displayIsLoading,
-    fetchedRecipesLength: fetchedRecipes.length,
-    previousRecipesCount,
-    isLoading,
-  });
+  // Показываем скелетон при загрузке новых данных (не пагинация) и когда нет данных для отображения
+  // Или когда фильтры изменились и идет загрузка
+  const shouldShowSkeleton =
+    (isNewDataLoading && displayRecipes.length === 0) ||
+    (isNewDataLoading && !filtersMatchInitial && !isLoadingMore);
 
   // Сбрасываем состояние загрузки кнопки "Показать еще" когда данные загрузились
   useEffect(() => {
-    console.log('Reset effect:', {
-      isLoadingMore,
-      isFetching,
-      fetchedRecipesLength: fetchedRecipes.length,
-      previousRecipesCount,
-    });
     if (
       isLoadingMore &&
       !isFetching &&
       fetchedRecipes.length > previousRecipesCount
     ) {
-      console.log(
-        'Resetting isLoadingMore, recipes increased from',
-        previousRecipesCount,
-        'to',
-        fetchedRecipes.length
-      );
       setIsLoadingMore(false);
       setPreviousRecipesCount(fetchedRecipes.length);
     }
-  }, [isLoadingMore, isFetching, fetchedRecipes.length, previousRecipesCount]);
+  }, [isLoadingMore, isFetching, fetchedRecipes.length]);
+
+  // Сбрасываем isLoadingMore при изменении фильтров
+  useEffect(() => {
+    if (isLoadingMore) {
+      setIsLoadingMore(false);
+    }
+  }, [
+    currentSearchQuery,
+    currentMealType,
+    currentKitchens,
+    currentDietTags,
+    currentSorting,
+    currentByTime,
+    selectedIngredients,
+  ]);
+
+  // Дополнительная логика сброса isLoadingMore при ошибке или завершении загрузки
+  useEffect(() => {
+    if (isLoadingMore && !isFetching) {
+      setIsLoadingMore(false);
+    }
+  }, [isLoadingMore, isFetching]);
 
   // Кнопка "Показать ещё"
   const handleShowMore = async () => {
@@ -165,7 +209,6 @@ export default function ClientRecipePageLayout({
               <SearchBar
                 placeholder={t('searchPlaceholder')}
                 className="w-full"
-                onSearch={() => {}}
               />
             </div>
 
@@ -228,45 +271,43 @@ export default function ClientRecipePageLayout({
                 ))}
               </div>
             ) : (
-              <>
-                <SearchPageClient
-                  initialRecipes={displayRecipes}
-                  initialTotal={displayTotal}
-                  locale={locale}
-                />
-
-                {/* Load More Button */}
-                {(displayRecipes.length > 0 || isLoadingMore) &&
-                  displayRecipes.length < displayTotal && (
-                    <div className="text-center mt-8">
-                      <Button
-                        onClick={handleShowMore}
-                        disabled={isLoadingMore}
-                        className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                        size="lg"
-                      >
-                        {isLoadingMore ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            {t('loadingRecipes')}
-                          </>
-                        ) : (
-                          <>
-                            {t('showMore')}
-                            <ChevronDown className="w-4 h-4 ml-2" />
-                          </>
-                        )}
-                      </Button>
-                      <p className="text-sm text-gray-500 mt-3">
-                        {t('showingCount', {
-                          current: displayRecipes.length,
-                          total: displayTotal,
-                        })}
-                      </p>
-                    </div>
-                  )}
-              </>
+              <SearchPageClient
+                initialRecipes={displayRecipes}
+                initialTotal={displayTotal}
+              />
             )}
+
+            {/* Load More Button - всегда показываем, если есть данные и не показывается скелетон */}
+
+            {!shouldShowSkeleton &&
+              (displayRecipes.length > 0 || isLoadingMore) && (
+                <div className="text-center mt-8">
+                  <Button
+                    onClick={handleShowMore}
+                    disabled={isLoadingMore || isFetching}
+                    className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                    size="lg"
+                  >
+                    {isLoadingMore || isFetching ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        {t('loadingRecipes')}
+                      </>
+                    ) : (
+                      <>
+                        {t('showMore')}
+                        <ChevronDown className="w-4 h-4 ml-2" />
+                      </>
+                    )}
+                  </Button>
+                  <p className="text-sm text-gray-500 mt-3">
+                    {t('showingCount', {
+                      current: displayRecipes.length,
+                      total: displayTotal,
+                    })}
+                  </p>
+                </div>
+              )}
           </div>
         </main>
       </div>

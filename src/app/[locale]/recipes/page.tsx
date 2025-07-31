@@ -12,7 +12,6 @@ interface SearchPageProps {
   params: { locale: string };
   searchParams: {
     q?: string;
-    ingredients?: string;
     mealType?: string;
     country?: string;
     dietTags?: string;
@@ -78,8 +77,7 @@ export default async function SearchPage({
   try {
     initialGroupedCategories =
       await ingredientsApi.getGroupedIngredients(locale);
-  } catch (e) {
-    console.error('Failed to load ingredient categories:', e);
+  } catch {
     initialGroupedCategories = [];
   }
 
@@ -87,15 +85,12 @@ export default async function SearchPage({
   let initialTags = [];
   try {
     initialTags = await recipeApi.getAllTagsSSR();
-  } catch (e) {
-    console.error('Failed to load filter tags:', e);
+  } catch {
     initialTags = [];
   }
 
   // Парсим параметры поиска
   const searchQuery = resolvedParams.q?.trim() || '';
-  // ingredientIds и ingredients больше не нужны
-  // const ingredientIds = ...
   const mealType = resolvedParams.mealType || 'all';
   const kitchens = resolvedParams.country || 'all';
   const dietTags = resolvedParams.dietTags || 'all';
@@ -105,8 +100,6 @@ export default async function SearchPage({
   // Получаем рецепты для SSR (поиск и фильтрация на сервере)
   let recipes = [];
   let total = 0;
-  const isLoading = false;
-  let error = null;
   try {
     const filters = {
       offset: (page - 1) * 20,
@@ -118,7 +111,6 @@ export default async function SearchPage({
       byTime: byTime === 'all' ? '' : byTime,
       search: searchQuery || undefined,
     };
-    // ingredientIds больше не передаём
     const result = await recipeApi.getRecipes(
       [], // пустой массив ингредиентов
       filters,
@@ -126,20 +118,9 @@ export default async function SearchPage({
     );
     recipes = result.recipes || [];
     total = result.total || 0;
-    console.log('Server: recipes loaded', {
-      recipes: recipes.length,
-      total,
-      searchQuery,
-      mealType,
-      kitchens,
-      dietTags,
-      filters: filters,
-    });
-  } catch (e) {
-    error = e instanceof Error ? e : new Error('Failed to load recipes');
+  } catch {
     recipes = [];
     total = 0;
-    console.log('Server: error loading recipes', e);
   }
 
   return (
@@ -152,12 +133,9 @@ export default async function SearchPage({
       byTime={byTime}
       recipes={recipes}
       total={total}
-      isLoading={isLoading}
-      error={error}
       initialGroupedCategories={initialGroupedCategories}
       initialTags={initialTags}
       locale={locale}
-      page={page}
     />
   );
 }

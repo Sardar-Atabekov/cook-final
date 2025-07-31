@@ -66,18 +66,7 @@ export function useRecipes({
 
       // Если изменились фильтры (не только страница), то сбрасываем рецепты
       if (!isOnlyPageChange) {
-        console.log('Resetting recipes due to filter change:', {
-          prevParams,
-          currentParams,
-          isOnlyPageChange,
-        });
         setAllRecipes([]);
-      } else {
-        console.log('Page change detected, keeping existing recipes:', {
-          prevParams,
-          currentParams,
-          isOnlyPageChange,
-        });
       }
 
       prevParamsRef.current = paramsKey;
@@ -136,7 +125,6 @@ export function useRecipes({
 
     if (page === 1) {
       // Для первой страницы заменяем все рецепты
-      console.log('Replacing all recipes for page 1');
       setAllRecipes(data.recipes ?? []);
     } else {
       // Для последующих страниц добавляем новые рецепты

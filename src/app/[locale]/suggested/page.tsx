@@ -141,7 +141,6 @@ export default async function SuggestedPage({ params }: SuggestedPageProps) {
       />
     );
   } catch (error) {
-    console.error('Error loading suggested recipes:', error);
     return <SuggestedPageError locale={locale} variant="error" />;
   }
 }

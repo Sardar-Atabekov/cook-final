@@ -187,7 +187,6 @@ export function RecipeCard({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('clicked');
                   }}
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   whileTap={{ scale: 0.9 }}

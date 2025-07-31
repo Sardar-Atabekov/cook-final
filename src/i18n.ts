@@ -49,36 +49,20 @@ const defaultLocale = getDefaultLocale();
 
 export default getRequestConfig(async ({ locale }) => {
   // Only log in development to reduce noise
-  if (process.env.NODE_ENV === 'development') {
-    console.log('getRequestConfig called with locale:', locale);
-  }
 
   // Handle undefined locale by using default
   if (!locale) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Locale is undefined, using default:', defaultLocale);
-    }
     locale = defaultLocale;
   }
 
   // Validate that the incoming `locale` parameter is valid
   if (!locales.includes(locale)) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Locale not found or invalid:', locale);
-    }
     // Fallback to default locale instead of notFound to avoid hydration issues
     locale = defaultLocale;
   }
 
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Loading messages for locale:', locale);
-  }
-
   try {
     const messages = (await import(`./locales/${locale}.json`)).default;
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Messages loaded successfully for locale:', locale);
-    }
 
     return {
       messages,
@@ -86,18 +70,12 @@ export default getRequestConfig(async ({ locale }) => {
       timeZone: 'Europe/Moscow',
     };
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Error loading messages for locale:', locale, error);
-    }
     // Fallback to default locale if messages can't be loaded
     if (locale !== defaultLocale) {
       try {
         const fallbackMessages = (
           await import(`./locales/${defaultLocale}.json`)
         ).default;
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Using fallback messages for locale:', defaultLocale);
-        }
         return {
           messages: fallbackMessages,
           locale: defaultLocale,

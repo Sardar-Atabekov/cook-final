@@ -12,14 +12,12 @@ import { useLocale, useTranslations } from 'next-intl';
 
 interface SearchRecipeCardProps {
   recipe: Recipe;
-  onClick?: () => void;
   onSave?: () => void;
   isSaved?: boolean;
 }
 
 const SearchRecipeCardComponent = ({
   recipe,
-  onClick,
   onSave,
   isSaved = false,
 }: SearchRecipeCardProps) => {
@@ -47,7 +45,6 @@ const SearchRecipeCardComponent = ({
   const locale = useLocale();
   const [imgError, setImgError] = useState(false);
 
-  console.log(recipe);
   return (
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer h-full flex flex-col">
       <Link href={`/${locale}/recipes/${recipe.id}`}>
@@ -96,7 +93,19 @@ const SearchRecipeCardComponent = ({
               href={recipe.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className={`p-2 rounded-full transition-all duration-200 shadow-lg hover:scale-105 bg-white/90 text-gray-700 hover:bg-white`}
+              onClick={(e) => {
+                e.stopPropagation();
+                // Проверяем, что URL валидный
+                if (recipe.sourceUrl && recipe.sourceUrl.startsWith('http')) {
+                  // Открываем ссылку в новой вкладке
+                  window.open(
+                    recipe.sourceUrl,
+                    '_blank',
+                    'noopener,noreferrer'
+                  );
+                }
+              }}
+              className={`absolute top-3 ${onSave ? 'right-16' : 'right-3'} p-2 rounded-full transition-all duration-200 shadow-lg hover:scale-105 bg-white text-gray-700 hover:bg-gray-100 z-20 cursor-pointer border border-gray-200`}
             >
               <ExternalLink className={`h-4 w-4`} />
             </Link>
