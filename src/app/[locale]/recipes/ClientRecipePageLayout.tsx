@@ -30,7 +30,7 @@ export default function ClientRecipePageLayout({
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
   const [previousRecipesCount, setPreviousRecipesCount] = useState(0);
-  const { selectedIngredients } = useIngredientStore();
+  const { selectedIds } = useIngredientStore();
   const {
     mealType: currentMealType,
     country: currentKitchens,
@@ -57,11 +57,23 @@ export default function ClientRecipePageLayout({
 
   // Сбрасываем страницу на 1 при изменении параметров поиска
   useEffect(() => {
+    console.log('🔄 Reset page effect:', {
+      currentPage,
+      selectedIds,
+      currentSearchQuery,
+      currentMealType,
+      currentKitchens,
+      currentDietTags,
+      currentSorting,
+      currentByTime,
+    });
+
     if (currentPage > 1) {
+      console.log('🔄 Resetting page from', currentPage, 'to 1');
       resetPage();
     }
   }, [
-    selectedIngredients,
+    selectedIds,
     currentSearchQuery,
     currentMealType,
     currentKitchens,
@@ -69,7 +81,6 @@ export default function ClientRecipePageLayout({
     currentSorting,
     currentByTime,
     resetPage,
-    currentPage,
   ]);
 
   // Используем хук для получения рецептов
@@ -77,9 +88,10 @@ export default function ClientRecipePageLayout({
     recipes: fetchedRecipes,
     total: fetchedTotal,
     isLoading: isFetching,
+    hasMore,
     error: fetchError,
   } = useRecipes({
-    ingredientIds: selectedIngredients.map((i) => i.id),
+    ingredientIds: selectedIds,
     searchText: currentSearchQuery,
     lang: locale,
     limit: 20,
@@ -91,6 +103,16 @@ export default function ClientRecipePageLayout({
     page: currentPage,
   });
 
+  console.log('selectedIngredients', selectedIds);
+  console.log('📊 ClientRecipePageLayout state:', {
+    fetchedRecipesLength: fetchedRecipes.length,
+    fetchedTotal,
+    currentPage,
+    hasMore,
+    isLoadingMore,
+    isFetching,
+  });
+
   // Логика отображения данных - используем данные из хука или начальные данные
   // Показываем начальные данные только если фильтры соответствуют начальным параметрам
   const filtersMatchInitial =
@@ -100,7 +122,7 @@ export default function ClientRecipePageLayout({
     currentSorting === (sorting === 'all' ? 'all' : sorting) &&
     currentByTime === (byTime === 'all' ? 'all' : byTime) &&
     currentSearchQuery === (searchQuery || '') &&
-    selectedIngredients.length === 0;
+    selectedIds.length === 0;
 
   const displayRecipes =
     fetchedRecipes.length > 0
@@ -146,15 +168,23 @@ export default function ClientRecipePageLayout({
 
   // Сбрасываем состояние загрузки кнопки "Показать еще" когда данные загрузились
   useEffect(() => {
+    console.log('🔄 Loading state effect:', {
+      isLoadingMore,
+      isFetching,
+      fetchedRecipesLength: fetchedRecipes.length,
+      previousRecipesCount,
+    });
+
     if (
       isLoadingMore &&
       !isFetching &&
       fetchedRecipes.length > previousRecipesCount
     ) {
+      console.log('✅ Loading completed, resetting loading state');
       setIsLoadingMore(false);
       setPreviousRecipesCount(fetchedRecipes.length);
     }
-  }, [isLoadingMore, isFetching, fetchedRecipes.length]);
+  }, [isLoadingMore, isFetching, fetchedRecipes.length, previousRecipesCount]);
 
   // Сбрасываем isLoadingMore при изменении фильтров
   useEffect(() => {
@@ -168,7 +198,7 @@ export default function ClientRecipePageLayout({
     currentDietTags,
     currentSorting,
     currentByTime,
-    selectedIngredients,
+    selectedIds,
   ]);
 
   // Дополнительная логика сброса isLoadingMore при ошибке или завершении загрузки
@@ -180,6 +210,12 @@ export default function ClientRecipePageLayout({
 
   // Кнопка "Показать ещё"
   const handleShowMore = async () => {
+    console.log('🔄 handleShowMore clicked:', {
+      currentPage,
+      newPage: currentPage + 1,
+      currentRecipesCount: fetchedRecipes.length,
+    });
+
     setIsLoadingMore(true);
     setPreviousRecipesCount(fetchedRecipes.length);
     setCurrentPage(currentPage + 1);
@@ -277,10 +313,10 @@ export default function ClientRecipePageLayout({
               />
             )}
 
-            {/* Load More Button - всегда показываем, если есть данные и не показывается скелетон */}
-
+            {/* Load More Button - показываем если есть данные и либо есть еще данные, либо идет загрузка */}
             {!shouldShowSkeleton &&
-              (displayRecipes.length > 0 || isLoadingMore) && (
+              displayRecipes.length > 0 &&
+              (hasMore || isLoadingMore || isFetching) && (
                 <div className="text-center mt-8">
                   <Button
                     onClick={handleShowMore}

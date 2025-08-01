@@ -383,6 +383,8 @@
     "hide": "Скрыть",
     "show": "Показать",
     "showingAllRecipes": "Показаны все найденные рецепты ({count})",
+    "allRecipesLoaded": "Загружены все {count} рецептов",
+    "noMoreRecipes": "Больше рецептов для загрузки нет",
     "recipeSavedDesc": "\"{title}\" добавлен в избранные",
     "recipeRemovedDesc": "\"{title}\" удален из избранных",
     "cookingTitle": "Готовим блюдо!",

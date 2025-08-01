@@ -381,6 +381,8 @@
     "hide": "Hide",
     "show": "Show",
     "showingAllRecipes": "Showing all found recipes ({count})",
+    "allRecipesLoaded": "All {count} recipes loaded",
+    "noMoreRecipes": "No more recipes to load",
     "recipeSavedDesc": "\"{title}\" added to favorites",
     "recipeRemovedDesc": "\"{title}\" removed from favorites",
     "cookingTitle": "Cooking dish!",

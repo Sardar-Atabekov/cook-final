@@ -128,18 +128,71 @@ export const recipeApi = {
       params.byTime = options.byTime.trim();
     }
 
-    // Если есть поиск по тексту, передаём только его
-    if (options.search && options.search.trim().length > 0) {
-      params.search = options.search.trim();
-      params.ingredientIds = ingredientIds.join(',');
-    } else if (ingredientIds.length > 0) {
+    // Всегда передаем ингредиенты, если они есть
+    if (ingredientIds.length > 0) {
       params.ingredients = ingredientIds.join(',');
     }
 
-    const response = await api.get('/recipes/recipes', { params });
-    const data = response.data;
+    // Если есть поиск по тексту, добавляем его
+    if (options.search && options.search.trim().length > 0) {
+      params.search = options.search.trim();
+    }
 
-    return data; // { recipes, total, hasMore }
+    // Специальная обработка для английского языка
+    if (lang === 'en') {
+      // Убеждаемся, что все параметры передаются корректно
+      if (!params.mealType) params.mealType = '';
+      if (!params.kitchens) params.kitchens = '';
+      if (!params.dietTags) params.dietTags = '';
+      if (!params.sorting) params.sorting = '';
+      if (!params.byTime) params.byTime = '';
+
+      // Убеждаемся, что ингредиенты передаются корректно
+      if (!params.ingredients && !params.ingredientIds) {
+        params.ingredients = '';
+      }
+    }
+
+    // Специальное логирование для английского языка
+    if (lang === 'en') {
+      console.log('🇬🇧 English API Request:', {
+        lang,
+        ingredientIds,
+        search: options.search,
+        params,
+        url: `${baseUrl}recipes/recipes`,
+        baseUrl,
+        fullUrl: `${baseUrl}recipes/recipes?${new URLSearchParams(params).toString()}`,
+      });
+    }
+
+    try {
+      const response = await api.get('/recipes/recipes', { params });
+      const data = response.data;
+
+      // Специальное логирование для английского языка
+      if (lang === 'en') {
+        console.log('🇬🇧 English API Response:', {
+          recipesCount: data?.recipes?.length || 0,
+          total: data?.total || 0,
+          hasMore: data?.hasMore || false,
+          status: response.status,
+        });
+      }
+
+      return data;
+    } catch (error: any) {
+      // Специальное логирование ошибок для английского языка
+      if (lang === 'en') {
+        console.error('🇬🇧 English API Error:', {
+          error: error.message,
+          status: error.response?.status,
+          data: error.response?.data,
+          params,
+        });
+      }
+      throw error;
+    }
   },
 
   // SSR версия для получения рецептов

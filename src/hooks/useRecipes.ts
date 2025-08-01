@@ -104,6 +104,19 @@ export function useRecipes({
         byTime: byTime === 'all' ? '' : byTime || '',
         search: searchText.trim() || undefined,
       };
+
+      // Специальное логирование для английского языка
+      if (lang === 'en') {
+        console.log('🇬🇧 English useRecipes hook:', {
+          ingredientIds,
+          searchText,
+          lang,
+          filters,
+          page,
+          offset,
+        });
+      }
+
       return recipeApi.getRecipes(ingredientIds, filters, lang);
     },
     staleTime: 7 * 24 * 60 * 60 * 1000, // 7 дней
@@ -123,29 +136,56 @@ export function useRecipes({
   useEffect(() => {
     if (!data) return;
 
+    console.log('🔄 useRecipes useEffect:', {
+      page,
+      dataRecipesLength: data.recipes?.length || 0,
+      currentAllRecipesLength: allRecipes.length,
+      total: data.total,
+    });
+
     if (page === 1) {
       // Для первой страницы заменяем все рецепты
+      console.log('📄 Page 1: Replacing all recipes');
       setAllRecipes(data.recipes ?? []);
     } else {
       // Для последующих страниц добавляем новые рецепты
+      console.log('📄 Page > 1: Adding new recipes');
       setAllRecipes((prev) => {
         const existingIds = new Set(prev.map((r) => r.id));
         const newRecipes = (data.recipes ?? []).filter(
           (r) => !existingIds.has(r.id)
         );
 
+        console.log('➕ Adding recipes:', {
+          existingCount: prev.length,
+          newRecipesCount: newRecipes.length,
+          totalAfter: prev.length + newRecipes.length,
+        });
+
         return [...prev, ...newRecipes];
       });
     }
   }, [data, page]);
 
+  // Вычисляем hasMore на основе текущего количества рецептов и общего количества
+  // Если данных еще нет, но мы на странице > 1, то предполагаем что есть еще данные
+  const hasMore = data?.total
+    ? allRecipes.length < data.total
+    : page > 1 || allRecipes.length > 0;
+
+  console.log('📊 useRecipes return:', {
+    allRecipesLength: allRecipes.length,
+    total: data?.total || 0,
+    hasMore,
+    page,
+    limit,
+  });
+
   return {
     recipes: allRecipes,
     total: data?.total || 0,
     isLoading: isLoading || isFetching,
-    hasMore:
-      (page - 1) * limit + (data?.recipes?.length || 0) <
-      (data?.total || Infinity),
+    hasMore,
     currentCount: allRecipes.length,
     error,
     isFetching,

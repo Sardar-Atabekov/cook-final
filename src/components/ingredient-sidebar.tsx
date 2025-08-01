@@ -13,7 +13,6 @@ import { useIngredientStore } from '@/stores/useIngredientStore';
 import { ingredientsApi } from '@/lib/api';
 import { useIngredientsSearch } from '@/hooks/useIngredients';
 import { IngredientCategory as IngredientCategoryComponent } from './ingredientCategory';
-import { useSearchParams, useRouter } from 'next/navigation';
 
 function SkeletonBlock() {
   return <div className="animate-pulse bg-gray-200 rounded h-8 w-full mb-2" />;
@@ -34,8 +33,11 @@ export function IngredientSidebar({
     groupedCategories,
     setGroupedCategories,
     isCacheStale,
+    selectedIngredients,
     selectedIds,
-    setSelectedIds,
+    addIngredient,
+    removeIngredient,
+    clearIngredients,
     clearIngredientsOnLanguageChange,
   } = useIngredientStore();
 
@@ -100,22 +102,32 @@ export function IngredientSidebar({
     return [];
   }, [initialGroupedCategories, groupedCategories, locale]);
 
-  // Новый toggleIngredient: useCallback для оптимизации
+  // Исправленный toggleIngredient: используем addIngredient/removeIngredient
   const toggleIngredient = useCallback(
     (ingredient: any) => {
+      console.log('🔧 Toggle ingredient:', {
+        ingredient,
+        currentSelectedIds: selectedIds,
+        currentSelectedIngredients: selectedIngredients,
+        locale,
+      });
+
       if (selectedIds.includes(ingredient.id)) {
-        setSelectedIds(selectedIds.filter((x) => x !== ingredient.id));
+        console.log('🔧 Removing ingredient:', ingredient);
+        removeIngredient(ingredient.id);
       } else {
-        setSelectedIds([...selectedIds, ingredient.id]);
+        console.log('🔧 Adding ingredient:', ingredient);
+        addIngredient(ingredient);
       }
     },
-    [selectedIds, setSelectedIds]
+    [selectedIds, selectedIngredients, addIngredient, removeIngredient, locale]
   );
 
-  // Очистить все ингредиенты: useCallback для оптимизации
+  // Очистить все ингредиенты: используем clearIngredients
   const clearAllIngredients = useCallback(() => {
-    setSelectedIds([]);
-  }, [setSelectedIds]);
+    console.log('🔧 Clearing all ingredients');
+    clearIngredients();
+  }, [clearIngredients]);
 
   // Поиск ингредиентов (оставим как есть, если есть useIngredientsSearch)
   const { data: searchResults = [] } = useIngredientsSearch?.(searchQuery) || {
@@ -219,48 +231,35 @@ export function IngredientSidebar({
         )}
 
         {/* Выбранные ингредиенты */}
-        {selectedIds.length > 0 && (
+        {selectedIngredients.length > 0 && (
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
             <h3 className="font-medium text-gray-900 mb-2">
-              {t('selected', { count: selectedIds.length })}
+              {t('selected', { count: selectedIngredients.length })}
             </h3>
             <div className="flex flex-wrap gap-2">
-              {selectedIds.map((ingredientId: number) => {
-                // Находим название ингредиента по ID из всех категорий
-                let ingredientName = `ID: ${ingredientId}`;
-                for (const category of categoriesData) {
-                  const found = category.ingredients.find(
-                    (i: any) => i.id === ingredientId
-                  );
-                  if (found) {
-                    ingredientName = found.name;
-                    break;
-                  }
-                }
-                return (
-                  <Badge
-                    key={ingredientId}
-                    variant="default"
-                    className="bg-blue-600 text-white flex items-center"
+              {selectedIngredients.map((ingredient: any) => (
+                <Badge
+                  key={ingredient.id}
+                  variant="default"
+                  className="bg-blue-600 text-white flex items-center"
+                >
+                  {ingredient.name}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="ml-2 h-auto p-0 hover:text-gray-200"
+                    onClick={() => toggleIngredient(ingredient)}
                   >
-                    {ingredientName}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="ml-2 h-auto p-0 hover:text-gray-200"
-                      onClick={() => toggleIngredient({ id: ingredientId })}
-                    >
-                      <X className="w-3 h-3" />
-                    </Button>
-                  </Badge>
-                );
-              })}
+                    <X className="w-3 h-3" />
+                  </Button>
+                </Badge>
+              ))}
             </div>
           </div>
         )}
 
         {/* Clear All */}
-        {selectedIds.length > 0 && (
+        {selectedIngredients.length > 0 && (
           <Button
             variant="outline"
             className="w-full mt-4"

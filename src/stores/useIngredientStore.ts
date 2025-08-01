@@ -33,24 +33,30 @@ export const useIngredientStore = create<IngredientStore>()(
       addIngredient: (ingredient) => {
         const current = get().selectedIngredients;
         if (!current.find((i) => i.id === ingredient.id)) {
-          set({ selectedIngredients: [...current, ingredient] });
-        }
-        // Также добавляем id в selectedIds
-        const ids = get().selectedIds;
-        if (!ids.includes(ingredient.id)) {
-          set({ selectedIds: [...ids, ingredient.id] });
+          const newIngredients = [...current, ingredient];
+          set({
+            selectedIngredients: newIngredients,
+            selectedIds: [...get().selectedIds, ingredient.id],
+          });
         }
       },
       removeIngredient: (id) => {
+        const newIngredients = get().selectedIngredients.filter(
+          (i) => i.id !== id
+        );
+        const newIds = get().selectedIds.filter((x) => x !== id);
         set({
-          selectedIngredients: get().selectedIngredients.filter(
-            (i) => i.id !== id
-          ),
-          selectedIds: get().selectedIds.filter((x) => x !== id),
+          selectedIngredients: newIngredients,
+          selectedIds: newIds,
         });
       },
-      clearIngredients: () => set({ selectedIngredients: [], selectedIds: [] }),
-      hasIngredient: (id) => get().selectedIngredients.some((i) => i.id === id),
+      clearIngredients: () => {
+        set({ selectedIngredients: [], selectedIds: [] });
+      },
+      hasIngredient: (id) => {
+        const ingredients = get().selectedIngredients;
+        return ingredients.some((i) => i.id === id);
+      },
       setSelectedIds: (ids) => {
         // Получаем все текущие ингредиенты из groupedCategories
         const allIngredients = get()
